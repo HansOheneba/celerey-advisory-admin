@@ -2,6 +2,11 @@ export type ClientStatus = "active" | "onboarding" | "review" | "inactive";
 
 export type RiskLevel = "conservative" | "moderate" | "growth" | "aggressive";
 
+export type ClientSubscription =
+  | "not_onboarded"
+  | "free_trial"
+  | "celerey_core";
+
 export type Client = {
   id: string;
   firstName: string;
@@ -10,6 +15,7 @@ export type Client = {
   phone: string;
   status: ClientStatus;
   riskLevel: RiskLevel;
+  subscription: ClientSubscription;
   /** Assets under advisement */
   aua: number;
   currency: "USD" | "GHS" | "GBP";

@@ -3,10 +3,15 @@
 import { revalidatePath } from "next/cache";
 import {
   CreateClientFormSchema,
+  UpdateSubscriptionSchema,
   type CreateClientFormState,
+  type UpdateSubscriptionFormState,
 } from "@/lib/definitions";
 import { requireSession } from "@/lib/dal";
-import { createClient } from "@/lib/repositories/clients";
+import {
+  createClient,
+  updateClientSubscription,
+} from "@/lib/repositories/clients";
 
 export async function createClientAction(
   _state: CreateClientFormState,
@@ -41,6 +46,38 @@ export async function createClientAction(
   }
 
   revalidatePath("/clients");
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
+
+export async function updateClientSubscriptionAction(
+  _state: UpdateSubscriptionFormState,
+  formData: FormData,
+): Promise<UpdateSubscriptionFormState> {
+  await requireSession();
+
+  const validatedFields = UpdateSubscriptionSchema.safeParse({
+    clientId: formData.get("clientId"),
+    subscription: formData.get("subscription"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Choose a valid subscription.",
+    };
+  }
+
+  const { clientId, subscription } = validatedFields.data;
+  const updated = await updateClientSubscription(clientId, subscription);
+
+  if (!updated) {
+    return { message: "Client not found." };
+  }
+
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${clientId}`);
   revalidatePath("/dashboard");
 
   return { success: true };

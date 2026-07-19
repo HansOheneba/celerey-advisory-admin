@@ -54,3 +54,18 @@ export type CreateClientFormState =
       success?: boolean;
     }
   | undefined;
+
+export const UpdateSubscriptionSchema = z.object({
+  clientId: z.string().min(1),
+  subscription: z.enum(["not_onboarded", "free_trial", "celerey_core"]),
+});
+
+export type UpdateSubscriptionFormState =
+  | {
+      errors?: {
+        subscription?: string[];
+      };
+      message?: string;
+      success?: boolean;
+    }
+  | undefined;

@@ -30,9 +30,12 @@ function getBreadcrumbs(pathname: string) {
 
   return segments.map((segment, index) => {
     const href = `/${segments.slice(0, index + 1).join("/")}`;
-    const label =
-      routeLabels[segment] ??
-      segment.charAt(0).toUpperCase() + segment.slice(1);
+    const isClientId =
+      segments[0] === "clients" && index === 1 && segment.startsWith("cli_");
+    const label = isClientId
+      ? "Profile"
+      : (routeLabels[segment] ??
+        segment.charAt(0).toUpperCase() + segment.slice(1));
 
     return {
       label,

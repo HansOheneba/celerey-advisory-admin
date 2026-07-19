@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import {
@@ -8,11 +9,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Ellipsis,
+  Eye,
   Mail,
   Phone,
   Search,
 } from "lucide-react";
 import type { Client } from "@/types/client";
+import { SubscriptionBadge } from "@/components/clients/subscription-badge";
 import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -194,7 +197,8 @@ export function ClientsTable({
                 </button>
               </TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Risk</TableHead>
+              <TableHead className="hidden lg:table-cell">Subscription</TableHead>
+              <TableHead className="hidden xl:table-cell">Risk</TableHead>
               <TableHead>
                 <button
                   type="button"
@@ -233,7 +237,7 @@ export function ClientsTable({
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="p-0">
+                <TableCell colSpan={8} className="p-0">
                   <div
                     className={cn(
                       dashboardTheme.emptyState,
@@ -252,14 +256,17 @@ export function ClientsTable({
               items.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <Link
+                      href={`/clients/${client.id}`}
+                      className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
                       <Avatar size="sm">
                         <AvatarFallback className="bg-[#1B1856] text-white">
                           {getInitials(client.firstName, client.lastName)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
+                        <p className="truncate text-sm font-medium hover:underline">
                           {client.firstName} {client.lastName}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
@@ -269,12 +276,15 @@ export function ClientsTable({
                           <StatusBadge status={client.status} />
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <StatusBadge status={client.status} />
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
+                    <SubscriptionBadge subscription={client.subscription} />
+                  </TableCell>
+                  <TableCell className="hidden xl:table-cell">
                     <RiskBadge riskLevel={client.riskLevel} />
                   </TableCell>
                   <TableCell className="font-medium">
@@ -300,6 +310,12 @@ export function ClientsTable({
                         <Ellipsis />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          render={<Link href={`/clients/${client.id}`} />}
+                        >
+                          <Eye />
+                          View full profile
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           render={<a href={`mailto:${client.email}`} />}
                         >

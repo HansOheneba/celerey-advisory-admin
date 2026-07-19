@@ -5,7 +5,12 @@ import {
   clients,
   createClientRecord,
 } from "@/lib/data/clients";
-import type { Client, DashboardSummary } from "@/types/client";
+import {
+  ensureClientDetail,
+  updateDetailSubscription,
+} from "@/lib/data/client-details";
+import type { Client, ClientSubscription, DashboardSummary } from "@/types/client";
+import type { ClientDetail } from "@/types/client-detail";
 
 function delay(ms = 120) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -49,7 +54,9 @@ export async function listClients(
   let filtered = clients.filter((client) => {
     const matchesQuery =
       !normalizedQuery ||
-      `${client.firstName} ${client.lastName}`.toLowerCase().includes(normalizedQuery) ||
+      `${client.firstName} ${client.lastName}`
+        .toLowerCase()
+        .includes(normalizedQuery) ||
       client.email.toLowerCase().includes(normalizedQuery) ||
       client.location.toLowerCase().includes(normalizedQuery);
 
@@ -106,6 +113,31 @@ export async function getClientById(id: string): Promise<Client | null> {
   return clients.find((client) => client.id === id) ?? null;
 }
 
+export async function getClientDetail(id: string): Promise<ClientDetail | null> {
+  await delay(160);
+  const client = clients.find((row) => row.id === id);
+  if (!client) {
+    return null;
+  }
+
+  return ensureClientDetail(client);
+}
+
+export async function updateClientSubscription(
+  id: string,
+  subscription: ClientSubscription,
+): Promise<ClientDetail | null> {
+  await delay();
+  const client = clients.find((row) => row.id === id);
+  if (!client) {
+    return null;
+  }
+
+  client.subscription = subscription;
+  ensureClientDetail(client);
+  return updateDetailSubscription(id, subscription);
+}
+
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   await delay(180);
   return buildDashboardSummary(clients);
@@ -145,6 +177,8 @@ export async function createClient(input: {
     advisorId: input.advisorId,
     advisorName: input.advisorName,
   });
+
+  ensureClientDetail(client);
 
   return { client };
 }

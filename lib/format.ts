@@ -30,6 +30,11 @@ export function getInitials(firstName: string, lastName: string) {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
-export function titleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+export function titleCase(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return "—";
+  }
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
