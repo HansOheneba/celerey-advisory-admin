@@ -13,13 +13,15 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await decrypt(token);
 
-  if (isProtected && !session?.userId) {
+  const isAuthenticated = Boolean(session?.userId && session.accessToken);
+
+  if (isProtected && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLogin && session?.userId) {
+  if (isLogin && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

@@ -22,10 +22,22 @@ export type LoginFormState =
     }
   | undefined;
 
+export type RequestOtpFormState =
+  | {
+      errors?: {
+        email?: string[];
+      };
+      message?: string;
+      success?: boolean;
+      email?: string;
+    }
+  | undefined;
+
 export type SessionPayload = {
   userId: string;
   name: string;
   email: string;
+  accessToken: string;
   expiresAt: string;
 };
 
@@ -41,6 +53,12 @@ export const CreateClientFormSchema = z.object({
     .min(1, { error: "Last name is required." })
     .max(60, { error: "Last name is too long." }),
   email: z.email({ error: "Enter a valid email address." }).trim(),
+  phone: z
+    .string()
+    .trim()
+    .max(30, { error: "Phone number is too long." }),
+  sendInvite: z.boolean(),
+  grantCore: z.boolean(),
 });
 
 export type CreateClientFormState =
@@ -49,9 +67,13 @@ export type CreateClientFormState =
         firstName?: string[];
         lastName?: string[];
         email?: string[];
+        phone?: string[];
+        sendInvite?: string[];
+        grantCore?: string[];
       };
       message?: string;
       success?: boolean;
+      inviteSent?: boolean;
     }
   | undefined;
 

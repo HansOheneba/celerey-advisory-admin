@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState, type FormEvent } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { verifyOtp } from "@/app/actions/auth";
+import { requestOtp, verifyOtp } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,8 +11,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-import { EmailFormSchema } from "@/lib/definitions";
-
 
 const darkInput =
   "h-11 border-white/20 bg-white/5 text-white placeholder:text-white/40";
@@ -24,31 +22,38 @@ const darkOtpSlot = "size-11 border-white/20 text-white";
 export function LoginForm() {
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
-  const [state, action, pending] = useActionState(verifyOtp, undefined);
+  const [resendPending, startResend] = useTransition();
+  const [otpState, otpAction, otpPending] = useActionState(verifyOtp, undefined);
+  const [requestState, requestAction, requestPending] = useActionState(
+    requestOtp,
+    undefined,
+  );
 
-  function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // Advance to the OTP step as soon as a new successful requestState
+  // is produced, without waiting for a post-render effect.
+  const [handledRequestState, setHandledRequestState] = useState(requestState);
+  if (requestState !== handledRequestState) {
+    setHandledRequestState(requestState);
 
-    const validated = EmailFormSchema.safeParse({ email });
-
-    if (!validated.success) {
-      setEmailError(
-        validated.error.flatten().fieldErrors.email?.[0] ??
-          "Enter a valid email address.",
-      );
-      return;
+    if (requestState?.success && requestState.email) {
+      setEmail(requestState.email);
+      setStep("otp");
+      setOtp("");
     }
+  }
 
-    setEmailError(null);
-    setEmail(validated.data.email);
-    setStep("otp");
+  function handleResend() {
+    const formData = new FormData();
+    formData.set("email", email);
+    startResend(() => {
+      requestAction(formData);
+    });
   }
 
   if (step === "otp") {
     return (
-      <form action={action} className="space-y-6">
+      <form action={otpAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="otp" value={otp} />
 
@@ -67,7 +72,7 @@ export function LoginForm() {
             value={otp}
             onChange={setOtp}
             autoFocus
-            aria-invalid={Boolean(state?.errors?.otp)}
+            aria-invalid={Boolean(otpState?.errors?.otp)}
           >
             <InputOTPGroup>
               <InputOTPSlot index={0} className={darkOtpSlot} />
@@ -78,17 +83,26 @@ export function LoginForm() {
               <InputOTPSlot index={5} className={darkOtpSlot} />
             </InputOTPGroup>
           </InputOTP>
-          {state?.errors?.otp ? (
-            <p className="text-xs text-red-300">{state.errors.otp[0]}</p>
+          {otpState?.errors?.otp ? (
+            <p className="text-xs text-red-300">{otpState.errors.otp[0]}</p>
           ) : null}
         </div>
 
-        {state?.message ? (
+        {otpState?.message ? (
           <p
             className="rounded-md border border-red-300/30 bg-red-400/10 px-3 py-2 text-sm text-red-200"
             role="alert"
           >
-            {state.message}
+            {otpState.message}
+          </p>
+        ) : null}
+
+        {requestState?.message && !requestState.success ? (
+          <p
+            className="rounded-md border border-red-300/30 bg-red-400/10 px-3 py-2 text-sm text-red-200"
+            role="alert"
+          >
+            {requestState.message}
           </p>
         ) : null}
 
@@ -96,9 +110,9 @@ export function LoginForm() {
           <Button
             type="submit"
             className={darkPrimaryButton}
-            disabled={pending || otp.length !== 6}
+            disabled={otpPending || otp.length !== 6}
           >
-            {pending ? "Verifying..." : "Next"}
+            {otpPending ? "Verifying..." : "Next"}
           </Button>
           <Button
             type="button"
@@ -111,13 +125,22 @@ export function LoginForm() {
           >
             Use a different email
           </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className={darkGhostButton}
+            onClick={handleResend}
+            disabled={resendPending || requestPending}
+          >
+            {resendPending || requestPending ? "Sending..." : "Resend code"}
+          </Button>
         </div>
       </form>
     );
   }
 
   return (
-    <form onSubmit={handleEmailSubmit} className="space-y-5">
+    <form action={requestAction} className="space-y-5">
       <div className="space-y-2">
         <Label htmlFor="email" className="text-white/80">
           Email address
@@ -128,19 +151,30 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           placeholder="name@celerey.co"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          defaultValue={email}
           required
-          aria-invalid={Boolean(emailError)}
+          aria-invalid={Boolean(
+            requestState?.errors?.email ||
+              (requestState?.message && !requestState.success),
+          )}
           className={darkInput}
         />
-        {emailError ? (
-          <p className="text-xs text-red-300">{emailError}</p>
+        {requestState?.errors?.email ? (
+          <p className="text-xs text-red-300">{requestState.errors.email[0]}</p>
         ) : null}
       </div>
 
-      <Button type="submit" className={darkPrimaryButton}>
-        Send verification code
+      {requestState?.message && !requestState.success ? (
+        <p
+          className="rounded-md border border-red-300/30 bg-red-400/10 px-3 py-2 text-sm text-red-200"
+          role="alert"
+        >
+          {requestState.message}
+        </p>
+      ) : null}
+
+      <Button type="submit" className={darkPrimaryButton} disabled={requestPending}>
+        {requestPending ? "Sending code..." : "Send verification code"}
       </Button>
     </form>
   );

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClientApi } from "@/lib/api/clients";
 import {
   CreateClientFormSchema,
   UpdateSubscriptionSchema,
@@ -8,10 +9,11 @@ import {
   type UpdateSubscriptionFormState,
 } from "@/lib/definitions";
 import { requireSession } from "@/lib/dal";
-import {
-  createClient,
-  updateClientSubscription,
-} from "@/lib/repositories/clients";
+import { updateClientSubscription } from "@/lib/repositories/clients";
+
+function formFlag(formData: FormData, key: string) {
+  return formData.get(key) === "true" || formData.get(key) === "on";
+}
 
 export async function createClientAction(
   _state: CreateClientFormState,
@@ -23,6 +25,9 @@ export async function createClientAction(
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
+    phone: formData.get("phone") ?? "",
+    sendInvite: formFlag(formData, "sendInvite"),
+    grantCore: formFlag(formData, "grantCore"),
   });
 
   if (!validatedFields.success) {
@@ -32,23 +37,34 @@ export async function createClientAction(
     };
   }
 
-  const result = await createClient({
-    ...validatedFields.data,
-    advisorId: session.userId,
-    advisorName: session.name,
+  const { firstName, lastName, email, phone, sendInvite, grantCore } =
+    validatedFields.data;
+
+  const result = await createClientApi(session.accessToken, {
+    firstName,
+    lastName,
+    email,
+    phone: phone?.trim() ? phone.trim() : undefined,
+    sendInvite,
+    grantCore,
   });
 
-  if ("error" in result) {
+  if (!result.ok) {
+    const emailError =
+      result.status === 409
+        ? "A client with this email already exists."
+        : result.message;
+
     return {
-      errors: { email: [result.error] },
-      message: result.error,
+      errors: { email: [emailError] },
+      message: result.message,
     };
   }
 
   revalidatePath("/clients");
   revalidatePath("/dashboard");
 
-  return { success: true };
+  return { success: true, inviteSent: sendInvite };
 }
 
 export async function updateClientSubscriptionAction(

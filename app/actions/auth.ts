@@ -1,16 +1,45 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { OtpFormSchema, type LoginFormState } from "@/lib/definitions";
-import { createSession, deleteSession } from "@/lib/session";
+import {
+  getAdvisorProfile,
+  requestOtp as requestOtpApi,
+  revokeSession,
+  verifyOtp as verifyOtpApi,
+} from "@/lib/api/auth";
+import {
+  EmailFormSchema,
+  OtpFormSchema,
+  type LoginFormState,
+  type RequestOtpFormState,
+} from "@/lib/definitions";
+import { createSession, deleteSession, getSessionToken, decrypt } from "@/lib/session";
 
-function advisorNameFromEmail(email: string) {
-  const local = email.split("@")[0] ?? "advisor";
-  return local
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+export async function requestOtp(
+  _state: RequestOtpFormState,
+  formData: FormData,
+): Promise<RequestOtpFormState> {
+  const validatedFields = EmailFormSchema.safeParse({
+    email: formData.get("email"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Please fix the errors below.",
+    };
+  }
+
+  const { email } = validatedFields.data;
+  const result = await requestOtpApi(email);
+
+  if (!result.ok) {
+    return {
+      message: result.message || "Unable to send verification code.",
+    };
+  }
+
+  return { success: true, email };
 }
 
 export async function verifyOtp(
@@ -29,20 +58,72 @@ export async function verifyOtp(
     };
   }
 
-  const { email } = validatedFields.data;
-  const demoName = process.env.DEMO_ADVISOR_NAME ?? advisorNameFromEmail(email);
+  const { email, otp } = validatedFields.data;
+  const verifyResult = await verifyOtpApi(email, otp);
 
-  // Foundation OTP: accept any 6-digit code for any email.
+  if (!verifyResult.ok) {
+    return {
+      errors: { otp: [verifyResult.message] },
+      message: verifyResult.message || "Invalid verification code.",
+    };
+  }
+
+  const accessToken = verifyResult.data.session_token;
+
+  if (!accessToken) {
+    return {
+      message: "Login succeeded but no session token was returned.",
+    };
+  }
+
+  const profileResult = await getAdvisorProfile(accessToken);
+
+  if (!profileResult.ok) {
+    return {
+      message:
+        profileResult.status === 403 || profileResult.status === 401
+          ? "This account does not have advisor access."
+          : profileResult.message || "Unable to load advisor profile.",
+    };
+  }
+
+  const profileData = profileResult.data as {
+    advisor?: {
+      id?: string;
+      name?: string;
+      email?: string;
+    };
+    id?: string;
+    name?: string;
+    email?: string;
+  };
+
+  const advisor = profileData.advisor ?? profileData;
+
+  if (!advisor?.id) {
+    return {
+      message: "Advisor profile was missing from the API response.",
+    };
+  }
+
   await createSession({
-    userId: `advisor-${email.toLowerCase()}`,
-    name: demoName,
-    email: email.toLowerCase(),
+    userId: advisor.id,
+    name: advisor.name || email.split("@")[0] || "Advisor",
+    email: advisor.email || email.toLowerCase(),
+    accessToken,
   });
 
   redirect("/dashboard");
 }
 
 export async function logout() {
+  const cookieToken = await getSessionToken();
+  const payload = await decrypt(cookieToken);
+
+  if (payload?.accessToken) {
+    await revokeSession(payload.accessToken);
+  }
+
   await deleteSession();
   redirect("/login");
 }

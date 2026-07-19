@@ -25,9 +25,13 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
       return;
     }
 
-    toast.success("Client created");
+    toast.success(
+      state.inviteSent
+        ? "Client created and invite sent"
+        : "Client created",
+    );
     onSuccess();
-  }, [state?.success, onSuccess]);
+  }, [state?.success, state?.inviteSent, onSuccess]);
 
   return (
     <form action={action} className="space-y-4">
@@ -82,6 +86,55 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
         ) : null}
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="phone">Phone (optional)</Label>
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          placeholder="+14155550100"
+          aria-invalid={Boolean(state?.errors?.phone)}
+        />
+        {state?.errors?.phone ? (
+          <p className="text-xs text-destructive">{state.errors.phone[0]}</p>
+        ) : null}
+      </div>
+
+      <div className="space-y-3 rounded-lg border p-3">
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            name="sendInvite"
+            value="true"
+            defaultChecked
+            className="mt-0.5 size-4 accent-primary"
+          />
+          <span>
+            <span className="font-medium">Send onboarding invite</span>
+            <span className="mt-0.5 block text-muted-foreground">
+              Email the client a link to complete their Celerey profile.
+            </span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            name="grantCore"
+            value="true"
+            defaultChecked
+            className="mt-0.5 size-4 accent-primary"
+          />
+          <span>
+            <span className="font-medium">Grant Celerey Core</span>
+            <span className="mt-0.5 block text-muted-foreground">
+              Give Core access immediately (recovery / paid-offline cases).
+            </span>
+          </span>
+        </label>
+      </div>
+
       {state?.message && !state.success ? (
         <p
           className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
@@ -93,7 +146,7 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
 
       <DialogFooter>
         <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-          {pending ? "Creating..." : "Create client"}
+          {pending ? "Saving..." : "Create client"}
         </Button>
       </DialogFooter>
     </form>
@@ -123,8 +176,8 @@ export function AddClientDialog() {
         <DialogHeader>
           <DialogTitle>Add client</DialogTitle>
           <DialogDescription>
-            Create a new client with their name and email. They start in
-            onboarding.
+            Create a stub client for onboarding. Optionally email an invite and
+            grant Celerey Core right away.
           </DialogDescription>
         </DialogHeader>
         <AddClientForm key={formKey} onSuccess={handleSuccess} />

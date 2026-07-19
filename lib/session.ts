@@ -9,12 +9,14 @@ export async function createSession(user: {
   userId: string;
   name: string;
   email: string;
+  accessToken: string;
 }) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
   const session = await encrypt({
     userId: user.userId,
     name: user.name,
     email: user.email,
+    accessToken: user.accessToken,
     expiresAt: expiresAt.toISOString(),
   });
   const cookieStore = await cookies();

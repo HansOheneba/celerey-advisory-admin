@@ -8,13 +8,14 @@ export type AdvisorSession = {
   userId: string;
   name: string;
   email: string;
+  accessToken: string;
 };
 
 export const verifySession = cache(async (): Promise<AdvisorSession | null> => {
   const token = await getSessionToken();
   const payload = await decrypt(token);
 
-  if (!payload?.userId) {
+  if (!payload?.userId || !payload.accessToken) {
     return null;
   }
 
@@ -22,6 +23,7 @@ export const verifySession = cache(async (): Promise<AdvisorSession | null> => {
     userId: payload.userId,
     name: payload.name,
     email: payload.email,
+    accessToken: payload.accessToken,
   };
 });
 
