@@ -1,5 +1,6 @@
 import "server-only";
 
+import { findClientsApi } from "@/lib/api/clients";
 import {
   buildDashboardSummary,
   clients,
@@ -9,6 +10,7 @@ import {
   ensureClientDetail,
   updateDetailSubscription,
 } from "@/lib/data/client-details";
+import { requireSession } from "@/lib/dal";
 import type { Client, ClientSubscription, DashboardSummary } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
 
@@ -20,6 +22,7 @@ export type ClientListParams = {
   query?: string;
   status?: string;
   riskLevel?: string;
+  subscription?: string;
   sortBy?: "name" | "aua" | "lastContactAt" | "nextReviewAt";
   sortDir?: "asc" | "desc";
   page?: number;
@@ -37,75 +40,35 @@ export type ClientListResult = {
 export async function listClients(
   params: ClientListParams = {},
 ): Promise<ClientListResult> {
-  await delay();
+  const session = await requireSession();
 
   const {
     query = "",
     status = "all",
     riskLevel = "all",
+    subscription = "all",
     sortBy = "name",
     sortDir = "asc",
     page = 1,
-    pageSize = 8,
+    pageSize = 10,
   } = params;
 
-  const normalizedQuery = query.trim().toLowerCase();
-
-  let filtered = clients.filter((client) => {
-    const matchesQuery =
-      !normalizedQuery ||
-      `${client.firstName} ${client.lastName}`
-        .toLowerCase()
-        .includes(normalizedQuery) ||
-      client.email.toLowerCase().includes(normalizedQuery) ||
-      client.location.toLowerCase().includes(normalizedQuery);
-
-    const matchesStatus = status === "all" || client.status === status;
-    const matchesRisk = riskLevel === "all" || client.riskLevel === riskLevel;
-
-    return matchesQuery && matchesStatus && matchesRisk;
-  });
-
-  filtered = [...filtered].sort((a, b) => {
-    let comparison = 0;
-
-    switch (sortBy) {
-      case "aua":
-        comparison = a.aua - b.aua;
-        break;
-      case "lastContactAt":
-        comparison =
-          new Date(a.lastContactAt).getTime() -
-          new Date(b.lastContactAt).getTime();
-        break;
-      case "nextReviewAt":
-        comparison =
-          new Date(a.nextReviewAt).getTime() -
-          new Date(b.nextReviewAt).getTime();
-        break;
-      case "name":
-      default:
-        comparison = `${a.firstName} ${a.lastName}`.localeCompare(
-          `${b.firstName} ${b.lastName}`,
-        );
-        break;
-    }
-
-    return sortDir === "asc" ? comparison : -comparison;
-  });
-
-  const total = filtered.length;
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(Math.max(page, 1), pageCount);
-  const start = (safePage - 1) * pageSize;
-
-  return {
-    items: filtered.slice(start, start + pageSize),
-    total,
-    page: safePage,
+  const result = await findClientsApi(session.accessToken, {
+    query,
+    status,
+    riskLevel,
+    subscription,
+    sortBy,
+    sortDir,
+    page,
     pageSize,
-    pageCount,
-  };
+  });
+
+  if (!result.ok) {
+    throw new Error(result.message || "Unable to load clients.");
+  }
+
+  return result.data;
 }
 
 export async function getClientById(id: string): Promise<Client | null> {
