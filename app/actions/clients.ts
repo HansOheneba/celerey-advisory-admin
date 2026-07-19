@@ -26,7 +26,6 @@ export async function createClientAction(
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
-    phone: formData.get("phone") ?? "",
     grantCore: formFlag(formData, "grantCore"),
     durationDays: formData.get("duration") ?? DEFAULT_CORE_DURATION_DAYS,
   });
@@ -38,14 +37,13 @@ export async function createClientAction(
     };
   }
 
-  const { firstName, lastName, email, phone, grantCore, durationDays } =
+  const { firstName, lastName, email, grantCore, durationDays } =
     validatedFields.data;
 
   const result = await createClientApi(session.accessToken, {
     firstName,
     lastName,
     email,
-    phone: phone?.trim() ? phone.trim() : undefined,
     sendInvite: true,
     grantCore,
     durationDays: grantCore ? durationDays : undefined,

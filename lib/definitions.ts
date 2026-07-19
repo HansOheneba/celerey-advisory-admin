@@ -53,10 +53,6 @@ export const CreateClientFormSchema = z.object({
     .min(1, { error: "Last name is required." })
     .max(60, { error: "Last name is too long." }),
   email: z.email({ error: "Enter a valid email address." }).trim(),
-  phone: z
-    .string()
-    .trim()
-    .max(30, { error: "Phone number is too long." }),
   grantCore: z.boolean(),
   durationDays: z.coerce
     .number()
@@ -71,7 +67,6 @@ export type CreateClientFormState =
         firstName?: string[];
         lastName?: string[];
         email?: string[];
-        phone?: string[];
         grantCore?: string[];
         durationDays?: string[];
       };

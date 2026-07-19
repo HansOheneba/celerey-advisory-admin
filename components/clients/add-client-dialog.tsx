@@ -107,21 +107,6 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
         ) : null}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone">Phone (optional)</Label>
-        <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          placeholder="+14155550100"
-          aria-invalid={Boolean(state?.errors?.phone)}
-        />
-        {state?.errors?.phone ? (
-          <p className="text-xs text-destructive">{state.errors.phone[0]}</p>
-        ) : null}
-      </div>
-
       <div className="space-y-3 rounded-lg border p-3">
         <label className="flex items-start gap-3 text-sm">
           <input

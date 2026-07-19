@@ -7,7 +7,6 @@ export type CreateClientInput = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
   sendInvite?: boolean;
   grantCore?: boolean;
   /** Celerey Core access length in days. Only applied when grantCore is true. */
@@ -37,20 +36,23 @@ export async function createClientApi(
   accessToken: string,
   input: CreateClientInput,
 ) {
+  const body = {
+    firstName: input.firstName,
+    lastName: input.lastName,
+    email: input.email,
+    sendInvite: input.sendInvite ?? true,
+    grantCore: input.grantCore ?? true,
+    ...(input.grantCore && input.durationDays
+      ? { duration: input.durationDays }
+      : {}),
+  };
+
+  console.log("[admin.clients.create] payload:", JSON.stringify(body, null, 2));
+
   return executeApi<CreateClientResult>("admin.clients.create", {
     method: "POST",
     accessToken,
-    body: {
-      firstName: input.firstName,
-      lastName: input.lastName,
-      email: input.email,
-      ...(input.phone ? { phone: input.phone } : {}),
-      sendInvite: input.sendInvite ?? true,
-      grantCore: input.grantCore ?? true,
-      ...(input.grantCore && input.durationDays
-        ? { duration: input.durationDays }
-        : {}),
-    },
+    body,
   });
 }
 
