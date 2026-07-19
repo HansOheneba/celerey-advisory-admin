@@ -16,22 +16,43 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CORE_DURATION_PRESETS,
+  DEFAULT_CORE_DURATION_DAYS,
+  DEFAULT_CORE_DURATION_PRESET_KEY,
+  type CoreDurationPresetKey,
+} from "@/lib/definitions";
 
 function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, action, pending] = useActionState(createClientAction, undefined);
+  const [grantCore, setGrantCore] = useState(true);
+  const [durationPreset, setDurationPreset] = useState<CoreDurationPresetKey>(
+    DEFAULT_CORE_DURATION_PRESET_KEY,
+  );
+  const [customDays, setCustomDays] = useState(DEFAULT_CORE_DURATION_DAYS);
+  const isCustomDuration = durationPreset === "custom";
+  const durationDays = isCustomDuration
+    ? customDays
+    : String(
+        CORE_DURATION_PRESETS.find((preset) => preset.key === durationPreset)
+          ?.days ?? DEFAULT_CORE_DURATION_DAYS,
+      );
 
   useEffect(() => {
     if (!state?.success) {
       return;
     }
 
-    toast.success(
-      state.inviteSent
-        ? "Client created and invite sent"
-        : "Client created",
-    );
+    toast.success("Client created and invite sent");
     onSuccess();
-  }, [state?.success, state?.inviteSent, onSuccess]);
+  }, [state?.success, onSuccess]);
 
   return (
     <form action={action} className="space-y-4">
@@ -105,25 +126,10 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
         <label className="flex items-start gap-3 text-sm">
           <input
             type="checkbox"
-            name="sendInvite"
-            value="true"
-            defaultChecked
-            className="mt-0.5 size-4 accent-primary"
-          />
-          <span>
-            <span className="font-medium">Send onboarding invite</span>
-            <span className="mt-0.5 block text-muted-foreground">
-              Email the client a link to complete their Celerey profile.
-            </span>
-          </span>
-        </label>
-
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
             name="grantCore"
             value="true"
-            defaultChecked
+            checked={grantCore}
+            onChange={(event) => setGrantCore(event.target.checked)}
             className="mt-0.5 size-4 accent-primary"
           />
           <span>
@@ -133,7 +139,65 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
             </span>
           </span>
         </label>
+
+        {grantCore ? (
+          <div className="space-y-2 pl-7">
+            <Label htmlFor="durationPreset">Core subscription length</Label>
+            <Select
+              value={durationPreset}
+              onValueChange={(next) =>
+                setDurationPreset(
+                  (next as CoreDurationPresetKey) ?? durationPreset,
+                )
+              }
+            >
+              <SelectTrigger id="durationPreset" className="w-full">
+                <SelectValue>
+                  {(value: CoreDurationPresetKey | null) =>
+                    CORE_DURATION_PRESETS.find((preset) => preset.key === value)
+                      ?.label ?? "Select duration"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {CORE_DURATION_PRESETS.map((preset) => (
+                  <SelectItem key={preset.key} value={preset.key}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {isCustomDuration ? (
+              <div className="space-y-1">
+                <Label htmlFor="customDuration">Duration (days)</Label>
+                <Input
+                  id="customDuration"
+                  type="number"
+                  min={1}
+                  max={3650}
+                  value={customDays}
+                  onChange={(event) => setCustomDays(event.target.value)}
+                  aria-invalid={Boolean(state?.errors?.durationDays)}
+                />
+              </div>
+            ) : null}
+
+            {state?.errors?.durationDays ? (
+              <p className="text-xs text-destructive">
+                {state.errors.durationDays[0]}
+              </p>
+            ) : null}
+
+            <input type="hidden" name="duration" value={durationDays} />
+          </div>
+        ) : null}
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        The client will receive an email inviting them to complete their
+        Celerey profile.
+      </p>
 
       {state?.message && !state.success ? (
         <p
@@ -176,8 +240,8 @@ export function AddClientDialog() {
         <DialogHeader>
           <DialogTitle>Add client</DialogTitle>
           <DialogDescription>
-            Create a stub client for onboarding. Optionally email an invite and
-            grant Celerey Core right away.
+            Create a stub client for onboarding and optionally grant Celerey
+            Core right away.
           </DialogDescription>
         </DialogHeader>
         <AddClientForm key={formKey} onSuccess={handleSuccess} />

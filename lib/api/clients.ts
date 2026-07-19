@@ -10,6 +10,8 @@ export type CreateClientInput = {
   phone?: string;
   sendInvite?: boolean;
   grantCore?: boolean;
+  /** Celerey Core access length in days. Only applied when grantCore is true. */
+  durationDays?: number;
 };
 
 export type CreateClientResult = {
@@ -45,6 +47,9 @@ export async function createClientApi(
       ...(input.phone ? { phone: input.phone } : {}),
       sendInvite: input.sendInvite ?? true,
       grantCore: input.grantCore ?? true,
+      ...(input.grantCore && input.durationDays
+        ? { duration: input.durationDays }
+        : {}),
     },
   });
 }

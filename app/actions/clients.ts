@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClientApi } from "@/lib/api/clients";
 import {
   CreateClientFormSchema,
+  DEFAULT_CORE_DURATION_DAYS,
   UpdateSubscriptionSchema,
   type CreateClientFormState,
   type UpdateSubscriptionFormState,
@@ -26,8 +27,8 @@ export async function createClientAction(
     lastName: formData.get("lastName"),
     email: formData.get("email"),
     phone: formData.get("phone") ?? "",
-    sendInvite: formFlag(formData, "sendInvite"),
     grantCore: formFlag(formData, "grantCore"),
+    durationDays: formData.get("duration") ?? DEFAULT_CORE_DURATION_DAYS,
   });
 
   if (!validatedFields.success) {
@@ -37,7 +38,7 @@ export async function createClientAction(
     };
   }
 
-  const { firstName, lastName, email, phone, sendInvite, grantCore } =
+  const { firstName, lastName, email, phone, grantCore, durationDays } =
     validatedFields.data;
 
   const result = await createClientApi(session.accessToken, {
@@ -45,8 +46,9 @@ export async function createClientAction(
     lastName,
     email,
     phone: phone?.trim() ? phone.trim() : undefined,
-    sendInvite,
+    sendInvite: true,
     grantCore,
+    durationDays: grantCore ? durationDays : undefined,
   });
 
   if (!result.ok) {
@@ -64,7 +66,7 @@ export async function createClientAction(
   revalidatePath("/clients");
   revalidatePath("/dashboard");
 
-  return { success: true, inviteSent: sendInvite };
+  return { success: true };
 }
 
 export async function updateClientSubscriptionAction(

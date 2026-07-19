@@ -57,8 +57,12 @@ export const CreateClientFormSchema = z.object({
     .string()
     .trim()
     .max(30, { error: "Phone number is too long." }),
-  sendInvite: z.boolean(),
   grantCore: z.boolean(),
+  durationDays: z.coerce
+    .number()
+    .int({ error: "Duration must be a whole number of days." })
+    .min(1, { error: "Duration must be at least 1 day." })
+    .max(3650, { error: "Duration can't exceed 3650 days (~10 years)." }),
 });
 
 export type CreateClientFormState =
@@ -68,14 +72,32 @@ export type CreateClientFormState =
         lastName?: string[];
         email?: string[];
         phone?: string[];
-        sendInvite?: string[];
         grantCore?: string[];
+        durationDays?: string[];
       };
       message?: string;
       success?: boolean;
-      inviteSent?: boolean;
     }
   | undefined;
+
+/**
+ * Presets shown in the Core duration picker. `key` is the value the <Select>
+ * controls; `days` is the number of days actually sent to the API. Only the
+ * "custom" preset asks the user to type a raw day count directly.
+ */
+export const CORE_DURATION_PRESETS = [
+  { key: "month", label: "1 month", days: 30 },
+  { key: "quarter", label: "3 months", days: 90 },
+  { key: "half_year", label: "6 months", days: 180 },
+  { key: "year", label: "1 year", days: 365 },
+  { key: "custom", label: "Custom", days: null },
+] as const;
+
+export type CoreDurationPresetKey =
+  (typeof CORE_DURATION_PRESETS)[number]["key"];
+
+export const DEFAULT_CORE_DURATION_PRESET_KEY: CoreDurationPresetKey = "year";
+export const DEFAULT_CORE_DURATION_DAYS = "365";
 
 export const UpdateSubscriptionSchema = z.object({
   clientId: z.string().min(1),
