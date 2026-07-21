@@ -1,12 +1,15 @@
 import "server-only";
 
+import {
+  normalizeClient,
+  normalizeClientDetail,
+  type ApiClientRow,
+  type RawClientDetail,
+} from "@/lib/api/client-mappers";
 import { executeApi } from "@/lib/api/execute";
-import type {
-  Client,
-  ClientStatus,
-  ClientSubscription,
-  RiskLevel,
-} from "@/types/client";
+import type { Client, ClientSubscription } from "@/types/client";
+
+export { normalizeClient };
 
 export type CreateClientInput = {
   firstName: string;
@@ -56,96 +59,6 @@ export type FindClientsResult = {
   pageCount: number;
 };
 
-type ApiClientRow = Partial<Client> & {
-  id?: string;
-  first_name?: string;
-  last_name?: string;
-  advisor_id?: string;
-  advisor_name?: string;
-  risk_level?: string;
-  last_contact_at?: string | null;
-  next_review_at?: string | null;
-  joined_at?: string;
-  goals_count?: number;
-};
-
-const CLIENT_STATUSES = new Set<ClientStatus>([
-  "active",
-  "onboarding",
-  "review",
-  "inactive",
-]);
-
-const RISK_LEVELS = new Set<RiskLevel>([
-  "conservative",
-  "moderate",
-  "growth",
-  "aggressive",
-]);
-
-const SUBSCRIPTIONS = new Set<ClientSubscription>([
-  "not_onboarded",
-  "free_trial",
-  "celerey_core",
-]);
-
-const CURRENCIES = new Set(["USD", "GHS", "GBP"]);
-
-function asClientStatus(value: unknown): ClientStatus {
-  return CLIENT_STATUSES.has(value as ClientStatus)
-    ? (value as ClientStatus)
-    : "onboarding";
-}
-
-function asRiskLevel(value: unknown): RiskLevel {
-  return RISK_LEVELS.has(value as RiskLevel)
-    ? (value as RiskLevel)
-    : "moderate";
-}
-
-function asSubscription(value: unknown): ClientSubscription {
-  return SUBSCRIPTIONS.has(value as ClientSubscription)
-    ? (value as ClientSubscription)
-    : "not_onboarded";
-}
-
-function asCurrency(value: unknown): Client["currency"] {
-  return CURRENCIES.has(value as string)
-    ? (value as Client["currency"])
-    : "USD";
-}
-
-/** Normalize API client rows (camelCase or snake_case) into our Client shape. */
-export function normalizeClient(row: ApiClientRow): Client {
-  const emptyDate = "";
-
-  return {
-    id: String(row.id ?? ""),
-    firstName: String(row.firstName ?? row.first_name ?? ""),
-    lastName: String(row.lastName ?? row.last_name ?? ""),
-    email: String(row.email ?? ""),
-    phone: String(row.phone ?? ""),
-    status: asClientStatus(row.status),
-    riskLevel: asRiskLevel(row.riskLevel ?? row.risk_level),
-    subscription: asSubscription(row.subscription),
-    aua: typeof row.aua === "number" ? row.aua : Number(row.aua ?? 0) || 0,
-    currency: asCurrency(row.currency),
-    advisorId: String(row.advisorId ?? row.advisor_id ?? ""),
-    advisorName: String(row.advisorName ?? row.advisor_name ?? ""),
-    location: String(row.location ?? "—"),
-    lastContactAt: String(
-      row.lastContactAt ?? row.last_contact_at ?? emptyDate,
-    ),
-    nextReviewAt: String(row.nextReviewAt ?? row.next_review_at ?? emptyDate),
-    joinedAt: String(row.joinedAt ?? row.joined_at ?? emptyDate),
-    goalsCount:
-      typeof row.goalsCount === "number"
-        ? row.goalsCount
-        : Number(row.goals_count ?? 0) || 0,
-    notes: row.notes,
-  };
-}
-
 export async function createClientApi(
   accessToken: string,
   input: CreateClientInput,
@@ -160,8 +73,6 @@ export async function createClientApi(
       ? { duration: input.durationDays }
       : {}),
   };
-
-  console.log("[admin.clients.create] payload:", JSON.stringify(body, null, 2));
 
   return executeApi<CreateClientResult>("admin.clients.create", {
     method: "POST",
@@ -221,6 +132,46 @@ export async function findClientsApi(
       pageCount,
     } satisfies FindClientsResult,
   };
+}
+
+export async function clientDetailApi(accessToken: string, clientId: string) {
+  const result = await executeApi<RawClientDetail>("admin.clients.detail", {
+    method: "GET",
+    accessToken,
+    searchParams: { client_id: clientId },
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true as const,
+    status: result.status,
+    data: normalizeClientDetail(result.data),
+  };
+}
+
+export async function updateClientSubscriptionApi(
+  accessToken: string,
+  input: {
+    clientId: string;
+    subscription: ClientSubscription;
+    reason?: string;
+  },
+) {
+  return executeApi<{ clientId: string; subscription: string }>(
+    "admin.clients.update-subscription",
+    {
+      method: "PUT",
+      accessToken,
+      body: {
+        client_id: input.clientId,
+        subscription: input.subscription,
+        ...(input.reason ? { reason: input.reason } : {}),
+      },
+    },
+  );
 }
 
 export async function inviteClientApi(

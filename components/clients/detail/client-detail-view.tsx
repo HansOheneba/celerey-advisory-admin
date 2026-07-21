@@ -175,30 +175,41 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
         <Card className={dashboardTheme.card}>
           <CardContent className="grid gap-4 pt-4 md:grid-cols-2 xl:grid-cols-3">
             {[
-              ["Occupation", state.user.occupation],
+              ["Occupation", titleCase(state.user.occupation)],
               ["Marital status", titleCase(state.user.marital_status)],
-              ["Dependents", String(state.user.dependents)],
-              ["Date of birth", formatDate(state.user.date_of_birth)],
+              [
+                "Dependents",
+                state.user.dependents != null
+                  ? String(state.user.dependents)
+                  : "—",
+              ],
+              ["Date of birth", formatDate(state.user.date_of_birth ?? "")],
               [
                 "Citizenships",
                 state.user.citizenships?.join(", ") || "—",
               ],
               ["Account mode", titleCase(state.user.account_mode)],
-              [
-                "Effective tax rate",
-                `${state.taxProfile.effectiveTaxRatePct}%`,
-              ],
-              ["Filing status", titleCase(state.taxProfile.filingStatus)],
+              ...(state.taxProfile
+                ? ([
+                    [
+                      "Effective tax rate",
+                      `${state.taxProfile.effectiveTaxRatePct}%`,
+                    ],
+                    ["Filing status", titleCase(state.taxProfile.filingStatus)],
+                  ] as const)
+                : []),
             ].map(([label, value]) => (
               <div key={label}>
                 <p className="text-xs text-muted-foreground">{label}</p>
                 <p className="text-sm font-medium">{value}</p>
               </div>
             ))}
-            <div className="md:col-span-2 xl:col-span-3">
-              <p className="text-xs text-muted-foreground">Bio</p>
-              <p className="text-sm leading-relaxed">{state.user.bio}</p>
-            </div>
+            {state.user.bio ? (
+              <div className="md:col-span-2 xl:col-span-3">
+                <p className="text-xs text-muted-foreground">Bio</p>
+                <p className="text-sm leading-relaxed">{state.user.bio}</p>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -234,27 +245,35 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
 
       <Section label="Risk" title="Risk assessment">
         <Card className={dashboardTheme.card}>
-          <CardContent className="grid gap-4 pt-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Risk band</p>
-              <p className="text-xl font-semibold">
-                {state.riskAssessment.result.risk_band}
-              </p>
+          {state.riskAssessment ? (
+            <CardContent className="grid gap-4 pt-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Risk band</p>
+                <p className="text-xl font-semibold">
+                  {state.riskAssessment.result.risk_band}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {state.riskAssessment.result.description}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Strategy</p>
+                <p className="text-sm leading-relaxed">
+                  {state.riskAssessment.result.strategy}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Score {state.riskAssessment.scoring.final_score} · Assessed{" "}
+                  {formatDate(state.riskAssessment.created_at)}
+                </p>
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent className="pt-4">
               <p className="text-sm text-muted-foreground">
-                {state.riskAssessment.result.description}
+                No risk assessment completed yet.
               </p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Strategy</p>
-              <p className="text-sm leading-relaxed">
-                {state.riskAssessment.result.strategy}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Score {state.riskAssessment.scoring.final_score} · Assessed{" "}
-                {formatDate(state.riskAssessment.created_at)}
-              </p>
-            </div>
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
       </Section>
 

@@ -86,10 +86,10 @@ export async function updateClientSubscriptionAction(
   }
 
   const { clientId, subscription } = validatedFields.data;
-  const updated = await updateClientSubscription(clientId, subscription);
+  const result = await updateClientSubscription(clientId, subscription);
 
-  if (!updated) {
-    return { message: "Client not found." };
+  if (!result.ok) {
+    return { message: result.message };
   }
 
   revalidatePath("/clients");

@@ -11,40 +11,6 @@ export const clients: Client[] = [];
 
 export const clientActivity: ClientActivity[] = [];
 
-export function createClientRecord(input: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  advisorId: string;
-  advisorName: string;
-}): Client {
-  const now = new Date();
-  const nextReview = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-
-  const client: Client = {
-    id: `cli_${Date.now().toString(36)}`,
-    firstName: input.firstName,
-    lastName: input.lastName,
-    email: input.email.toLowerCase(),
-    phone: "",
-    status: "onboarding",
-    riskLevel: "moderate",
-    subscription: "not_onboarded",
-    aua: 0,
-    currency: "USD",
-    advisorId: input.advisorId,
-    advisorName: input.advisorName,
-    location: "—",
-    lastContactAt: now.toISOString(),
-    nextReviewAt: nextReview.toISOString(),
-    joinedAt: now.toISOString(),
-    goalsCount: 0,
-  };
-
-  clients.unshift(client);
-  return client;
-}
-
 export function buildDashboardSummary(rows: Client[]): DashboardSummary {
   const totalAua = rows.reduce((sum, client) => sum + client.aua, 0);
   const riskLevels = [

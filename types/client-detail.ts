@@ -6,21 +6,21 @@ export type ClientDetailUser = {
   first_name: string;
   last_name: string;
   display_name: string;
-  phone_number: string;
-  resident_country: string;
-  resident_state: string;
-  city: string;
-  date_of_birth: string;
+  phone_number: string | null;
+  resident_country: string | null;
+  resident_state?: string | null;
+  city: string | null;
+  date_of_birth: string | null;
   currency: string;
-  occupation: string;
-  marital_status: string;
-  gender: string;
-  prefix: string;
-  dependents: number;
+  occupation: string | null;
+  marital_status: string | null;
+  gender: string | null;
+  prefix: string | null;
+  dependents: number | null;
   citizenships: string[];
-  risk_profile: RiskLevel | string;
-  account_mode: string;
-  bio: string;
+  risk_profile: RiskLevel | string | null;
+  account_mode: string | null;
+  bio: string | null;
   is_active: boolean;
   user_type: string;
   created_at: string;
@@ -56,7 +56,7 @@ export type ClientDetailState = {
     };
     is_recalculation: boolean;
     created_at: string;
-  };
+  } | null;
   incomeRows: Array<{
     id: string;
     name: string;
@@ -192,7 +192,7 @@ export type ClientDetailState = {
     filingStatus: string;
     stateOrRegion: string;
     updatedAt: string;
-  };
+  } | null;
   dependents: Array<{
     id: string;
     name: string;

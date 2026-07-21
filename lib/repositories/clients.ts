@@ -1,22 +1,20 @@
 import "server-only";
 
-import { findClientsApi } from "@/lib/api/clients";
-import {
-  buildDashboardSummary,
-  clients,
-  createClientRecord,
-} from "@/lib/data/clients";
-import {
-  ensureClientDetail,
-  updateDetailSubscription,
-} from "@/lib/data/client-details";
-import { requireSession } from "@/lib/dal";
-import type { Client, ClientSubscription, DashboardSummary } from "@/types/client";
-import type { ClientDetail } from "@/types/client-detail";
+import { cache } from "react";
 
-function delay(ms = 120) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import {
+  clientDetailApi,
+  findClientsApi,
+  updateClientSubscriptionApi,
+} from "@/lib/api/clients";
+import { buildDashboardSummary, clients } from "@/lib/data/clients";
+import { requireSession } from "@/lib/dal";
+import type {
+  Client,
+  ClientSubscription,
+  DashboardSummary,
+} from "@/types/client";
+import type { ClientDetail } from "@/types/client-detail";
 
 export type ClientListParams = {
   query?: string;
@@ -71,77 +69,69 @@ export async function listClients(
   return result.data;
 }
 
-export async function getClientById(id: string): Promise<Client | null> {
-  await delay();
-  return clients.find((client) => client.id === id) ?? null;
-}
+/**
+ * Fetch the full client detail once per request. React's cache() dedupes
+ * the call so generateMetadata and the page share a single API round trip.
+ */
+const fetchClientDetail = cache(async (id: string) => {
+  const session = await requireSession();
+  const result = await clientDetailApi(session.accessToken, id);
 
-export async function getClientDetail(id: string): Promise<ClientDetail | null> {
-  await delay(160);
-  const client = clients.find((row) => row.id === id);
-  if (!client) {
-    return null;
+  if (!result.ok) {
+    if (result.status === 404) {
+      return null;
+    }
+    throw new Error(result.message || "Unable to load client.");
   }
 
-  return ensureClientDetail(client);
+  return result.data;
+});
+
+export async function getClientById(id: string): Promise<Client | null> {
+  const detail = await fetchClientDetail(id);
+  return detail?.client ?? null;
+}
+
+export async function getClientDetail(
+  id: string,
+): Promise<ClientDetail | null> {
+  const detail = await fetchClientDetail(id);
+  return detail?.detail ?? null;
 }
 
 export async function updateClientSubscription(
   id: string,
   subscription: ClientSubscription,
-): Promise<ClientDetail | null> {
-  await delay();
-  const client = clients.find((row) => row.id === id);
-  if (!client) {
-    return null;
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const session = await requireSession();
+  const result = await updateClientSubscriptionApi(session.accessToken, {
+    clientId: id,
+    subscription,
+  });
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
   }
 
-  client.subscription = subscription;
-  ensureClientDetail(client);
-  return updateDetailSubscription(id, subscription);
+  return { ok: true };
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
-  await delay(180);
   return buildDashboardSummary(clients);
 }
 
 export async function getRecentClients(limit = 5): Promise<Client[]> {
-  await delay();
-  return [...clients]
-    .sort(
-      (a, b) =>
-        new Date(b.lastContactAt).getTime() -
-        new Date(a.lastContactAt).getTime(),
-    )
-    .slice(0, limit);
-}
-
-export async function createClient(input: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  advisorId: string;
-  advisorName: string;
-}): Promise<{ client: Client } | { error: string }> {
-  await delay();
-
-  const email = input.email.toLowerCase();
-  const exists = clients.some((client) => client.email === email);
-
-  if (exists) {
-    return { error: "A client with this email already exists." };
-  }
-
-  const client = createClientRecord({
-    firstName: input.firstName,
-    lastName: input.lastName,
-    email,
-    advisorId: input.advisorId,
-    advisorName: input.advisorName,
+  const session = await requireSession();
+  const result = await findClientsApi(session.accessToken, {
+    sortBy: "lastContactAt",
+    sortDir: "desc",
+    page: 1,
+    pageSize: limit,
   });
 
-  ensureClientDetail(client);
+  if (!result.ok) {
+    return [];
+  }
 
-  return { client };
+  return result.data.items;
 }
