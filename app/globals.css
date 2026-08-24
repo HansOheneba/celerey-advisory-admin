@@ -78,6 +78,14 @@
   --sidebar-ring: rgba(255, 255, 255, 0.3);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  --dashboard-surface: rgb(247, 247, 247);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 160ms;
+  --duration-fast: 180ms;
+  --duration-normal: 220ms;
+  --duration-slow: 280ms;
 }
 
 @layer base {
@@ -95,5 +103,55 @@
 }
 
 .dashboard-surface {
-  background-color: rgb(247, 247, 247);
+  background-color: var(--dashboard-surface);
+}
+
+@keyframes celerey-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.celerey-enter {
+  animation: celerey-fade-up var(--duration-normal) var(--ease-out) both;
+}
+
+.celerey-stagger > * {
+  animation: celerey-fade-up var(--duration-normal) var(--ease-out) both;
+}
+
+.celerey-stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.celerey-stagger > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.celerey-stagger > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.celerey-stagger > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.celerey-stagger > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.celerey-stagger > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celerey-enter,
+  .celerey-stagger > * {
+    animation: none;
+  }
 }

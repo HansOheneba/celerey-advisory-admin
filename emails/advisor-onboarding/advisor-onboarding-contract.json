@@ -1,0 +1,123 @@
+{
+  "info": {
+    "title": "Celerey — Add Advisor & Advisor Onboarding",
+    "version": "1.0.0",
+    "description": "Contract for inviting an advisor/admin and completing their profile from the email link. No OTP on the invite link — possession of a valid onboarding token is proof of identity.",
+    "callingConvention": {
+      "baseUrl": "https://api-uat.celerey.app/api/execute",
+      "requestUrl": "{baseUrl}/{usecase}",
+      "authHeader": "Authorization: Bearer <session_token>"
+    }
+  },
+  "email": {
+    "template": "emails/advisor-onboarding/invite.html",
+    "subject": "You're invited to Celerey",
+    "placeholders": {
+      "first_name": "Advisor first name",
+      "onboarding_url": "https://<admin-host>/onboarding?token=<onboarding_token>"
+    }
+  },
+  "usecases": [
+    {
+      "usecase": "admin.advisors.create",
+      "method": "POST",
+      "auth": "admin",
+      "summary": "Admin creates a stub advisor or admin account and emails the onboarding link. Does not issue a session. The invitee cannot sign in until they complete onboarding.",
+      "body": {
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string (email)",
+        "role": "advisor | admin",
+        "sendInvite": true
+      },
+      "response": {
+        "advisor": {
+          "id": "uuid",
+          "firstName": "string",
+          "lastName": "string",
+          "name": "string",
+          "email": "string",
+          "role": "advisor | admin",
+          "onboardingStatus": "invited"
+        },
+        "invite": {
+          "token": "string",
+          "expiresAt": "string (date-time)",
+          "onboardingUrl": "https://<admin-host>/onboarding?token=<token>"
+        }
+      }
+    },
+    {
+      "usecase": "admin.advisors.onboarding.get",
+      "method": "GET",
+      "auth": "none",
+      "summary": "Resolve an onboarding token so the invite page can prefill the form. Invalid/expired/used tokens fail.",
+      "query": {
+        "token": "string"
+      },
+      "response": {
+        "email": "string",
+        "firstName": "string",
+        "lastName": "string",
+        "role": "advisor | admin",
+        "expiresAt": "string (date-time)",
+        "alreadyCompleted": false
+      },
+      "errors": [
+        { "status": 400, "error": "invalid_token", "message": "This invite link is invalid." },
+        { "status": 410, "error": "expired_token", "message": "This invite link has expired." },
+        { "status": 409, "error": "already_completed", "message": "This account is already set up. Sign in instead." }
+      ]
+    },
+    {
+      "usecase": "admin.advisors.onboarding.complete",
+      "method": "POST",
+      "auth": "none",
+      "summary": "Complete advisor profile using the invite token, mark the invite used, and issue a session so they land in the portal signed in.",
+      "body": {
+        "token": "string",
+        "displayName": "string",
+        "title": "string",
+        "phone": "string",
+        "bio": "string?",
+        "country": "string (ISO 3166-1 alpha-2)",
+        "timezone": "string (IANA, e.g. Africa/Accra)"
+      },
+      "response": {
+        "session_token": "string",
+        "advisor": {
+          "id": "uuid",
+          "name": "string",
+          "email": "string",
+          "role": "advisor | admin"
+        }
+      }
+    },
+    {
+      "usecase": "auth.request-otp",
+      "method": "POST",
+      "auth": "none",
+      "summary": "Login only (not used for invite onboarding). Caller selects admin or advisor before the code is sent. Reject if that email is not that role.",
+      "body": {
+        "email": "string (email)",
+        "role": "advisor | admin",
+        "messageType": "OTPAuthMessage:HTML",
+        "messageSubject": "Your Celerey Login Code"
+      }
+    },
+    {
+      "usecase": "auth.verify-otp",
+      "method": "POST",
+      "auth": "none",
+      "summary": "Login only. role must match the account. Advisors who have not completed onboarding must be rejected and told to use their invite link.",
+      "body": {
+        "email": "string (email)",
+        "otp": "string (6 digits)",
+        "role": "advisor | admin"
+      },
+      "response": {
+        "session_token": "string"
+      }
+    }
+  ]
+}

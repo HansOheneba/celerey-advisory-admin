@@ -16,7 +16,7 @@ export function DashboardShell({ advisor, children }: DashboardShellProps) {
     <SidebarProvider>
       <AppSidebar advisor={advisor} />
       <SidebarInset className="dashboard-surface">
-        <DashboardTopbar />
+        <DashboardTopbar advisor={advisor} />
         <div className="flex-1">{children}</div>
       </SidebarInset>
     </SidebarProvider>

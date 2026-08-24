@@ -60,6 +60,8 @@ type ClientsTableProps = {
   riskLevel: string;
   sortBy: string;
   sortDir: "asc" | "desc";
+  canManageSubscriptions?: boolean;
+  showAdvisorColumn?: boolean;
 };
 
 export function ClientsTable({
@@ -73,6 +75,8 @@ export function ClientsTable({
   riskLevel,
   sortBy,
   sortDir,
+  canManageSubscriptions = false,
+  showAdvisorColumn = false,
 }: ClientsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -197,7 +201,14 @@ export function ClientsTable({
                 </button>
               </TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Subscription</TableHead>
+              {canManageSubscriptions ? (
+                <TableHead className="hidden lg:table-cell">
+                  Subscription
+                </TableHead>
+              ) : null}
+              {showAdvisorColumn ? (
+                <TableHead className="hidden lg:table-cell">Advisor</TableHead>
+              ) : null}
               <TableHead className="hidden xl:table-cell">Risk</TableHead>
               <TableHead>
                 <button
@@ -237,7 +248,15 @@ export function ClientsTable({
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="p-0">
+                <TableCell
+                  colSpan={
+                    6 +
+                    (canManageSubscriptions ? 1 : 0) +
+                    (showAdvisorColumn ? 1 : 0) +
+                    1
+                  }
+                  className="p-0"
+                >
                   <div
                     className={cn(
                       dashboardTheme.emptyState,
@@ -261,7 +280,7 @@ export function ClientsTable({
                       className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Avatar size="sm">
-                        <AvatarFallback className="bg-[#1B1856] text-white">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
                           {getInitials(client.firstName, client.lastName)}
                         </AvatarFallback>
                       </Avatar>
@@ -281,9 +300,16 @@ export function ClientsTable({
                   <TableCell className="hidden md:table-cell">
                     <StatusBadge status={client.status} />
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <SubscriptionBadge subscription={client.subscription} />
-                  </TableCell>
+                  {canManageSubscriptions ? (
+                    <TableCell className="hidden lg:table-cell">
+                      <SubscriptionBadge subscription={client.subscription} />
+                    </TableCell>
+                  ) : null}
+                  {showAdvisorColumn ? (
+                    <TableCell className="hidden text-muted-foreground lg:table-cell">
+                      {client.advisorName || "Unassigned"}
+                    </TableCell>
+                  ) : null}
                   <TableCell className="hidden xl:table-cell">
                     <RiskBadge riskLevel={client.riskLevel} />
                   </TableCell>

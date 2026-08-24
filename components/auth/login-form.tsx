@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 
+import { cn } from "@/lib/utils";
+import { roleLabel, type StaffRole } from "@/lib/auth/roles";
+
 const darkInput =
   "h-11 border-white/20 bg-white/5 text-white placeholder:text-white/40";
 const darkPrimaryButton =
@@ -19,9 +22,23 @@ const darkPrimaryButton =
 const darkGhostButton = "w-full text-white/70 hover:bg-white/10 hover:text-white";
 const darkOtpSlot = "size-11 border-white/20 text-white";
 
-export function LoginForm() {
+type LoginFormProps = {
+  defaultEmail?: string;
+  emailLocked?: boolean;
+  next?: string;
+  /** Locks OTP to this role and hides the advisor/admin picker. */
+  fixedRole?: StaffRole;
+};
+
+export function LoginForm({
+  defaultEmail = "",
+  emailLocked = false,
+  next,
+  fixedRole,
+}: LoginFormProps) {
   const [step, setStep] = useState<"email" | "otp">("email");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
+  const [role, setRole] = useState<StaffRole>(fixedRole ?? "advisor");
   const [otp, setOtp] = useState("");
   const [resendPending, startResend] = useTransition();
   const [otpState, otpAction, otpPending] = useActionState(verifyOtp, undefined);
@@ -38,6 +55,9 @@ export function LoginForm() {
 
     if (requestState?.success && requestState.email) {
       setEmail(requestState.email);
+      if (!fixedRole && requestState.role) {
+        setRole(requestState.role);
+      }
       setStep("otp");
       setOtp("");
     }
@@ -46,6 +66,7 @@ export function LoginForm() {
   function handleResend() {
     const formData = new FormData();
     formData.set("email", email);
+    formData.set("role", role);
     startResend(() => {
       requestAction(formData);
     });
@@ -56,6 +77,8 @@ export function LoginForm() {
       <form action={otpAction} className="space-y-6">
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="otp" value={otp} />
+        <input type="hidden" name="role" value={role} />
+        {next ? <input type="hidden" name="next" value={next} /> : null}
 
         <div className="space-y-2">
           <Label htmlFor="otp" className="text-white/80">
@@ -64,6 +87,12 @@ export function LoginForm() {
           <p className="text-sm text-white/60">
             Enter the 6-digit code sent to{" "}
             <span className="font-medium text-white">{email}</span>
+            {fixedRole ? null : (
+              <span className="text-white/50">
+                {" "}
+                ({roleLabel(role).toLowerCase()})
+              </span>
+            )}
           </p>
           <InputOTP
             id="otp"
@@ -114,17 +143,19 @@ export function LoginForm() {
           >
             {otpPending ? "Verifying..." : "Next"}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className={darkGhostButton}
-            onClick={() => {
-              setStep("email");
-              setOtp("");
-            }}
-          >
-            Use a different email
-          </Button>
+          {emailLocked ? null : (
+            <Button
+              type="button"
+              variant="ghost"
+              className={darkGhostButton}
+              onClick={() => {
+                setStep("email");
+                setOtp("");
+              }}
+            >
+              Use a different email
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -141,6 +172,30 @@ export function LoginForm() {
 
   return (
     <form action={requestAction} className="space-y-5">
+      {fixedRole ? (
+        <input type="hidden" name="role" value={fixedRole} />
+      ) : (
+        <div className="space-y-2">
+          <Label className="text-white/80">I am signing in as</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <RoleOption
+              selected={role === "advisor"}
+              onSelect={() => setRole("advisor")}
+              label="Advisor"
+            />
+            <RoleOption
+              selected={role === "admin"}
+              onSelect={() => setRole("admin")}
+              label="Admin"
+            />
+          </div>
+          <input type="hidden" name="role" value={role} />
+          {requestState?.errors?.role ? (
+            <p className="text-xs text-red-300">{requestState.errors.role[0]}</p>
+          ) : null}
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="email" className="text-white/80">
           Email address
@@ -152,6 +207,7 @@ export function LoginForm() {
           autoComplete="email"
           placeholder="name@celerey.co"
           defaultValue={email}
+          readOnly={emailLocked}
           required
           aria-invalid={Boolean(
             requestState?.errors?.email ||
@@ -177,5 +233,30 @@ export function LoginForm() {
         {requestPending ? "Sending code..." : "Send verification code"}
       </Button>
     </form>
+  );
+}
+
+function RoleOption({
+  selected,
+  onSelect,
+  label,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "h-11 rounded-lg border text-sm font-medium transition-colors",
+        selected
+          ? "border-white bg-white text-primary"
+          : "border-white/20 bg-white/5 text-white/80 hover:bg-white/10",
+      )}
+    >
+      {label}
+    </button>
   );
 }

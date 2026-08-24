@@ -2,14 +2,24 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { decrypt, SESSION_COOKIE } from "@/lib/session-crypto";
 
-const protectedPrefixes = ["/dashboard", "/clients"];
+const protectedPrefixes = [
+  "/dashboard",
+  "/clients",
+  "/advisors",
+  "/assignments",
+  "/appointments",
+  "/messages",
+  "/tasks",
+  "/reports",
+  "/settings",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
-  const isLogin = pathname === "/login";
+  const isLogin = pathname === "/login" || pathname === "/super";
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = await decrypt(token);
 
@@ -29,5 +39,17 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/clients/:path*", "/login"],
+  matcher: [
+    "/dashboard/:path*",
+    "/clients/:path*",
+    "/advisors/:path*",
+    "/assignments/:path*",
+    "/appointments/:path*",
+    "/messages/:path*",
+    "/tasks/:path*",
+    "/reports/:path*",
+    "/settings/:path*",
+    "/login",
+    "/super",
+  ],
 };

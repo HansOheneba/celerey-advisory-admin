@@ -15,7 +15,7 @@ export function RecentActivity({
   recentClients,
 }: RecentActivityProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-3 lg:grid-cols-2">
       <Card className={dashboardTheme.card}>
         <CardHeader>
           <p className={dashboardTheme.sectionLabel}>Engagement</p>
@@ -59,7 +59,7 @@ export function RecentActivity({
             >
               <div className="flex items-center gap-3">
                 <Avatar size="sm">
-                  <AvatarFallback className="bg-[#1B1856] text-white">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     {getInitials(client.firstName, client.lastName)}
                   </AvatarFallback>
                 </Avatar>

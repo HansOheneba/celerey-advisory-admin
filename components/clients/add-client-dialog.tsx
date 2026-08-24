@@ -17,6 +17,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  AdvisorSelect,
+  UNASSIGNED_ADVISOR_VALUE,
+} from "@/components/advisors/advisor-select";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,10 +33,22 @@ import {
   DEFAULT_CORE_DURATION_PRESET_KEY,
   type CoreDurationPresetKey,
 } from "@/lib/definitions";
+import type { Advisor } from "@/types/advisor";
 
-function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
+type AddClientFormProps = {
+  onSuccess: () => void;
+  canManageSubscriptions: boolean;
+  advisors: Advisor[];
+};
+
+function AddClientForm({
+  onSuccess,
+  canManageSubscriptions,
+  advisors,
+}: AddClientFormProps) {
   const [state, action, pending] = useActionState(createClientAction, undefined);
-  const [grantCore, setGrantCore] = useState(true);
+  const [grantCore, setGrantCore] = useState(canManageSubscriptions);
+  const [advisorId, setAdvisorId] = useState(UNASSIGNED_ADVISOR_VALUE);
   const [durationPreset, setDurationPreset] = useState<CoreDurationPresetKey>(
     DEFAULT_CORE_DURATION_PRESET_KEY,
   );
@@ -107,77 +123,104 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
         ) : null}
       </div>
 
-      <div className="space-y-3 rounded-lg border p-3">
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            name="grantCore"
-            value="true"
-            checked={grantCore}
-            onChange={(event) => setGrantCore(event.target.checked)}
-            className="mt-0.5 size-4 accent-primary"
-          />
-          <span>
-            <span className="font-medium">Grant Celerey Core</span>
-            <span className="mt-0.5 block text-muted-foreground">
-              Give Core access immediately (recovery / paid-offline cases).
-            </span>
-          </span>
-        </label>
-
-        {grantCore ? (
-          <div className="space-y-2 pl-7">
-            <Label htmlFor="durationPreset">Core subscription length</Label>
-            <Select
-              value={durationPreset}
+      {canManageSubscriptions ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="advisorId">Assign advisor</Label>
+            <input
+              type="hidden"
+              name="advisorId"
+              value={advisorId === UNASSIGNED_ADVISOR_VALUE ? "" : advisorId}
+            />
+            <AdvisorSelect
+              id="advisorId"
+              advisors={advisors}
+              value={advisorId}
               onValueChange={(next) =>
-                setDurationPreset(
-                  (next as CoreDurationPresetKey) ?? durationPreset,
-                )
+                setAdvisorId(next || UNASSIGNED_ADVISOR_VALUE)
               }
-            >
-              <SelectTrigger id="durationPreset" className="w-full">
-                <SelectValue>
-                  {(value: CoreDurationPresetKey | null) =>
-                    CORE_DURATION_PRESETS.find((preset) => preset.key === value)
-                      ?.label ?? "Select duration"
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {CORE_DURATION_PRESETS.map((preset) => (
-                  <SelectItem key={preset.key} value={preset.key}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              includeUnassigned
+              showWorkload
+              placeholder="Unassigned"
+            />
+          </div>
 
-            {isCustomDuration ? (
-              <div className="space-y-1">
-                <Label htmlFor="customDuration">Duration (days)</Label>
-                <Input
-                  id="customDuration"
-                  type="number"
-                  min={1}
-                  max={3650}
-                  value={customDays}
-                  onChange={(event) => setCustomDays(event.target.value)}
-                  aria-invalid={Boolean(state?.errors?.durationDays)}
-                />
+          <div className="space-y-3 rounded-lg border p-3">
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                name="grantCore"
+                value="true"
+                checked={grantCore}
+                onChange={(event) => setGrantCore(event.target.checked)}
+                className="mt-0.5 size-4 accent-primary"
+              />
+              <span>
+                <span className="font-medium">Grant Celerey Core</span>
+                <span className="mt-0.5 block text-muted-foreground">
+                  Give Core access immediately (recovery / paid-offline cases).
+                </span>
+              </span>
+            </label>
+
+            {grantCore ? (
+              <div className="space-y-2 pl-7">
+                <Label htmlFor="durationPreset">Core subscription length</Label>
+                <Select
+                  value={durationPreset}
+                  onValueChange={(next) =>
+                    setDurationPreset(
+                      (next as CoreDurationPresetKey) ?? durationPreset,
+                    )
+                  }
+                >
+                  <SelectTrigger id="durationPreset" className="w-full">
+                    <SelectValue>
+                      {(value: CoreDurationPresetKey | null) =>
+                        CORE_DURATION_PRESETS.find(
+                          (preset) => preset.key === value,
+                        )?.label ?? "Select duration"
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CORE_DURATION_PRESETS.map((preset) => (
+                      <SelectItem key={preset.key} value={preset.key}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {isCustomDuration ? (
+                  <div className="space-y-1">
+                    <Label htmlFor="customDuration">Duration (days)</Label>
+                    <Input
+                      id="customDuration"
+                      type="number"
+                      min={1}
+                      max={3650}
+                      value={customDays}
+                      onChange={(event) => setCustomDays(event.target.value)}
+                      aria-invalid={Boolean(state?.errors?.durationDays)}
+                    />
+                  </div>
+                ) : null}
+
+                {state?.errors?.durationDays ? (
+                  <p className="text-xs text-destructive">
+                    {state.errors.durationDays[0]}
+                  </p>
+                ) : null}
+
+                <input type="hidden" name="duration" value={durationDays} />
               </div>
             ) : null}
-
-            {state?.errors?.durationDays ? (
-              <p className="text-xs text-destructive">
-                {state.errors.durationDays[0]}
-              </p>
-            ) : null}
-
-            <input type="hidden" name="duration" value={durationDays} />
           </div>
-        ) : null}
-      </div>
+        </>
+      ) : (
+        <input type="hidden" name="duration" value={DEFAULT_CORE_DURATION_DAYS} />
+      )}
 
       <p className="text-xs text-muted-foreground">
         The client will receive an email inviting them to complete their
@@ -202,7 +245,15 @@ function AddClientForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-export function AddClientDialog() {
+type AddClientDialogProps = {
+  canManageSubscriptions?: boolean;
+  advisors?: Advisor[];
+};
+
+export function AddClientDialog({
+  canManageSubscriptions = false,
+  advisors = [],
+}: AddClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const handleSuccess = useCallback(() => setOpen(false), []);
@@ -225,11 +276,17 @@ export function AddClientDialog() {
         <DialogHeader>
           <DialogTitle>Add client</DialogTitle>
           <DialogDescription>
-            Create a stub client for onboarding and optionally grant Celerey
-            Core right away.
+            {canManageSubscriptions
+              ? "Create a client, optionally assign an advisor, and grant Celerey Core."
+              : "Create a client for your book. They’ll receive an invite to complete onboarding."}
           </DialogDescription>
         </DialogHeader>
-        <AddClientForm key={formKey} onSuccess={handleSuccess} />
+        <AddClientForm
+          key={formKey}
+          onSuccess={handleSuccess}
+          canManageSubscriptions={canManageSubscriptions}
+          advisors={advisors}
+        />
       </DialogContent>
     </Dialog>
   );

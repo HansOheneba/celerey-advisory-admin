@@ -1,7 +1,13 @@
 import { z } from "zod";
+import type { ActingRole, RoleScope, StaffRole } from "@/lib/auth/roles";
+
+export const LoginRoleSchema = z.enum(["advisor", "admin", "super_admin"], {
+  error: "Choose whether you are signing in as an advisor, admin, or super admin.",
+});
 
 export const EmailFormSchema = z.object({
   email: z.email({ error: "Enter a valid email address." }).trim(),
+  role: LoginRoleSchema,
 });
 
 export const OtpFormSchema = z.object({
@@ -10,6 +16,7 @@ export const OtpFormSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{6}$/, { error: "Enter the 6-digit code." }),
+  role: LoginRoleSchema,
 });
 
 export type LoginFormState =
@@ -17,6 +24,7 @@ export type LoginFormState =
       errors?: {
         email?: string[];
         otp?: string[];
+        role?: string[];
       };
       message?: string;
     }
@@ -26,10 +34,47 @@ export type RequestOtpFormState =
   | {
       errors?: {
         email?: string[];
+        role?: string[];
       };
       message?: string;
       success?: boolean;
       email?: string;
+      role?: StaffRole;
+    }
+  | undefined;
+
+export const AdvisorOnboardingProfileSchema = z.object({
+  displayName: z
+    .string()
+    .trim()
+    .min(1, { error: "Name is required." })
+    .max(80, { error: "Name is too long." }),
+  title: z
+    .string()
+    .trim()
+    .min(1, { error: "Job title is required." })
+    .max(80, { error: "Job title is too long." }),
+  phone: z
+    .string()
+    .trim()
+    .min(7, { error: "Enter a valid phone number." })
+    .max(30, { error: "Phone number is too long." }),
+  bio: z.string().trim().max(500, { error: "Bio is too long." }).optional(),
+  country: z.string().trim().min(2).max(2),
+  timezone: z.string().trim().min(1),
+});
+
+export type AdvisorOnboardingFormState =
+  | {
+      errors?: {
+        displayName?: string[];
+        title?: string[];
+        phone?: string[];
+        bio?: string[];
+        country?: string[];
+        timezone?: string[];
+      };
+      message?: string;
     }
   | undefined;
 
@@ -38,7 +83,13 @@ export type SessionPayload = {
   name: string;
   email: string;
   accessToken: string;
+  role: StaffRole;
   expiresAt: string;
+  trueRoles: StaffRole[];
+  activeRole: ActingRole | null;
+  isSuperAdmin: boolean;
+  availableRoles: StaffRole[];
+  scope: RoleScope;
 };
 
 export const CreateClientFormSchema = z.object({
@@ -59,6 +110,7 @@ export const CreateClientFormSchema = z.object({
     .int({ error: "Duration must be a whole number of days." })
     .min(1, { error: "Duration must be at least 1 day." })
     .max(3650, { error: "Duration can't exceed 3650 days (~10 years)." }),
+  advisorId: z.string().trim().optional(),
 });
 
 export type CreateClientFormState =
@@ -69,7 +121,59 @@ export type CreateClientFormState =
         email?: string[];
         grantCore?: string[];
         durationDays?: string[];
+        advisorId?: string[];
       };
+      message?: string;
+      success?: boolean;
+    }
+  | undefined;
+
+export const CreateAdvisorFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { error: "Name is required." })
+    .max(80, { error: "Name is too long." }),
+  email: z.email({ error: "Enter a valid email address." }).trim(),
+  role: z.enum(["advisor", "admin"]).default("advisor"),
+});
+
+export type CreateAdvisorFormState =
+  | {
+      errors?: {
+        name?: string[];
+        email?: string[];
+        role?: string[];
+      };
+      message?: string;
+      success?: boolean;
+    }
+  | undefined;
+
+export const AssignAdvisorSchema = z.object({
+  clientId: z.string().min(1),
+  advisorId: z.string().trim().nullable(),
+});
+
+export type AssignAdvisorFormState =
+  | {
+      errors?: {
+        advisorId?: string[];
+      };
+      message?: string;
+      success?: boolean;
+    }
+  | undefined;
+
+export const BulkAssignSchema = z.object({
+  clientIds: z.array(z.string().min(1)).min(1, {
+    error: "Select at least one client.",
+  }),
+  advisorId: z.string().min(1, { error: "Choose an advisor." }),
+});
+
+export type BulkAssignFormState =
+  | {
       message?: string;
       success?: boolean;
     }

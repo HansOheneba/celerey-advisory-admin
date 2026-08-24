@@ -19,6 +19,7 @@ export type CreateClientInput = {
   grantCore?: boolean;
   /** Celerey Core access length in days. Only applied when grantCore is true. */
   durationDays?: number;
+  advisorId?: string;
 };
 
 export type CreateClientResult = {
@@ -45,6 +46,7 @@ export type FindClientsParams = {
   status?: string;
   riskLevel?: string;
   subscription?: string;
+  advisorId?: string;
   sortBy?: string;
   sortDir?: string;
   page?: number;
@@ -72,6 +74,7 @@ export async function createClientApi(
     ...(input.grantCore && input.durationDays
       ? { duration: input.durationDays }
       : {}),
+    ...(input.advisorId ? { advisor_id: input.advisorId } : {}),
   };
 
   return executeApi<CreateClientResult>("admin.clients.create", {
@@ -99,6 +102,7 @@ export async function findClientsApi(
       status: params.status ?? "all",
       riskLevel: params.riskLevel ?? "all",
       subscription: params.subscription ?? "all",
+      advisor_id: params.advisorId,
       sortBy: params.sortBy ?? "name",
       sortDir: params.sortDir ?? "asc",
       page: params.page ?? 1,
@@ -142,8 +146,17 @@ export async function clientDetailApi(accessToken: string, clientId: string) {
   });
 
   if (!result.ok) {
+    console.log(
+      `[admin.clients.detail] failed for ${clientId} (${result.status}):`,
+      result.message,
+    );
     return result;
   }
+
+  console.log(
+    `[admin.clients.detail] raw response for ${clientId}:`,
+    JSON.stringify(result.data, null, 2),
+  );
 
   return {
     ok: true as const,
@@ -187,4 +200,24 @@ export async function inviteClientApi(
       channel,
     },
   });
+}
+
+export async function assignClientAdvisorApi(
+  accessToken: string,
+  input: {
+    clientId: string;
+    advisorId: string | null;
+  },
+) {
+  return executeApi<{ clientId: string; advisorId: string | null }>(
+    "admin.clients.assign-advisor",
+    {
+      method: "PUT",
+      accessToken,
+      body: {
+        client_id: input.clientId,
+        advisor_id: input.advisorId,
+      },
+    },
+  );
 }

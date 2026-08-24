@@ -35,7 +35,7 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
   }));
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-3 lg:grid-cols-2">
       <Card className={dashboardTheme.card}>
         <CardHeader>
           <p className={dashboardTheme.sectionLabel}>Allocation</p>

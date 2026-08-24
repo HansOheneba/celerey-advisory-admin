@@ -2,15 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { createClientApi } from "@/lib/api/clients";
+import { isAdmin } from "@/lib/auth/roles";
 import {
+  AssignAdvisorSchema,
   CreateClientFormSchema,
   DEFAULT_CORE_DURATION_DAYS,
   UpdateSubscriptionSchema,
+  type AssignAdvisorFormState,
   type CreateClientFormState,
   type UpdateSubscriptionFormState,
 } from "@/lib/definitions";
-import { requireSession } from "@/lib/dal";
-import { updateClientSubscription } from "@/lib/repositories/clients";
+import { requireAdmin, requireSession } from "@/lib/dal";
+import {
+  assignClientAdvisor,
+  updateClientSubscription,
+} from "@/lib/repositories/clients";
 
 function formFlag(formData: FormData, key: string) {
   return formData.get(key) === "true" || formData.get(key) === "on";
@@ -21,13 +27,18 @@ export async function createClientAction(
   formData: FormData,
 ): Promise<CreateClientFormState> {
   const session = await requireSession();
+  const admin = isAdmin(session.role);
+
+  const grantCore = admin ? formFlag(formData, "grantCore") : false;
+  const rawAdvisorId = String(formData.get("advisorId") ?? "").trim();
 
   const validatedFields = CreateClientFormSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
-    grantCore: formFlag(formData, "grantCore"),
+    grantCore,
     durationDays: formData.get("duration") ?? DEFAULT_CORE_DURATION_DAYS,
+    advisorId: rawAdvisorId || undefined,
   });
 
   if (!validatedFields.success) {
@@ -37,8 +48,12 @@ export async function createClientAction(
     };
   }
 
-  const { firstName, lastName, email, grantCore, durationDays } =
+  const { firstName, lastName, email, durationDays, advisorId } =
     validatedFields.data;
+
+  const assignedAdvisorId = admin
+    ? advisorId || undefined
+    : session.userId;
 
   const result = await createClientApi(session.accessToken, {
     firstName,
@@ -47,6 +62,7 @@ export async function createClientAction(
     sendInvite: true,
     grantCore,
     durationDays: grantCore ? durationDays : undefined,
+    advisorId: assignedAdvisorId,
   });
 
   if (!result.ok) {
@@ -63,6 +79,7 @@ export async function createClientAction(
 
   revalidatePath("/clients");
   revalidatePath("/dashboard");
+  revalidatePath("/advisors");
 
   return { success: true };
 }
@@ -71,7 +88,7 @@ export async function updateClientSubscriptionAction(
   _state: UpdateSubscriptionFormState,
   formData: FormData,
 ): Promise<UpdateSubscriptionFormState> {
-  await requireSession();
+  await requireAdmin();
 
   const validatedFields = UpdateSubscriptionSchema.safeParse({
     clientId: formData.get("clientId"),
@@ -94,6 +111,43 @@ export async function updateClientSubscriptionAction(
 
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
+
+export async function assignClientAdvisorAction(
+  _state: AssignAdvisorFormState,
+  formData: FormData,
+): Promise<AssignAdvisorFormState> {
+  await requireAdmin();
+
+  const rawAdvisorId = String(formData.get("advisorId") ?? "").trim();
+  const validatedFields = AssignAdvisorSchema.safeParse({
+    clientId: formData.get("clientId"),
+    advisorId: rawAdvisorId === "" || rawAdvisorId === "unassigned"
+      ? null
+      : rawAdvisorId,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Choose a valid advisor.",
+    };
+  }
+
+  const { clientId, advisorId } = validatedFields.data;
+  const result = await assignClientAdvisor(clientId, advisorId);
+
+  if (!result.ok) {
+    return { message: result.message };
+  }
+
+  revalidatePath("/clients");
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/advisors");
+  revalidatePath("/assignments");
   revalidatePath("/dashboard");
 
   return { success: true };

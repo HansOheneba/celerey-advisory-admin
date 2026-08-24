@@ -1,10 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   getAdvisorProfile,
   requestOtp as requestOtpApi,
   revokeSession,
+  switchSessionRole,
   verifyOtp as verifyOtpApi,
 } from "@/lib/api/auth";
 import {
@@ -13,7 +15,17 @@ import {
   type LoginFormState,
   type RequestOtpFormState,
 } from "@/lib/definitions";
+import {
+  actingRoleForLogin,
+  contextFromRole,
+  effectiveRole,
+  parseSessionRoleContext,
+  sessionRoleFields,
+  withActingRole,
+  type StaffRole,
+} from "@/lib/auth/roles";
 import { createSession, deleteSession, getSessionToken, decrypt } from "@/lib/session";
+import { requireSession } from "@/lib/dal";
 
 export async function requestOtp(
   _state: RequestOtpFormState,
@@ -21,6 +33,7 @@ export async function requestOtp(
 ): Promise<RequestOtpFormState> {
   const validatedFields = EmailFormSchema.safeParse({
     email: formData.get("email"),
+    role: formData.get("role"),
   });
 
   if (!validatedFields.success) {
@@ -30,8 +43,8 @@ export async function requestOtp(
     };
   }
 
-  const { email } = validatedFields.data;
-  const result = await requestOtpApi(email);
+  const { email, role } = validatedFields.data;
+  const result = await requestOtpApi(email, role);
 
   if (!result.ok) {
     return {
@@ -39,7 +52,7 @@ export async function requestOtp(
     };
   }
 
-  return { success: true, email };
+  return { success: true, email, role };
 }
 
 export async function verifyOtp(
@@ -49,6 +62,7 @@ export async function verifyOtp(
   const validatedFields = OtpFormSchema.safeParse({
     email: formData.get("email"),
     otp: formData.get("otp"),
+    role: formData.get("role"),
   });
 
   if (!validatedFields.success) {
@@ -58,8 +72,8 @@ export async function verifyOtp(
     };
   }
 
-  const { email, otp } = validatedFields.data;
-  const verifyResult = await verifyOtpApi(email, otp);
+  const { email, otp, role } = validatedFields.data;
+  const verifyResult = await verifyOtpApi(email, otp, role);
 
   if (!verifyResult.ok) {
     return {
@@ -92,10 +106,12 @@ export async function verifyOtp(
       id?: string;
       name?: string;
       email?: string;
+      role?: string;
     };
     id?: string;
     name?: string;
     email?: string;
+    role?: string;
   };
 
   const advisor = profileData.advisor ?? profileData;
@@ -106,14 +122,86 @@ export async function verifyOtp(
     };
   }
 
+  let context = contextFromRole(
+    role === "super_admin" ? "super_admin" : advisor.role,
+  );
+  const intendedActingRole = actingRoleForLogin(role);
+  const needsSwitch =
+    intendedActingRole !== null && effectiveRole(context) !== intendedActingRole;
+
+  if (needsSwitch) {
+    const switchResult = await switchSessionRole(
+      accessToken,
+      intendedActingRole,
+    );
+
+    if (switchResult.ok) {
+      context = withActingRole(
+        parseSessionRoleContext(switchResult.data, advisor.role),
+        intendedActingRole,
+      );
+    } else {
+      context = withActingRole(context, intendedActingRole);
+    }
+  } else {
+    context = withActingRole(context, intendedActingRole);
+  }
+
   await createSession({
     userId: advisor.id,
     name: advisor.name || email.split("@")[0] || "Advisor",
     email: advisor.email || email.toLowerCase(),
     accessToken,
+    ...sessionRoleFields(context),
   });
 
-  redirect("/dashboard");
+  const next = safeInternalPath(formData.get("next"));
+  redirect(next ?? "/dashboard");
+}
+
+function safeInternalPath(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const path = value.trim();
+  if (path === "/onboarding" || path.startsWith("/onboarding?")) {
+    return "/onboarding";
+  }
+
+  return null;
+}
+
+export async function switchActingRoleAction(role: StaffRole) {
+  const session = await requireSession();
+  const actingRole = actingRoleForLogin(role);
+  const result = await switchSessionRole(session.accessToken, actingRole);
+
+  if (!result.ok) {
+    return { ok: false as const, message: result.message };
+  }
+
+  const context = withActingRole(
+    {
+      trueRoles: session.trueRoles,
+      availableRoles: session.availableRoles,
+      isSuperAdmin: session.isSuperAdmin,
+      activeRole: session.activeRole,
+      scope: session.scope,
+    },
+    actingRole,
+  );
+
+  await createSession({
+    userId: session.userId,
+    name: session.name,
+    email: session.email,
+    accessToken: session.accessToken,
+    ...sessionRoleFields(context),
+  });
+
+  revalidatePath("/", "layout");
+  return { ok: true as const };
 }
 
 export async function logout() {

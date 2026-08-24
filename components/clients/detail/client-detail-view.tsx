@@ -11,9 +11,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { AssignAdvisorControl } from "@/components/clients/assign-advisor-control";
+import { ClientAvailabilityCard } from "@/components/clients/client-availability-card";
+import { ClientDocumentsCard } from "@/components/clients/client-documents-card";
+import { ClientAdvisorySection } from "@/components/clients/detail/client-advisory-section";
 import { ClientCashFlowChart } from "@/components/clients/detail/client-cash-flow-chart";
 import { EditSubscriptionDialog } from "@/components/clients/edit-subscription-dialog";
 import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
+import type { Advisor } from "@/types/advisor";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +38,9 @@ import {
   getInitials,
   titleCase,
 } from "@/lib/format";
+import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
+import type { ClientAvailability } from "@/lib/availability/types";
+import type { ClientDocument } from "@/lib/documents/types";
 import type { Client } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
 import { cn } from "@/lib/utils";
@@ -51,6 +59,14 @@ type Currency = "USD" | "GHS" | "GBP";
 type ClientDetailViewProps = {
   client: Client;
   detail: ClientDetail;
+  canViewAnalysis?: boolean;
+  canManageSubscriptions?: boolean;
+  advisors?: Advisor[];
+  appointments?: Appointment[];
+  availability?: ClientAvailability;
+  documents?: ClientDocument[];
+  entitlement?: AdvisoryEntitlement | null;
+  canEditAvailability?: boolean;
 };
 
 function Section({
@@ -73,7 +89,7 @@ function Section({
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </p>
       <p className="truncate text-sm font-medium">{value}</p>
@@ -131,7 +147,18 @@ function hasEmergencyFund(fund: ClientDetail["state"]["emergencyFund"]) {
   );
 }
 
-export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
+export function ClientDetailView({
+  client,
+  detail,
+  canViewAnalysis = false,
+  canManageSubscriptions = false,
+  advisors = [],
+  appointments = [],
+  availability,
+  documents = [],
+  entitlement = null,
+  canEditAvailability = false,
+}: ClientDetailViewProps) {
   const { state } = detail;
   const currency = (state.user.currency || client.currency) as Currency;
 
@@ -221,19 +248,19 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
   ];
 
   return (
-    <div className={cn(dashboardTheme.page, "space-y-4")}>
+    <div className={dashboardTheme.page}>
       {/* Identity + KPI strip */}
       <section className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <Avatar size="lg">
-              <AvatarFallback className="bg-[#1B1856] text-white">
+              <AvatarFallback className="bg-primary text-primary-foreground">
                 {getInitials(client.firstName, client.lastName)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold tracking-tight">
+                <h2 className={dashboardTheme.pageTitle}>
                   {client.firstName} {client.lastName}
                 </h2>
                 <StatusBadge status={client.status} />
@@ -255,29 +282,101 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
                 {formatDate(client.nextReviewAt)} · Joined{" "}
                 {formatDate(client.joinedAt)}
               </p>
+              <p className="text-xs text-muted-foreground">
+                Advisor {client.advisorName || "Unassigned"}
+              </p>
             </div>
           </div>
 
-          <EditSubscriptionDialog
-            clientId={client.id}
-            subscription={detail.subscription}
-          />
+          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+            {canManageSubscriptions ? (
+              <>
+                <EditSubscriptionDialog
+                  clientId={client.id}
+                  subscription={detail.subscription}
+                />
+                <AssignAdvisorControl
+                  clientId={client.id}
+                  advisorId={client.advisorId}
+                  advisors={advisors}
+                  compact
+                />
+              </>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-3 xl:grid-cols-6">
-          {kpis.map((item) => (
-            <div key={item.label} className="bg-card px-3 py-2.5">
-              <p className={dashboardTheme.sectionLabel}>{item.label}</p>
-              <p className="mt-0.5 text-base font-semibold tabular-nums tracking-tight">
-                {item.value}
+        {client.notes ? (
+          <Card className={dashboardTheme.card}>
+            <CardHeader className="pb-2">
+              <p className={dashboardTheme.sectionLabel}>Notes</p>
+              <CardTitle className="text-base font-semibold">
+                Relationship notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {client.notes}
               </p>
-            </div>
-          ))}
-        </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {canViewAnalysis ? (
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-3 xl:grid-cols-6">
+            {kpis.map((item) => (
+              <div key={item.label} className="bg-card px-3 py-2.5">
+                <p className={dashboardTheme.sectionLabel}>{item.label}</p>
+                <p className="mt-0.5 text-base font-semibold tabular-nums tracking-tight">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
+      {availability ? (
+        <ClientAvailabilityCard
+          clientId={client.id}
+          initial={availability}
+          canEdit={canEditAvailability}
+        />
+      ) : null}
+
+      <ClientDocumentsCard
+        clientId={client.id}
+        initialDocuments={documents}
+        canEdit={canEditAvailability}
+      />
+
+      <ClientAdvisorySection
+        clientId={client.id}
+        appointments={appointments}
+        entitlement={entitlement}
+        canEditEntitlement={canEditAvailability}
+      />
+
+      {!canViewAnalysis ? (
+        <Card className={dashboardTheme.card}>
+          <CardHeader>
+            <p className={dashboardTheme.sectionLabel}>Access</p>
+            <CardTitle className="text-base font-semibold">
+              Contact profile
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>
+              Financial analysis and subscription management are limited to
+              admin accounts. You can review contact details and keep the
+              relationship on schedule.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Profile + risk side by side when present */}
-      {showProfile || showRisk || showEmergency ? (
+      {canViewAnalysis && (showProfile || showRisk || showEmergency) ? (
         <div
           className={cn(
             "grid gap-3",
@@ -383,7 +482,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Cash flow */}
-      {hasCashFlow ? (
+      {canViewAnalysis && hasCashFlow ? (
         <Section title="Cash flow">
           <div className="space-y-3">
             <ClientCashFlowChart
@@ -441,7 +540,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Goals */}
-      {hasGoals ? (
+      {canViewAnalysis && hasGoals ? (
         <Section title="Goals">
           <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{state.goalsMeta.activeGoals} active</span>
@@ -487,7 +586,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
                     {goal.target != null ? (
                       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full rounded-full bg-[#1B1856]"
+                          className="h-full rounded-full bg-primary"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -506,7 +605,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Assets */}
-      {hasAssets ? (
+      {canViewAnalysis && hasAssets ? (
         <Section title="Assets">
           <div className="space-y-3">
             {state.allocation.length > 0 ||
@@ -640,7 +739,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Balance sheet */}
-      {hasBalanceSheet ? (
+      {canViewAnalysis && hasBalanceSheet ? (
         <Section title="Properties & liabilities">
           <div className="space-y-3">
             {state.propertyAssets.length > 0 ? (
@@ -700,7 +799,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Insurance */}
-      {hasInsurance ? (
+      {canViewAnalysis && hasInsurance ? (
         <Section title="Insurance">
           <CompactTable
             title="Policies"
@@ -731,7 +830,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
       ) : null}
 
       {/* Retirement */}
-      {showRetirement ? (
+      {canViewAnalysis && showRetirement ? (
         <Section title="Retirement">
           <Card className={dashboardTheme.card}>
             <CardContent className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-4">
@@ -773,7 +872,7 @@ export function ClientDetailView({ client, detail }: ClientDetailViewProps) {
         </Section>
       ) : null}
 
-      {showFreshness ? (
+      {canViewAnalysis && showFreshness ? (
         <Section title="Data freshness">
           <div className="flex flex-wrap gap-1.5">
             {state.freshness.map((item) => (
