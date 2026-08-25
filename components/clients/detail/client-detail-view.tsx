@@ -221,11 +221,6 @@ export function ClientDetailView({
     state.incomeRows.length > 0 ||
     state.expenseCategories.length > 0 ||
     state.cashFlowHistory.length > 0;
-  const hasAssets =
-    state.holdings.length > 0 ||
-    state.accounts.length > 0 ||
-    state.allocation.length > 0 ||
-    state.portfolioPerformance.length > 0;
   const hasBalanceSheet =
     state.propertyAssets.length > 0 || state.liabilities.length > 0;
   const hasGoals = state.goals.length > 0;
@@ -634,7 +629,7 @@ export function ClientDetailView({
       ) : null}
 
       {/* Assets */}
-      {canViewAnalysis && hasAssets ? (
+      {canViewAnalysis ? (
         <Section title="Assets">
           <div className="space-y-3">
             {state.allocation.length > 0 ||
@@ -737,7 +732,30 @@ export function ClientDetailView({
                     </TableRow>
                   ))}
                 </CompactTable>
-              ) : null}
+              ) : (
+                <Card className={dashboardTheme.card}>
+                  <CardHeader className="px-3 py-2">
+                    <CardTitle className="text-sm font-semibold">
+                      Holdings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-3 pb-3">
+                    <div
+                      className={cn(
+                        dashboardTheme.emptyState,
+                        "px-4 py-8 text-center",
+                      )}
+                    >
+                      <p className="text-sm font-medium">
+                        No holdings recorded
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        This client has not added any investment holdings.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {state.accounts.length > 0 ? (
                 <CompactTable
