@@ -56,6 +56,19 @@ const chartColors = [
 
 type Currency = "USD" | "GHS" | "GBP";
 
+function firstNumber(...values: unknown[]): number {
+  for (const value of values) {
+    if (value == null || value === "") continue;
+    const num = typeof value === "number" ? value : Number(value);
+    if (Number.isFinite(num)) return num;
+  }
+  return 0;
+}
+
+function holdingValue(holding: ClientDetail["state"]["holdings"][number]) {
+  return firstNumber(holding.current_value, holding.cost_basis);
+}
+
 type ClientDetailViewProps = {
   client: Client;
   detail: ClientDetail;
@@ -163,7 +176,7 @@ export function ClientDetailView({
   const currency = (state.user.currency || client.currency) as Currency;
 
   const holdingsValue = state.holdings.reduce(
-    (sum, holding) => sum + (Number(holding.current_value) || 0),
+    (sum, holding) => sum + holdingValue(holding),
     0,
   );
   const accountsValue = state.accounts.reduce(
@@ -719,10 +732,7 @@ export function ClientDetailView({
                         )}
                       </TableCell>
                       <TableCell className="px-3 py-1.5 text-sm tabular-nums">
-                        {formatCurrency(
-                          Number(holding.current_value) || 0,
-                          currency,
-                        )}
+                        {formatCurrency(holdingValue(holding), currency)}
                       </TableCell>
                     </TableRow>
                   ))}

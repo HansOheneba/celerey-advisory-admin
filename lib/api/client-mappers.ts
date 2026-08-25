@@ -120,6 +120,17 @@ type RawMoneyRow = {
   end_date?: string | null;
 };
 
+type RawHolding = {
+  holding_id?: string;
+  name?: string;
+  symbol?: string;
+  asset_type?: string;
+  quantity?: string | number;
+  cost_basis?: string | number;
+  current_value?: string | number | null;
+  [key: string]: unknown;
+};
+
 type RawGoal = Record<string, unknown> & {
   goal_id?: string;
   id?: string;
@@ -142,7 +153,7 @@ type RawDetailState = {
   expenseCategories?: RawMoneyRow[];
   goals?: RawGoal[];
   goalsMeta?: Partial<Record<string, number>> | null;
-  holdings?: ClientDetailState["holdings"];
+  holdings?: RawHolding[];
   accounts?: ClientDetailState["accounts"];
   propertyAssets?: ClientDetailState["propertyAssets"];
   liabilities?: ClientDetailState["liabilities"];
@@ -187,6 +198,27 @@ function mapMoneyRow(row: RawMoneyRow) {
     recurringType: String(row.recurring_type ?? ""),
     startDate: String(row.start_date ?? ""),
     endDate: row.end_date ?? null,
+  };
+}
+
+function optionalNumber(value: unknown): number | undefined {
+  if (value == null || value === "") return undefined;
+  const num = toNumber(value);
+  return Number.isFinite(num) ? num : undefined;
+}
+
+function mapHolding(
+  holding: RawHolding,
+): ClientDetailState["holdings"][number] {
+  return {
+    ...holding,
+    holding_id: String(holding.holding_id ?? ""),
+    name: String(holding.name ?? ""),
+    symbol: holding.symbol != null ? String(holding.symbol) : undefined,
+    asset_type: String(holding.asset_type ?? ""),
+    quantity: optionalNumber(holding.quantity),
+    cost_basis: optionalNumber(holding.cost_basis),
+    current_value: optionalNumber(holding.current_value),
   };
 }
 
@@ -302,7 +334,7 @@ export function normalizeClientDetail(raw: RawClientDetail): {
       completedGoals: toNumber(goalsMeta.completed_goals),
       activeGoals: toNumber(goalsMeta.active_goals),
     },
-    holdings: rawState.holdings ?? [],
+    holdings: (rawState.holdings ?? []).map(mapHolding),
     accounts: rawState.accounts ?? [],
     propertyAssets: rawState.propertyAssets ?? [],
     liabilities: rawState.liabilities ?? [],
