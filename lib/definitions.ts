@@ -92,6 +92,12 @@ export type SessionPayload = {
   scope: RoleScope;
 };
 
+export const CoreDurationDaysSchema = z.coerce
+  .number()
+  .int({ error: "Duration must be a whole number of days." })
+  .min(1, { error: "Duration must be at least 1 day." })
+  .max(3650, { error: "Duration can't exceed 3650 days (~10 years)." });
+
 export const CreateClientFormSchema = z.object({
   firstName: z
     .string()
@@ -105,11 +111,7 @@ export const CreateClientFormSchema = z.object({
     .max(60, { error: "Last name is too long." }),
   email: z.email({ error: "Enter a valid email address." }).trim(),
   grantCore: z.boolean(),
-  durationDays: z.coerce
-    .number()
-    .int({ error: "Duration must be a whole number of days." })
-    .min(1, { error: "Duration must be at least 1 day." })
-    .max(3650, { error: "Duration can't exceed 3650 days (~10 years)." }),
+  durationDays: CoreDurationDaysSchema,
   advisorId: z.string().trim().optional(),
 });
 
@@ -198,15 +200,31 @@ export type CoreDurationPresetKey =
 export const DEFAULT_CORE_DURATION_PRESET_KEY: CoreDurationPresetKey = "year";
 export const DEFAULT_CORE_DURATION_DAYS = "365";
 
-export const UpdateSubscriptionSchema = z.object({
-  clientId: z.string().min(1),
-  subscription: z.enum(["not_onboarded", "free_trial", "celerey_core"]),
-});
+export const UpdateSubscriptionSchema = z
+  .object({
+    clientId: z.string().min(1),
+    subscription: z.enum(["not_onboarded", "free_trial", "celerey_core"]),
+    durationDays: z.preprocess(
+      (value) =>
+        value === null || value === undefined || value === ""
+          ? undefined
+          : value,
+      CoreDurationDaysSchema.optional(),
+    ),
+  })
+  .refine(
+    (data) => data.subscription !== "celerey_core" || data.durationDays != null,
+    {
+      error: "Duration is required for Celerey Core.",
+      path: ["durationDays"],
+    },
+  );
 
 export type UpdateSubscriptionFormState =
   | {
       errors?: {
         subscription?: string[];
+        durationDays?: string[];
       };
       message?: string;
       success?: boolean;

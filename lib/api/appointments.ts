@@ -106,6 +106,16 @@ function normalizeProgress(value: unknown): ProgressSnapshot | null {
   };
 }
 
+function normalizeStatus(value: string): AppointmentStatus {
+  if (value === "confirmed") {
+    return "upcoming";
+  }
+
+  return APPOINTMENT_STATUSES.has(value as AppointmentStatus)
+    ? (value as AppointmentStatus)
+    : "upcoming";
+}
+
 function normalizeAppointment(row: Record<string, unknown>): Appointment {
   const type = asString(row.type);
   const status = asString(row.status);
@@ -135,9 +145,7 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
           : ""),
     scheduledAt: scheduledAt || null,
     durationMinutes: asNumber(row.durationMinutes ?? row.duration_minutes, 30),
-    status: APPOINTMENT_STATUSES.has(status as AppointmentStatus)
-      ? (status as AppointmentStatus)
-      : "upcoming",
+    status: normalizeStatus(status),
     createdBy: createdBy === "client" ? "client" : "advisor",
     log: normalizeLog(row.log),
     progress: normalizeProgress(row.progress),

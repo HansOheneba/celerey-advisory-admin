@@ -30,7 +30,7 @@ const ROLE_OPTIONS: {
   description: string;
 }[] = [
   {
-    value: "user",
+    value: "client",
     description: "Can sign in to the client app.",
   },
   {
@@ -61,7 +61,7 @@ function resolveRoles(role: AppRole, roles?: IdentityRole[]) {
 }
 
 function roleBadgeVariant(role: IdentityRole) {
-  if (role === "user") {
+  if (role === "client") {
     return "outline" as const;
   }
 

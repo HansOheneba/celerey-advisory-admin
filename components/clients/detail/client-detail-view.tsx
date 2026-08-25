@@ -219,7 +219,9 @@ export function ClientDetailView({
   const hasInsurance = state.insurancePolicies.length > 0;
   const showRetirement = hasRetirementData(state.retirement);
   const showEmergency = hasEmergencyFund(state.emergencyFund);
-  const showRisk = Boolean(state.riskAssessment);
+  const showRisk = Boolean(
+    state.riskAssessment?.result || state.riskAssessment?.scoring,
+  );
   const showProfile =
     profileFields.length > 0 ||
     Boolean(state.user.bio) ||
@@ -429,19 +431,33 @@ export function ClientDetailView({
                   <CardContent className="space-y-1.5 p-3">
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="text-base font-semibold">
-                        {state.riskAssessment.result.risk_band}
+                        {state.riskAssessment.result?.risk_band ??
+                          "Not assessed"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        Score {state.riskAssessment.scoring.final_score}
-                      </p>
+                      {state.riskAssessment.scoring ? (
+                        <p className="text-xs text-muted-foreground">
+                          Score {state.riskAssessment.scoring.final_score}
+                        </p>
+                      ) : null}
                     </div>
-                    <p className="text-sm leading-snug text-muted-foreground">
-                      {state.riskAssessment.result.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {state.riskAssessment.result.strategy} · Assessed{" "}
-                      {formatDate(state.riskAssessment.created_at)}
-                    </p>
+                    {state.riskAssessment.result?.description ? (
+                      <p className="text-sm leading-snug text-muted-foreground">
+                        {state.riskAssessment.result.description}
+                      </p>
+                    ) : null}
+                    {state.riskAssessment.result?.strategy ||
+                    state.riskAssessment.created_at ? (
+                      <p className="text-xs text-muted-foreground">
+                        {[
+                          state.riskAssessment.result?.strategy,
+                          state.riskAssessment.created_at
+                            ? `Assessed ${formatDate(state.riskAssessment.created_at)}`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    ) : null}
                   </CardContent>
                 </Card>
               </Section>

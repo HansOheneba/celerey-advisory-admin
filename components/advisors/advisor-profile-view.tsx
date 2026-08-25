@@ -102,7 +102,7 @@ export function AdvisorProfileView({
               : advisor.role === "admin"
                 ? "Firm-wide access and can hold a personal book."
                 : "Sees only assigned clients and their dashboard."}
-            {advisor.roles.includes("user")
+            {advisor.roles.includes("client")
               ? " Includes client-app access on this identity."
               : ""}
           </CardContent>

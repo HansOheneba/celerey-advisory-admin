@@ -93,17 +93,22 @@ export async function updateClientSubscriptionAction(
   const validatedFields = UpdateSubscriptionSchema.safeParse({
     clientId: formData.get("clientId"),
     subscription: formData.get("subscription"),
+    durationDays: formData.get("duration") || undefined,
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: "Choose a valid subscription.",
+      message: "Please fix the errors below.",
     };
   }
 
-  const { clientId, subscription } = validatedFields.data;
-  const result = await updateClientSubscription(clientId, subscription);
+  const { clientId, subscription, durationDays } = validatedFields.data;
+  const result = await updateClientSubscription(
+    clientId,
+    subscription,
+    durationDays,
+  );
 
   if (!result.ok) {
     return { message: result.message };

@@ -3,6 +3,7 @@
 import { useActionState, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { updateClientSubscriptionAction } from "@/app/actions/clients";
+import { CoreDurationFields } from "@/components/clients/core-duration-fields";
 import { SubscriptionBadge } from "@/components/clients/subscription-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,6 +78,10 @@ function SubscriptionForm({
         </Select>
       </div>
 
+      {value === "celerey_core" ? (
+        <CoreDurationFields error={state?.errors?.durationDays?.[0]} />
+      ) : null}
+
       {state?.message && !state.success ? (
         <p className="text-sm text-destructive" role="alert">
           {state.message}
@@ -121,8 +126,8 @@ export function EditSubscriptionDialog({
         <DialogHeader>
           <DialogTitle>Edit subscription</DialogTitle>
           <DialogDescription>
-            Set Not onboarded, Free trial, or Celerey Core. Celerey Core can be
-            granted before onboarding completes.
+            Set Not onboarded, Free trial, or Celerey Core. Core requires a
+            subscription length.
           </DialogDescription>
         </DialogHeader>
 

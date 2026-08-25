@@ -24,12 +24,16 @@ import type {
 } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
 
+const API_CLIENT_SORT = ["name", "aua", "lastContactAt", "nextReviewAt"] as const;
+
+type ApiClientSort = (typeof API_CLIENT_SORT)[number];
+
 export type ClientListParams = {
   query?: string;
   status?: string;
   riskLevel?: string;
   subscription?: string;
-  sortBy?: "name" | "aua" | "lastContactAt" | "nextReviewAt";
+  sortBy?: ApiClientSort | "joinedAt";
   sortDir?: "asc" | "desc";
   page?: number;
   pageSize?: number;
@@ -61,6 +65,20 @@ function filterAssignedClients(
   return items.filter((client) => client.advisorId === session.userId);
 }
 
+function isApiClientSort(value: string): value is ApiClientSort {
+  return (API_CLIENT_SORT as readonly string[]).includes(value);
+}
+
+function sortByJoinedAt(items: Client[], sortDir: "asc" | "desc") {
+  return [...items].sort((a, b) => {
+    const aTime = Date.parse(a.joinedAt);
+    const bTime = Date.parse(b.joinedAt);
+    const aValue = Number.isFinite(aTime) ? aTime : 0;
+    const bValue = Number.isFinite(bTime) ? bTime : 0;
+    return sortDir === "desc" ? bValue - aValue : aValue - bValue;
+  });
+}
+
 export async function listClients(
   params: ClientListParams = {},
 ): Promise<ClientListResult> {
@@ -71,42 +89,86 @@ export async function listClients(
     status = "all",
     riskLevel = "all",
     subscription = "all",
-    sortBy = "name",
-    sortDir = "asc",
+    sortBy = "joinedAt",
+    sortDir = "desc",
     page = 1,
-    pageSize = 10,
+    pageSize = 20,
     ownBookOnly = false,
   } = params;
 
-  const result = await findClientsApi(session.accessToken, {
+  const sortLocallyByJoinedAt = sortBy === "joinedAt";
+  const listQuery = {
     query,
     status,
     riskLevel,
     subscription,
     advisorId: ownBookOnly ? session.userId : scopedAdvisorId(session),
-    sortBy,
-    sortDir,
-    page,
-    pageSize,
+  };
+
+  const result = await findClientsApi(session.accessToken, {
+    ...listQuery,
+    sortBy: isApiClientSort(sortBy) ? sortBy : "name",
+    sortDir: sortLocallyByJoinedAt ? "asc" : sortDir,
+    page: sortLocallyByJoinedAt ? 1 : page,
+    pageSize: sortLocallyByJoinedAt ? 100 : pageSize,
   });
 
   if (!result.ok) {
     throw new Error(result.message || "Unable to load clients.");
   }
 
-  const items = filterAssignedClients(
+  let items = filterAssignedClients(
     session,
     result.data.items,
     ownBookOnly,
   );
 
+  if (!sortLocallyByJoinedAt) {
+    return {
+      ...result.data,
+      items,
+      total:
+        items.length === result.data.items.length
+          ? result.data.total
+          : items.length,
+    };
+  }
+
+  if (result.data.pageCount > 1) {
+    const remaining = await Promise.all(
+      Array.from({ length: result.data.pageCount - 1 }, (_, index) =>
+        findClientsApi(session.accessToken, {
+          ...listQuery,
+          sortBy: "name",
+          sortDir: "asc",
+          page: index + 2,
+          pageSize: result.data.pageSize,
+        }),
+      ),
+    );
+
+    for (const extra of remaining) {
+      if (!extra.ok) {
+        continue;
+      }
+
+      items = items.concat(
+        filterAssignedClients(session, extra.data.items, ownBookOnly),
+      );
+    }
+  }
+
+  const sorted = sortByJoinedAt(items, sortDir);
+  const total = sorted.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const start = (page - 1) * pageSize;
+
   return {
-    ...result.data,
-    items,
-    total:
-      items.length === result.data.items.length
-        ? result.data.total
-        : items.length,
+    items: sorted.slice(start, start + pageSize),
+    total,
+    page,
+    pageSize,
+    pageCount,
   };
 }
 
@@ -147,11 +209,13 @@ export async function getClientDetail(
 export async function updateClientSubscription(
   id: string,
   subscription: ClientSubscription,
+  durationDays?: number,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const session = await requireAdmin();
   const result = await updateClientSubscriptionApi(session.accessToken, {
     clientId: id,
     subscription,
+    durationDays,
   });
 
   if (!result.ok) {

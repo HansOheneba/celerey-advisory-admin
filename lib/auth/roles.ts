@@ -1,7 +1,7 @@
 export type InviteRole = "advisor" | "admin";
 export type ActingRole = "advisor" | "admin";
 export type StaffRole = "advisor" | "admin" | "super_admin";
-export type IdentityRole = "user" | StaffRole;
+export type IdentityRole = "client" | StaffRole;
 export type AppRole = StaffRole;
 export type RoleScope = "firm_wide" | "own_book";
 
@@ -15,7 +15,7 @@ export type SessionRoleContext = {
 
 const STAFF_ROLES: StaffRole[] = ["advisor", "admin", "super_admin"];
 export const IDENTITY_ROLES: IdentityRole[] = [
-  "user",
+  "client",
   "advisor",
   "admin",
   "super_admin",
@@ -29,7 +29,7 @@ export function isIdentityRole(
   value: string | null | undefined,
 ): value is IdentityRole {
   return (
-    value === "user" ||
+    value === "client" ||
     value === "advisor" ||
     value === "admin" ||
     value === "super_admin"
@@ -37,8 +37,8 @@ export function isIdentityRole(
 }
 
 function canonicalizeIdentityRole(value: string): IdentityRole | null {
-  if (value === "user" || value === "client") {
-    return "user";
+  if (value === "client" || value === "user") {
+    return "client";
   }
 
   if (isIdentityRole(value)) {
@@ -81,7 +81,7 @@ export function roleLabel(role: AppRole) {
 }
 
 export function identityRoleLabel(role: IdentityRole) {
-  if (role === "user") {
+  if (role === "client") {
     return "Client";
   }
 
@@ -150,13 +150,13 @@ export function resolveIdentityRoles(input: {
       : isStaffRole(input.role)
         ? rolesFromPrimary(normalizeRole(input.role))
         : [];
-  const hasUser =
+  const hasClient =
     input.isClient === true ||
     input.is_client === true ||
-    fromSet.includes("user");
+    fromSet.includes("client");
 
-  if (hasUser && !seeded.includes("user")) {
-    return parseIdentityRoles(["user", ...seeded]);
+  if (hasClient && !seeded.includes("client")) {
+    return parseIdentityRoles(["client", ...seeded]);
   }
 
   return seeded.length > 0 ? seeded : ["advisor"];

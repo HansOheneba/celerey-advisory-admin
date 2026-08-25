@@ -132,7 +132,8 @@ export function DashboardTopbar({ advisor }: DashboardTopbarProps) {
             <Button
               type="button"
               variant="ghost"
-              className="h-8 gap-2 px-1.5 sm:px-2"
+              size="sm"
+              className="gap-2"
               aria-label="Account menu"
             />
           }

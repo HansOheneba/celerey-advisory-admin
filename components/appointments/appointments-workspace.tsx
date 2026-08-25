@@ -1,46 +1,45 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import Link from "next/link";
+import { useMemo, useState, useTransition } from "react";
+import { CalendarDays, List } from "lucide-react";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
 import {
   confirmAppointmentAction,
   createAppointmentAction,
-  findAppointmentSlotsAction,
   logAppointmentAction,
   updateAppointmentStatusAction,
 } from "@/app/actions/appointments";
+import { AppointmentRequestCard } from "@/components/appointments/appointment-request-card";
+import {
+  AppointmentDayTimeline,
+  AppointmentListRow,
+  AppointmentWeekCalendar,
+  groupAppointmentsByDay,
+} from "@/components/appointments/appointment-schedule-views";
+import { AppointmentSummaryStrip } from "@/components/appointments/appointment-summary-strip";
 import { LogSessionDialog } from "@/components/appointments/log-session-dialog";
+import { ScheduleAppointmentDialog } from "@/components/appointments/schedule-appointment-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  APPOINTMENT_TYPE_LABELS,
-  type Appointment,
-  type AppointmentSlot,
-  type AppointmentType,
-  type SessionLogInput,
+  computeScheduleStats,
+  formatDayLabel,
+  formatHeaderDate,
+  formatShortDate,
+  formatTimeLabel,
+  formatTodayHeading,
+  getInitialWeekStart,
+  getNextScheduledAppointment,
+  getWeekStart,
+  partitionSchedule,
+  type ScheduleView,
+} from "@/lib/appointments/display";
+import type {
+  Appointment,
+  AppointmentType,
+  SessionLogInput,
 } from "@/lib/appointments/types";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { APPOINTMENT_DURATIONS } from "@/lib/settings/options";
 import { cn } from "@/lib/utils";
 import type { Client } from "@/types/client";
 
@@ -49,272 +48,36 @@ type AppointmentsWorkspaceProps = {
   initialAppointments: Appointment[];
 };
 
-function toDateInput(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function dayLabel(iso: string | null) {
-  if (!iso) {
-    return "Unscheduled";
-  }
-  const date = new Date(iso);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((target.getTime() - today.getTime()) / 864e5);
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Tomorrow";
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
-
-function timeLabel(iso: string | null) {
-  if (!iso) {
-    return "—";
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(iso));
-}
-
-function ScheduleAppointmentDialog({
-  clients,
-  onSchedule,
-  pending,
+function ScheduleViewToggle({
+  value,
+  onChange,
 }: {
-  clients: Client[];
-  onSchedule: (input: {
-    clientId: string;
-    type: AppointmentType;
-    title: string;
-    scheduledAt: string;
-    durationMinutes: number;
-  }) => void;
-  pending: boolean;
+  value: ScheduleView;
+  onChange: (value: ScheduleView) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [clientId, setClientId] = useState("");
-  const [type, setType] = useState<AppointmentType>("review");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("10:00");
-  const [duration, setDuration] = useState(30);
-  const [slots, setSlots] = useState<AppointmentSlot[]>([]);
-  const [slotsPending, startSlots] = useTransition();
-
-  useEffect(() => {
-    if (!open || !clientId) {
-      setSlots([]);
-      return;
-    }
-
-    const from = toDateInput(new Date());
-    const until = new Date();
-    until.setDate(until.getDate() + 13);
-
-    startSlots(async () => {
-      const result = await findAppointmentSlotsAction({
-        clientId,
-        from,
-        to: toDateInput(until),
-        durationMinutes: duration,
-      });
-      if (!result.ok) {
-        setSlots([]);
-        return;
-      }
-      setSlots(result.items.slice(0, 12));
-    });
-  }, [open, clientId, duration]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!clientId || !date || !time) {
-      return;
-    }
-
-    onSchedule({
-      clientId,
-      type,
-      title: APPOINTMENT_TYPE_LABELS[type],
-      scheduledAt: new Date(`${date}T${time}`).toISOString(),
-      durationMinutes: duration,
-    });
-
-    setOpen(false);
-    setClientId("");
-    setDate("");
-    setTime("10:00");
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type="button" />}>
-        <Plus />
-        Schedule appointment
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Schedule appointment</DialogTitle>
-          <DialogDescription>
-            Prefer an overlapping slot, or pick a time yourself.
-          </DialogDescription>
-        </DialogHeader>
-        {clients.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No clients are assigned to you yet. Assignments happen before you
-            can schedule.
-          </p>
-        ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="apptClient">Client</Label>
-            <Select
-              value={clientId || null}
-              onValueChange={(value) => setClientId(value ?? "")}
-            >
-              <SelectTrigger id="apptClient" className="w-full">
-                <SelectValue placeholder="Choose a client">
-                  {(selected: string | null) => {
-                    const client = clients.find(
-                      (item) => item.id === (selected ?? clientId),
-                    );
-                    return client
-                      ? `${client.firstName} ${client.lastName}`
-                      : "Choose a client";
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.firstName} {client.lastName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="apptType">Type</Label>
-            <Select
-              value={type}
-              onValueChange={(value) =>
-                setType((value as AppointmentType) ?? "review")
-              }
-            >
-              <SelectTrigger id="apptType" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(APPOINTMENT_TYPE_LABELS).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="apptDate">Date</Label>
-              <Input
-                id="apptDate"
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="apptTime">Time</Label>
-              <Input
-                id="apptTime"
-                type="time"
-                value={time}
-                onChange={(event) => setTime(event.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="apptDuration">Duration</Label>
-            <Select
-              value={String(duration)}
-              onValueChange={(value) => setDuration(value ? Number(value) : 30)}
-            >
-              <SelectTrigger id="apptDuration" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {APPOINTMENT_DURATIONS.map((option) => (
-                  <SelectItem key={option.value} value={String(option.value)}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {clientId ? (
-            <div className="space-y-2">
-              <Label>Openings (next 2 weeks)</Label>
-              {slotsPending ? (
-                <p className="text-sm text-muted-foreground">Finding slots…</p>
-              ) : slots.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No overlap with this client yet. Pick a time below anyway.
-                </p>
-              ) : (
-                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
-                  {slots.map((slot) => {
-                    const start = new Date(slot.startAt);
-                    const selected =
-                      date === toDateInput(start) &&
-                      time === start.toTimeString().slice(0, 5);
-                    return (
-                      <button
-                        key={slot.startAt}
-                        type="button"
-                        onClick={() => {
-                          setDate(toDateInput(start));
-                          setTime(start.toTimeString().slice(0, 5));
-                        }}
-                        className={cn(
-                          "h-8 rounded-lg border px-2.5 text-xs font-medium",
-                          selected
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-input bg-background text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        {dayLabel(slot.startAt)} {timeLabel(slot.startAt)}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ) : null}
-          <DialogFooter>
-            <Button
-              type="submit"
-              disabled={!clientId || !date || !time || pending}
-            >
-              Schedule
-            </Button>
-          </DialogFooter>
-        </form>
-        )}
-      </DialogContent>
-    </Dialog>
+    <div className="inline-flex h-9 items-center gap-1 rounded-lg bg-muted p-1">
+      <Button
+        type="button"
+        size="sm"
+        variant={value === "calendar" ? "secondary" : "ghost"}
+        className={cn(value === "calendar" && "shadow-sm")}
+        onClick={() => onChange("calendar")}
+      >
+        <CalendarDays />
+        Calendar
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant={value === "list" ? "secondary" : "ghost"}
+        className={cn(value === "list" && "shadow-sm")}
+        onClick={() => onChange("list")}
+      >
+        <List />
+        List
+      </Button>
+    </div>
   );
 }
 
@@ -325,30 +88,31 @@ export function AppointmentsWorkspace({
   const [appointments, setAppointments] = useState(initialAppointments);
   const [pending, startTransition] = useTransition();
   const [logging, setLogging] = useState<Appointment | null>(null);
+  const [view, setView] = useState<ScheduleView>("calendar");
+  const [weekStart, setWeekStart] = useState(() =>
+    getInitialWeekStart(initialAppointments),
+  );
 
-  const requested = useMemo(
-    () =>
-      appointments.filter((appointment) => appointment.status === "requested"),
+  const stats = useMemo(
+    () => computeScheduleStats(appointments),
+    [appointments],
+  );
+  const { today, upcoming, requested, calendarItems } = useMemo(
+    () => partitionSchedule(appointments),
+    [appointments],
+  );
+  const upcomingGroups = useMemo(
+    () => groupAppointmentsByDay(upcoming),
+    [upcoming],
+  );
+  const nextAppointment = useMemo(
+    () => getNextScheduledAppointment(appointments),
     [appointments],
   );
 
-  const upcoming = useMemo(
-    () =>
-      appointments.filter((appointment) => appointment.status === "upcoming"),
-    [appointments],
-  );
-
-  const grouped = useMemo(() => {
-    const groups = new Map<string, Appointment[]>();
-    for (const appointment of upcoming) {
-      if (!appointment.scheduledAt) {
-        continue;
-      }
-      const key = dayLabel(appointment.scheduledAt);
-      groups.set(key, [...(groups.get(key) ?? []), appointment]);
-    }
-    return Array.from(groups.entries());
-  }, [upcoming]);
+  const todayDate = new Date();
+  const hasSchedule =
+    requested.length > 0 || today.length > 0 || upcoming.length > 0;
 
   function handleSchedule(input: {
     clientId: string;
@@ -371,6 +135,10 @@ export function AppointmentsWorkspace({
             (b.scheduledAt ? new Date(b.scheduledAt).getTime() : 0),
         ),
       );
+      if (result.appointment.scheduledAt) {
+        setWeekStart(getWeekStart(new Date(result.appointment.scheduledAt)));
+        setView("calendar");
+      }
       toast.success("Appointment scheduled");
     });
   }
@@ -401,9 +169,26 @@ export function AppointmentsWorkspace({
         return;
       }
 
+      const previous = appointments.find((item) => item.id === id);
+      const confirmed = {
+        ...result.appointment,
+        scheduledAt:
+          result.appointment.scheduledAt ?? previous?.scheduledAt ?? null,
+        status:
+          result.appointment.status === "requested"
+            ? "upcoming"
+            : result.appointment.status,
+      };
+
       setAppointments((current) =>
-        current.map((item) => (item.id === id ? result.appointment : item)),
+        current.map((item) => (item.id === id ? confirmed : item)),
       );
+
+      if (confirmed.scheduledAt) {
+        setWeekStart(getWeekStart(new Date(confirmed.scheduledAt)));
+        setView("calendar");
+      }
+
       toast.success("Session confirmed");
     });
   }
@@ -429,12 +214,42 @@ export function AppointmentsWorkspace({
   return (
     <div className={dashboardTheme.page}>
       <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-0.5">
-          <p className={dashboardTheme.sectionLabel}>Calendar</p>
+        <div className="space-y-1">
+          <p className={dashboardTheme.sectionLabel}>Schedule</p>
           <h2 className={dashboardTheme.pageTitle}>Appointments</h2>
           <p className={dashboardTheme.pageDescription}>
-            Book sessions, confirm client requests, and log notes the client
-            sees on their Advisory page.
+            Manage your client sessions and upcoming advisory meetings.
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground">Today</span>
+            <span className="mx-2 text-border">·</span>
+            <span className="font-semibold text-foreground">
+              {formatHeaderDate(todayDate)}
+            </span>
+            <span className="mx-2 text-border">·</span>
+            <span className="font-semibold text-foreground">
+              {stats.requests}
+            </span>{" "}
+            request{stats.requests === 1 ? "" : "s"}
+            <span className="mx-2 text-border">·</span>
+            <span className="font-semibold text-foreground">
+              {today.length + upcoming.length}
+            </span>{" "}
+            upcoming
+            {nextAppointment?.scheduledAt ? (
+              <>
+                <span className="mx-2 text-border">·</span>
+                <span className="font-medium text-foreground">Next:</span>{" "}
+                <span className="font-semibold text-foreground">
+                  {nextAppointment.clientName}
+                </span>
+                <span className="mx-2 text-border">·</span>
+                <span className="font-semibold text-foreground">
+                  {formatShortDate(nextAppointment.scheduledAt)} at{" "}
+                  {formatTimeLabel(nextAppointment.scheduledAt)}
+                </span>
+              </>
+            ) : null}
           </p>
         </div>
         <ScheduleAppointmentDialog
@@ -444,127 +259,132 @@ export function AppointmentsWorkspace({
         />
       </section>
 
+      <AppointmentSummaryStrip stats={stats} />
+
       {requested.length > 0 ? (
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Inbox</p>
-            <CardTitle className="text-base font-semibold">
-              Session requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y divide-border/50 p-0">
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <p className={dashboardTheme.sectionLabel}>Action required</p>
+              <h3 className="text-base font-semibold tracking-tight">
+                Session requests
+              </h3>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground tabular-nums">
+              {requested.length}
+            </span>
+          </div>
+          <div className="space-y-3">
             {requested.map((appointment) => (
-              <div
+              <AppointmentRequestCard
                 key={appointment.id}
-                className="flex items-center justify-between gap-4 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <Link
-                    href={`/clients/${appointment.clientId}`}
-                    className="truncate text-sm font-medium hover:underline"
-                  >
-                    {appointment.clientName}
-                  </Link>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {appointment.scheduledAt
-                      ? `Prefers ${dayLabel(appointment.scheduledAt)} ${timeLabel(appointment.scheduledAt)}`
-                      : "Flexible — confirm a time"}{" "}
-                    · {APPOINTMENT_TYPE_LABELS[appointment.type]}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => confirmRequest(appointment.id)}
-                  >
-                    Confirm
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Decline request"
-                    disabled={pending}
-                    onClick={() => setStatus(appointment.id, "cancelled")}
-                  >
-                    <X />
-                  </Button>
-                </div>
-              </div>
+                appointment={appointment}
+                pending={pending}
+                onConfirm={confirmRequest}
+                onDecline={(id) => setStatus(id, "cancelled")}
+              />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       ) : null}
 
-      {upcoming.length === 0 && requested.length === 0 ? (
-        <div className={dashboardTheme.emptyState}>
-          <div className="px-6 py-12 text-center">
-            <p className="text-sm font-medium">No upcoming appointments</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Schedule one to see it appear here.
-            </p>
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className={dashboardTheme.sectionLabel}>Your week</p>
+            <h3 className="text-base font-semibold tracking-tight">
+              {view === "calendar" ? "Calendar" : "Today"}
+            </h3>
           </div>
+          <ScheduleViewToggle value={view} onChange={setView} />
         </div>
-      ) : (
-        <div className="space-y-4">
-          {grouped.map(([day, items]) => (
-            <Card key={day} className={dashboardTheme.card}>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">{day}</CardTitle>
-              </CardHeader>
-              <CardContent className="divide-y divide-border/50 p-0">
-                {items.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between gap-4 px-4 py-3"
-                  >
-                    <div className="flex min-w-0 items-center gap-4">
-                      <span className="w-16 shrink-0 text-sm font-medium tabular-nums">
-                        {timeLabel(appointment.scheduledAt)}
-                      </span>
-                      <div className="min-w-0">
-                        <Link
-                          href={`/clients/${appointment.clientId}`}
-                          className="truncate text-sm font-medium hover:underline"
-                        >
-                          {appointment.clientName}
-                        </Link>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
-                          {appointment.durationMinutes} min
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => setLogging(appointment)}
-                      >
-                        Log session
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label="Cancel appointment"
-                        disabled={pending}
-                        onClick={() => setStatus(appointment.id, "cancelled")}
-                      >
-                        <X />
-                      </Button>
-                    </div>
+
+        {view === "calendar" ? (
+          <AppointmentWeekCalendar
+            appointments={calendarItems}
+            weekStart={weekStart}
+            onWeekChange={setWeekStart}
+          />
+        ) : (
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div>
+                <p className={dashboardTheme.sectionLabel}>Today</p>
+                <h4 className="text-sm font-semibold tracking-tight uppercase">
+                  {formatTodayHeading(todayDate)}
+                </h4>
+              </div>
+              <AppointmentDayTimeline
+                appointments={today}
+                pending={pending}
+                onLog={setLogging}
+                onCancel={(id) => setStatus(id, "cancelled")}
+              />
+            </div>
+
+            {upcomingGroups.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <div>
+                    <p className={dashboardTheme.sectionLabel}>Coming up</p>
+                    <h4 className="text-sm font-semibold tracking-tight">
+                      Upcoming
+                    </h4>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {upcoming.length} session
+                    {upcoming.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {upcomingGroups.map(({ date, items }) => (
+                    <Card key={date.toISOString()} className={dashboardTheme.card}>
+                      <CardContent className="p-0">
+                        <div className="border-b border-border/50 px-4 py-3">
+                          <p className="text-sm font-semibold">
+                            {formatDayLabel(date.toISOString())}
+                          </p>
+                        </div>
+                        <div className="divide-y divide-border/50">
+                          {items.map((appointment) => (
+                            <AppointmentListRow
+                              key={appointment.id}
+                              appointment={appointment}
+                              pending={pending}
+                              onLog={setLogging}
+                              onCancel={(id) => setStatus(id, "cancelled")}
+                            />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {!hasSchedule ? (
+              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                <div className="mb-4 flex size-12 items-center justify-center rounded-full border border-border/60 bg-muted/40">
+                  <CalendarDays className="size-5 text-muted-foreground" />
+                </div>
+                <p className="text-base font-medium">Your schedule is clear</p>
+                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                  No upcoming appointments. Schedule a session or wait for a
+                  client request.
+                </p>
+                <div className="mt-6">
+                  <ScheduleAppointmentDialog
+                    clients={clients}
+                    onSchedule={handleSchedule}
+                    pending={pending}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </section>
 
       <LogSessionDialog
         appointment={logging}

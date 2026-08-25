@@ -48,12 +48,12 @@ export type ClientDetailState = {
       modifiers: Record<string, number>;
       modifier_total: number;
       final_score: number;
-    };
+    } | null;
     result: {
       risk_band: string;
       description: string;
       strategy: string;
-    };
+    } | null;
     is_recalculation: boolean;
     created_at: string;
   } | null;

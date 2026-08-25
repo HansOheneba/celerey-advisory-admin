@@ -106,7 +106,7 @@ export async function findClientsApi(
       sortBy: params.sortBy ?? "name",
       sortDir: params.sortDir ?? "asc",
       page: params.page ?? 1,
-      pageSize: params.pageSize ?? 10,
+      pageSize: params.pageSize ?? 20,
     },
   });
 
@@ -118,7 +118,7 @@ export async function findClientsApi(
   const items = Array.isArray(raw.items) ? raw.items : [];
   const page = typeof raw.page === "number" ? raw.page : 1;
   const pageSize =
-    typeof raw.pageSize === "number" ? raw.pageSize : (params.pageSize ?? 10);
+    typeof raw.pageSize === "number" ? raw.pageSize : (params.pageSize ?? 20);
   const total = typeof raw.total === "number" ? raw.total : items.length;
   const pageCount =
     typeof raw.pageCount === "number"
@@ -170,6 +170,7 @@ export async function updateClientSubscriptionApi(
   input: {
     clientId: string;
     subscription: ClientSubscription;
+    durationDays?: number;
     reason?: string;
   },
 ) {
@@ -181,6 +182,9 @@ export async function updateClientSubscriptionApi(
       body: {
         client_id: input.clientId,
         subscription: input.subscription,
+        ...(input.subscription === "celerey_core" && input.durationDays
+          ? { duration: input.durationDays }
+          : {}),
         ...(input.reason ? { reason: input.reason } : {}),
       },
     },

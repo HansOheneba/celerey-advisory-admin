@@ -119,7 +119,11 @@ export function ClientsTable({
       return;
     }
 
-    updateParams({ sortBy: column, sortDir: "asc", page: "1" });
+    updateParams({
+      sortBy: column,
+      sortDir: column === "joinedAt" ? "desc" : "asc",
+      page: "1",
+    });
   }
 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -200,6 +204,16 @@ export function ClientsTable({
                   <ArrowDownUp className="size-3.5 text-muted-foreground" />
                 </button>
               </TableHead>
+              <TableHead className="hidden md:table-cell">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 font-medium"
+                  onClick={() => toggleSort("joinedAt")}
+                >
+                  Joined
+                  <ArrowDownUp className="size-3.5 text-muted-foreground" />
+                </button>
+              </TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               {canManageSubscriptions ? (
                 <TableHead className="hidden lg:table-cell">
@@ -250,7 +264,7 @@ export function ClientsTable({
               <TableRow>
                 <TableCell
                   colSpan={
-                    6 +
+                    7 +
                     (canManageSubscriptions ? 1 : 0) +
                     (showAdvisorColumn ? 1 : 0) +
                     1
@@ -296,6 +310,9 @@ export function ClientsTable({
                         </div>
                       </div>
                     </Link>
+                  </TableCell>
+                  <TableCell className="hidden text-muted-foreground md:table-cell">
+                    {formatDate(client.joinedAt)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <StatusBadge status={client.status} />

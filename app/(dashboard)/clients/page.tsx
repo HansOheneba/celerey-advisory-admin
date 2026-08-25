@@ -34,12 +34,21 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const status = params.status ?? "all";
   const riskLevel = params.riskLevel ?? "all";
   const sortBy =
+    params.sortBy === "name" ||
     params.sortBy === "aua" ||
     params.sortBy === "lastContactAt" ||
-    params.sortBy === "nextReviewAt"
+    params.sortBy === "nextReviewAt" ||
+    params.sortBy === "joinedAt"
       ? params.sortBy
-      : "name";
-  const sortDir = params.sortDir === "desc" ? "desc" : "asc";
+      : "joinedAt";
+  const sortDir =
+    params.sortDir === "asc"
+      ? "asc"
+      : params.sortDir === "desc"
+        ? "desc"
+        : sortBy === "joinedAt"
+          ? "desc"
+          : "asc";
   const page = Number(params.page ?? "1") || 1;
 
   const [result, advisorsResult] = await Promise.all([
@@ -50,7 +59,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       sortBy,
       sortDir,
       page,
-      pageSize: 10,
+      pageSize: 20,
     }),
     admin
       ? listAdvisors({ page: 1, pageSize: 100 }).catch(() => ({
