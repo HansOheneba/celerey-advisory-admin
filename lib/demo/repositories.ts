@@ -175,4 +175,23 @@ export async function getUnreadAlertCount(): Promise<number> {
   return alerts.filter((alert) => !alert.read).length;
 }
 
+/** Appointments and open advisor tasks visible on the Overview upcoming panel. */
+export async function getUpcomingSchedule() {
+  const { db, records } = await getViewer();
+  const visibleIds = new Set(records.map((record) => record.client.id));
+
+  const appointments = db.appointments.filter((appointment) =>
+    visibleIds.has(appointment.clientId),
+  );
+
+  const tasks = db.tasks.filter(
+    (task) =>
+      task.status === "open" &&
+      task.assignee === "advisor" &&
+      (!task.clientId || visibleIds.has(task.clientId)),
+  );
+
+  return { appointments, tasks };
+}
+
 export type { AdvisorSession };

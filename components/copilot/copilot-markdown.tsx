@@ -11,14 +11,13 @@ type CopilotMarkdownProps = {
 };
 
 /**
- * Renders copilot prose — headings, lists, bold — with compact spacing suited
- * to a chat bubble rather than a document page.
+ * Renders copilot prose as a reading column, not a chat bubble.
  */
 export function CopilotMarkdown({ content, className }: CopilotMarkdownProps) {
   return (
     <div
       className={cn(
-        "copilot-markdown text-sm leading-relaxed text-foreground",
+        "copilot-markdown text-[15px] leading-7 text-foreground",
         className,
       )}
     >

@@ -50,6 +50,7 @@
   --color-surface-ai: var(--surface-ai);
   --color-surface-muted: var(--surface-muted);
   --color-accent-purple: var(--accent-purple);
+  --color-accent-gold: var(--accent-gold);
 }
 
 :root {
@@ -93,6 +94,7 @@
   --surface-info: color-mix(in oklch, #2563eb 8%, white);
   --surface-ai: color-mix(in oklch, #8c80f8 9%, white);
   --accent-purple: #8c80f8;
+  --accent-gold: #b8975a;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);

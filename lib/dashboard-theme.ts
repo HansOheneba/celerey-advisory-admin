@@ -9,9 +9,13 @@ export const dashboardTheme = {
   sectionLabel:
     "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground",
   pageTitle: "text-xl font-semibold tracking-tight sm:text-2xl",
-  pageDescription: "text-sm text-muted-foreground max-w-xl",
+  pageDescription: "text-sm text-muted-foreground max-w-2xl leading-relaxed",
+  sectionTitle: "text-base font-semibold tracking-tight",
   card: "bg-card border border-border/50 shadow-none transition-colors hover:border-border/80",
   kpiCard: "bg-card border border-border/50 shadow-none",
+  elevatedSection:
+    "rounded-xl border border-border/50 bg-card px-4 py-4 sm:px-5 sm:py-5",
+  openSection: "space-y-4",
   tableShell: "bg-card border border-border/50 overflow-hidden rounded-xl",
   emptyState:
     "rounded-xl border border-dashed border-border/70 bg-surface-brand px-6 py-10 text-center",

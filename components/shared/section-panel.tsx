@@ -33,7 +33,7 @@ export function SectionPanel({
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
             {title ? (
-              <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+              <h2 className={dashboardTheme.sectionTitle}>{title}</h2>
             ) : null}
             {description ? (
               <p className="text-sm text-muted-foreground">{description}</p>

@@ -4,7 +4,7 @@ import { OverviewView } from "@/components/overview/overview-view";
 import {
   getAlertFeed,
   getBookMetrics,
-  getOpportunityFeed,
+  getUpcomingSchedule,
   getViewer,
 } from "@/lib/demo/repositories";
 
@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const [{ session, db, records }, metrics, alerts, opportunities] =
+  const [{ session, db, records }, metrics, alerts, { appointments, tasks }] =
     await Promise.all([
       getViewer(),
       getBookMetrics(),
       getAlertFeed(),
-      getOpportunityFeed(),
+      getUpcomingSchedule(),
     ]);
 
   const visibleClientIds = new Set(records.map((record) => record.client.id));
@@ -28,12 +28,14 @@ export default async function DashboardPage() {
 
   return (
     <OverviewView
+      advisorName={session.name}
       capabilities={session.capabilities}
       metrics={metrics}
       records={records}
       alerts={alerts}
-      opportunities={opportunities}
       activity={activity}
+      appointments={appointments}
+      tasks={tasks}
     />
   );
 }

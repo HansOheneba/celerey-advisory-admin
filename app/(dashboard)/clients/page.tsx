@@ -87,13 +87,11 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           label="Total AUA"
           value={formatCompactCurrency(metrics.totalAua)}
           hint={`${metrics.clientCount} relationships`}
-          variant="accent"
         />
         <MetricCard
           label="Active clients"
           value={String(metrics.activeClients)}
           hint={`${metrics.onboarding} onboarding`}
-          variant="brand"
         />
         <MetricCard
           label="Reviews due"
@@ -107,7 +105,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               : undefined
           }
           hint="next 7 days"
-          variant={metrics.reviewsOverdue > 0 ? "warning" : "info"}
+          variant={metrics.reviewsOverdue > 0 ? "warning" : "default"}
         />
       </div>
 

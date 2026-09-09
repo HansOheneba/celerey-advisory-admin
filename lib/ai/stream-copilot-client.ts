@@ -7,6 +7,7 @@ export async function streamCopilotAnswer(
   question: string,
   clientId: string | undefined,
   onChunk: (partial: string) => void,
+  signal?: AbortSignal,
 ): Promise<StreamCopilotResult> {
   const response = await fetch("/api/copilot/stream", {
     method: "POST",
@@ -15,6 +16,7 @@ export async function streamCopilotAnswer(
       question,
       clientId: clientId ?? null,
     }),
+    signal,
   });
 
   if (!response.ok) {
