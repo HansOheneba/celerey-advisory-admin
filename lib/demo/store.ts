@@ -6,7 +6,22 @@ import path from "node:path";
 import { buildDemoDatabase, DEMO_DB_VERSION } from "@/lib/demo/seed";
 import type { DemoDatabase } from "@/lib/demo/types";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+function isServerlessRuntime() {
+  return (
+    process.env.VERCEL === "1" || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME)
+  );
+}
+
+/** Vercel/Lambda only allow writes under /tmp; local dev uses project .data. */
+function resolveDataDir() {
+  if (isServerlessRuntime()) {
+    return path.join("/tmp", "celerey-demo-data");
+  }
+
+  return path.join(process.cwd(), ".data");
+}
+
+const DATA_DIR = resolveDataDir();
 const DB_PATH = path.join(DATA_DIR, "demo-store.json");
 
 export const REPORTS_DIR = path.join(DATA_DIR, "reports");
@@ -14,11 +29,21 @@ export const REPORTS_DIR = path.join(DATA_DIR, "reports");
 let cached: DemoDatabase | null = null;
 let cachedMtimeMs = 0;
 let inFlight: Promise<DemoDatabase> | null = null;
+/** When disk is unavailable, keep the demo DB in memory for this isolate. */
+let memoryOnly = false;
 /** Serialises writes so concurrent server actions cannot clobber each other. */
 let writeQueue: Promise<unknown> = Promise.resolve();
 
 async function ensureDataDir() {
-  await mkdir(DATA_DIR, { recursive: true });
+  if (memoryOnly) {
+    return;
+  }
+
+  try {
+    await mkdir(DATA_DIR, { recursive: true });
+  } catch {
+    memoryOnly = true;
+  }
 }
 
 async function diskMtimeMs(): Promise<number> {
@@ -30,13 +55,28 @@ async function diskMtimeMs(): Promise<number> {
 }
 
 async function persist(db: DemoDatabase) {
-  await ensureDataDir();
-  await writeFile(DB_PATH, JSON.stringify(db), "utf8");
   cached = db;
-  cachedMtimeMs = await diskMtimeMs();
+
+  if (memoryOnly) {
+    cachedMtimeMs = Date.now();
+    return;
+  }
+
+  try {
+    await ensureDataDir();
+    await writeFile(DB_PATH, JSON.stringify(db), "utf8");
+    cachedMtimeMs = await diskMtimeMs();
+  } catch {
+    memoryOnly = true;
+    cachedMtimeMs = Date.now();
+  }
 }
 
 async function loadFromDisk(): Promise<DemoDatabase> {
+  if (memoryOnly) {
+    return cached ?? buildDemoDatabase();
+  }
+
   try {
     const raw = await readFile(DB_PATH, "utf8");
     const parsed = JSON.parse(raw) as DemoDatabase;
@@ -109,5 +149,13 @@ export async function resetDemoDb(): Promise<DemoDatabase> {
 }
 
 export async function ensureReportsDir() {
-  await mkdir(REPORTS_DIR, { recursive: true });
+  if (memoryOnly) {
+    return;
+  }
+
+  try {
+    await mkdir(REPORTS_DIR, { recursive: true });
+  } catch {
+    memoryOnly = true;
+  }
 }
