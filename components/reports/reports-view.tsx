@@ -1,9 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { BarChart3, Users } from "lucide-react";
+
+import { MetricCard } from "@/components/shared/metric-card";
+import { PageHeader } from "@/components/shared/page-header";
+import { SectionPanel } from "@/components/shared/section-panel";
 import {
   Table,
   TableBody,
@@ -31,62 +30,47 @@ function percentOf(value: number, total: number) {
 
 export function ReportsView({ summary, advisors }: ReportsViewProps) {
   return (
-    <div className={dashboardTheme.page}>
-      <section className="space-y-0.5">
-        <p className={dashboardTheme.sectionLabel}>Insights</p>
-        <h2 className={dashboardTheme.pageTitle}>Reports</h2>
-        <p className={dashboardTheme.pageDescription}>
-          {advisors
+    <div className={dashboardTheme.pageContainer}>
+      <PageHeader
+        eyebrow="Insights"
+        title="Reports"
+        description={
+          advisors
             ? "Firm-wide book performance, client health, and advisor workload."
-            : "Book performance and client health for your assigned clients."}
-        </p>
-      </section>
+            : "Book performance and client health for your assigned clients."
+        }
+        icon={BarChart3}
+      />
 
-      <Card className={dashboardTheme.card}>
-        <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Book performance</p>
-          <CardTitle className="text-base font-semibold">Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { label: "Total clients", value: String(summary.totalClients) },
-            { label: "Active clients", value: String(summary.activeClients) },
-            {
-              label: "Total AUA",
-              value: formatCompactCurrency(summary.totalAua),
-            },
-            {
-              label: "Average AUA per client",
-              value: formatCompactCurrency(summary.averageAua),
-            },
-            {
-              label: "Reviews due this week",
-              value: String(summary.reviewsDueThisWeek),
-            },
-            {
-              label: "Onboarding in progress",
-              value: String(summary.onboardingCount),
-            },
-          ].map((item) => (
-            <div key={item.label} className="space-y-1">
-              <p className="text-xs text-muted-foreground">{item.label}</p>
-              <p className="text-lg font-semibold tracking-tight">
-                {item.value}
-              </p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          label="Total clients"
+          value={String(summary.totalClients)}
+          hint={`${summary.activeClients} active`}
+          icon={Users}
+          variant="brand"
+        />
+        <MetricCard
+          label="Total AUA"
+          value={formatCompactCurrency(summary.totalAua)}
+          hint={`${formatCompactCurrency(summary.averageAua)} average`}
+          variant="accent"
+        />
+        <MetricCard
+          label="Reviews due"
+          value={String(summary.reviewsDueThisWeek)}
+          hint={`${summary.onboardingCount} onboarding`}
+          variant={summary.reviewsDueThisWeek > 0 ? "warning" : "info"}
+        />
+      </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Book health</p>
-            <CardTitle className="text-base font-semibold">
-              Clients by status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SectionPanel
+          title="Clients by status"
+          description="Book health breakdown."
+          variant="brand"
+        >
+          <div className={dashboardTheme.tableShell}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -109,17 +93,15 @@ export function ReportsView({ summary, advisors }: ReportsViewProps) {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionPanel>
 
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Allocation</p>
-            <CardTitle className="text-base font-semibold">
-              AUA by risk profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+        <SectionPanel
+          title="AUA by risk profile"
+          description="Allocation across risk bands."
+          variant="info"
+        >
+          <div className={dashboardTheme.tableShell}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -142,19 +124,17 @@ export function ReportsView({ summary, advisors }: ReportsViewProps) {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionPanel>
       </div>
 
       {advisors ? (
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Team</p>
-            <CardTitle className="text-base font-semibold">
-              Advisor workload
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+        <SectionPanel
+          title="Advisor workload"
+          description="Client count and share of book by advisor."
+          variant="muted"
+        >
+          <div className={dashboardTheme.tableShell}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -177,8 +157,8 @@ export function ReportsView({ summary, advisors }: ReportsViewProps) {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionPanel>
       ) : null}
     </div>
   );

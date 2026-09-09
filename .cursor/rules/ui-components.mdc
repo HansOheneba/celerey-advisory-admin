@@ -26,3 +26,1143 @@ This is a strong default, not an absolute lock: if there's a good reason to
 deviate (accessibility, a real UX problem, a case shadcn doesn't cover), it's
 fine to suggest it — just flag that it's a deviation from stock shadcn rather
 than silently reskinning components.
+
+# UI Design & Visual Quality Skill
+
+## Purpose
+
+Build interfaces that feel intentionally designed, visually balanced, consistent, and production-ready.
+
+Do not treat UI implementation as simply translating a description into HTML/CSS/components.
+
+The agent must reason about:
+
+* Layout
+* Spacing
+* Padding
+* Visual hierarchy
+* Typography
+* Alignment
+* Component proportions
+* Density
+* Grouping
+* Responsive behavior
+* Consistency
+* Interaction states
+* Visual polish
+
+A technically functional interface is **not considered complete** if it looks cramped, awkward, excessively empty, misaligned, inconsistent, or visually unbalanced.
+
+---
+
+# 1. Core Principle
+
+Before writing UI code, understand the visual hierarchy.
+
+Every element belongs to a hierarchy:
+
+```text
+Page
+ └── Section
+      └── Content Group
+           └── Component
+                └── Element
+```
+
+Spacing must communicate this hierarchy.
+
+Elements that belong together should have smaller spacing.
+
+Groups that are conceptually separate should have larger spacing.
+
+For example:
+
+```text
+Heading
+8px
+Description
+16px
+Actions
+
+32px
+Next section
+```
+
+Do not use the same spacing value everywhere.
+
+Bad:
+
+```text
+Heading
+24px
+Description
+24px
+Button
+24px
+Next section
+24px
+```
+
+Good spacing creates visual relationships.
+
+---
+
+# 2. Use a Consistent Spacing Scale
+
+Do not invent arbitrary spacing values throughout the interface.
+
+Prefer a spacing scale such as:
+
+```text
+4px
+8px
+12px
+16px
+20px
+24px
+32px
+40px
+48px
+64px
+80px
+96px
+```
+
+Use the smallest appropriate value.
+
+General guidance:
+
+| Spacing | Typical purpose                                |
+| ------- | ---------------------------------------------- |
+| 4px     | Very tight relationships                       |
+| 8px     | Label → input, icon → text, heading → subtitle |
+| 12px    | Related content within a component             |
+| 16px    | Standard component spacing                     |
+| 20px    | Comfortable component separation               |
+| 24px    | Internal card padding / content groups         |
+| 32px    | Sections / major groups                        |
+| 40px    | Large component separation                     |
+| 48px    | Major sections                                 |
+| 64px    | Large page-level separation                    |
+| 80–96px | Hero / major visual transitions                |
+
+These are guidelines, not absolute rules.
+
+The visual relationship matters more than blindly following numbers.
+
+---
+
+# 3. Page-Level Layout
+
+Every page should establish a clear content container.
+
+Consider:
+
+* Maximum content width
+* Horizontal page padding
+* Vertical page padding
+* Header-to-content spacing
+* Section-to-section spacing
+* Alignment of major elements
+
+Avoid allowing content to sit directly against the viewport.
+
+For desktop layouts, typical horizontal padding may be:
+
+```text
+24px → 32px → 40px → 48px
+```
+
+depending on the page.
+
+On mobile, reduce this appropriately:
+
+```text
+16px → 20px → 24px
+```
+
+Do not make mobile layouts feel like compressed desktop layouts.
+
+---
+
+# 4. Container Alignment
+
+Look for common alignment boundaries.
+
+Related content should generally share the same left and right edges.
+
+For example:
+
+```text
+|--------------------------------------|
+| Page heading                         |
+| Description                          |
+|--------------------------------------|
+| Card                                 |
+|                                      |
+|--------------------------------------|
+```
+
+Avoid situations where:
+
+* The heading starts at 32px
+* The card starts at 48px
+* The table starts at 24px
+* The buttons start at 40px
+
+unless there is an intentional design reason.
+
+Alignment creates visual order.
+
+---
+
+# 5. Section Spacing
+
+Different sections should have obvious separation.
+
+Use larger spacing between sections than inside sections.
+
+Example:
+
+```text
+Page title
+8px
+Page description
+32px
+First content section
+48px
+Second content section
+48px
+Third content section
+```
+
+Do not let unrelated sections visually merge together.
+
+Conversely, do not put enormous gaps between related sections simply because whitespace "looks modern."
+
+Whitespace must communicate structure.
+
+---
+
+# 6. Component Padding
+
+Components should have enough internal breathing room.
+
+For cards, panels, modals, dropdowns, forms, etc., consider:
+
+```text
+16px
+20px
+24px
+32px
+```
+
+depending on component size and density.
+
+A component should not feel cramped.
+
+Bad:
+
+```text
+┌─────────────────────────┐
+│Title                    │
+│Description              │
+│Button                   │
+└─────────────────────────┘
+```
+
+when everything is touching the edges.
+
+Better:
+
+```text
+┌─────────────────────────┐
+│                         │
+│  Title                  │
+│  Description            │
+│                         │
+│  Button                 │
+│                         │
+└─────────────────────────┘
+```
+
+But do not automatically maximize padding.
+
+The correct padding depends on:
+
+* Component size
+* Content density
+* Importance
+* Screen size
+* Surrounding whitespace
+
+---
+
+# 7. Nested Spacing
+
+When components contain nested elements, spacing should become progressively tighter.
+
+Example:
+
+```text
+Card
+  24px padding
+
+  Heading
+    8px
+  Description
+    16px
+  Form fields
+    12–16px
+  Actions
+    24px
+```
+
+Think:
+
+```text
+Page spacing > Section spacing > Component spacing > Element spacing
+```
+
+This is one of the most important rules.
+
+---
+
+# 8. Typography Spacing
+
+Typography needs its own hierarchy.
+
+Typical relationships:
+
+```text
+Heading
+8px
+Subtitle / description
+
+16–24px
+Content
+```
+
+Avoid excessive spacing between text that belongs together.
+
+For example, this is usually wrong:
+
+```text
+Heading
+
+32px
+
+Description
+```
+
+unless intentionally designed that way.
+
+Similarly, don't cram:
+
+```text
+Heading
+2px
+Description
+```
+
+Text should feel connected but breathable.
+
+---
+
+# 9. Forms
+
+Forms must have clear vertical rhythm.
+
+Typical structure:
+
+```text
+Field label
+8px
+Input
+16px
+Next field
+```
+
+For related fields:
+
+```text
+First name     Last name
+              
+
+Email
+```
+
+The gap between fields should generally be smaller than the gap between the form and another unrelated section.
+
+Group related fields together.
+
+Use larger spacing when starting a new logical group.
+
+Example:
+
+```text
+Personal Information
+
+Name
+16px
+Email
+16px
+Phone
+
+32px
+
+Address
+
+Address line
+16px
+City
+16px
+Country
+```
+
+---
+
+# 10. Buttons and Controls
+
+Buttons should have appropriate internal padding.
+
+Consider:
+
+* Height
+* Horizontal padding
+* Icon-to-label spacing
+* Button-to-button spacing
+* Alignment with nearby controls
+
+Avoid:
+
+```text
+[Save] [Cancel]
+```
+
+with buttons touching each other.
+
+Use a deliberate gap.
+
+Usually:
+
+```text
+8px
+12px
+16px
+```
+
+depending on context.
+
+Do not make every button unnecessarily large.
+
+---
+
+# 11. Cards
+
+Cards should have internal hierarchy.
+
+A typical card:
+
+```text
+24px padding
+
+Eyebrow / label
+8px
+Title
+8px
+Description
+
+24px
+Main content
+
+24px
+Actions
+```
+
+But this should change according to the content.
+
+Do not apply identical card padding to every card regardless of size.
+
+A dense data card may need less.
+
+A marketing or informational card may need more.
+
+---
+
+# 12. Tables and Data-Dense Interfaces
+
+Do not use the same spacing philosophy for dashboards and marketing pages.
+
+Data-heavy interfaces should prioritize:
+
+* Scanability
+* Density
+* Alignment
+* Clear row separation
+* Consistent column spacing
+
+Avoid enormous whitespace in tables.
+
+Rows should be comfortable but efficient.
+
+For example:
+
+```text
+32–48px row height
+```
+
+may be appropriate depending on the interface.
+
+Use whitespace to separate groups, not to make every row feel oversized.
+
+---
+
+# 13. Dashboards
+
+For dashboards, establish a clear grid.
+
+Consider:
+
+```text
+Page padding
+↓
+Page heading
+↓
+Summary / filters
+↓
+Primary content
+↓
+Secondary content
+```
+
+Cards should align to the same grid.
+
+Avoid random card widths.
+
+Avoid:
+
+```text
+Card A: 387px
+Card B: 421px
+Card C: 356px
+```
+
+unless the design intentionally calls for it.
+
+Prefer a coherent grid system.
+
+---
+
+# 14. Responsive Design
+
+Spacing must adapt to screen size.
+
+Do not simply shrink everything.
+
+Desktop:
+
+```text
+Page padding: 40–48px
+Section spacing: 48–64px
+Card padding: 24–32px
+```
+
+Mobile:
+
+```text
+Page padding: 16–24px
+Section spacing: 32–48px
+Card padding: 16–24px
+```
+
+These are examples, not hard requirements.
+
+Always consider the actual content.
+
+A layout that looks spacious on desktop may become cramped on mobile.
+
+A layout that looks elegant on desktop may become excessively tall on mobile.
+
+---
+
+# 15. Visual Hierarchy
+
+Before adding or changing spacing, ask:
+
+1. What is the most important thing on this screen?
+2. What belongs together?
+3. What should feel separate?
+4. Where should the user's eye go first?
+5. What information is secondary?
+6. Which elements need breathing room?
+7. Which elements should be visually compact?
+
+Spacing should reinforce these answers.
+
+Do not use spacing randomly.
+
+---
+
+# 16. Don't Overuse Whitespace
+
+Whitespace is not automatically good design.
+
+Too little:
+
+```text
+CRAMPED
+```
+
+Too much:
+
+```text
+        Heading
+
+
+        Description
+
+
+
+        Button
+```
+
+The goal is **intentional whitespace**.
+
+Ask:
+
+> Is this space helping establish hierarchy, grouping, or emphasis?
+
+If not, reduce it.
+
+---
+
+# 17. Don't Overuse Padding
+
+A common AI mistake is fixing poor layouts by adding padding.
+
+Do not automatically respond to a cramped interface with:
+
+```css
+padding: 32px;
+```
+
+First determine the cause.
+
+The problem might actually be:
+
+* Incorrect line height
+* Incorrect component width
+* Incorrect gap
+* Missing grouping
+* Wrong font size
+* Incorrect grid
+* Poor alignment
+* Excessive content
+* Wrong container width
+
+Fix the underlying problem.
+
+---
+
+# 18. Use Gap Where Appropriate
+
+Prefer layout mechanisms that express relationships clearly.
+
+For flex/grid layouts:
+
+```css
+gap
+```
+
+is often preferable to arbitrary margins between siblings.
+
+Example:
+
+```css
+display: flex;
+gap: 16px;
+```
+
+rather than manually applying different margins to each child.
+
+However, do not blindly replace all margins with `gap`.
+
+Use whichever expresses the design relationship most clearly.
+
+---
+
+# 19. Avoid Magic Numbers
+
+Do not produce a UI containing:
+
+```text
+17px
+23px
+27px
+31px
+37px
+43px
+```
+
+unless there is a specific reason.
+
+Prefer a coherent design scale.
+
+Consistency is more important than finding the theoretically perfect pixel value.
+
+---
+
+# 20. Component Consistency
+
+If the application has multiple:
+
+* Cards
+* Buttons
+* Inputs
+* Modals
+* Headers
+* Sidebars
+* Tables
+* Tabs
+* Dropdowns
+
+they should feel like they belong to the same design system.
+
+Before creating a new pattern, inspect existing components.
+
+Reuse established:
+
+* Padding
+* Border radius
+* Typography
+* Heights
+* Gaps
+* Shadows
+* Colors
+* Interaction states
+
+Do not create a new spacing convention for every screen.
+
+---
+
+# 21. Visual Density
+
+Every interface has a density level.
+
+Consider whether the product is:
+
+* Dense
+* Comfortable
+* Spacious
+
+Examples:
+
+### Dense
+
+Good for:
+
+* Admin panels
+* Tables
+* Financial data
+* Operations dashboards
+
+### Comfortable
+
+Good for:
+
+* HR systems
+* Productivity apps
+* General business software
+
+### Spacious
+
+Good for:
+
+* Marketing
+* Landing pages
+* Editorial interfaces
+* High-emphasis onboarding
+
+Do not make an administrative dashboard look like a marketing website.
+
+---
+
+# 22. Empty States
+
+Empty states should not simply be:
+
+```text
+No data
+```
+
+Use intentional composition:
+
+```text
+Icon / illustration
+
+Heading
+
+Short explanation
+
+Primary action
+```
+
+Spacing should make this feel like a designed state rather than an error message.
+
+---
+
+# 23. Loading and Error States
+
+Loading, error, success, and empty states must follow the same spacing system as the normal interface.
+
+Do not allow temporary states to break the visual layout.
+
+---
+
+# 24. Interaction States
+
+Every interactive element should consider:
+
+* Default
+* Hover
+* Focus
+* Active
+* Disabled
+* Loading
+* Error
+* Success
+
+Spacing should remain stable when states change.
+
+Avoid layouts where text wrapping or padding changes dramatically between states.
+
+---
+
+# 25. Icons
+
+Icons should be visually aligned with their surrounding text.
+
+Consider:
+
+* Size
+* Stroke weight
+* Icon-to-text gap
+* Vertical alignment
+* Button padding
+
+Typical icon/text spacing:
+
+```text
+6px
+8px
+```
+
+Do not allow icons to visually float away from their labels.
+
+---
+
+# 26. Borders, Radius and Spacing Work Together
+
+Do not treat spacing independently from component styling.
+
+A component with:
+
+* large border radius
+* heavy shadow
+* large padding
+* huge typography
+
+can quickly become visually bloated.
+
+A component with:
+
+* small radius
+* tight padding
+* small typography
+
+can feel dense.
+
+Evaluate the complete composition.
+
+---
+
+# 27. Before Coding
+
+Before implementing a substantial UI, mentally or explicitly identify:
+
+```text
+Page container
+Page hierarchy
+Major sections
+Section spacing
+Component grid
+Component padding
+Typography hierarchy
+Control spacing
+Responsive behavior
+```
+
+Do not immediately start writing components.
+
+Understand the layout first.
+
+---
+
+# 28. After Coding: Mandatory Visual QA
+
+**This step is mandatory.**
+
+After implementing a UI, inspect the actual rendered result.
+
+Do not assume that correct CSS means correct design.
+
+Perform a dedicated visual QA pass.
+
+Check:
+
+### Spacing
+
+* Is page padding consistent?
+* Are sections sufficiently separated?
+* Are related elements close enough?
+* Are unrelated elements separated enough?
+* Are cards internally padded correctly?
+* Is anything touching the edges unnecessarily?
+* Is there excessive whitespace anywhere?
+
+### Alignment
+
+* Do major elements share alignment boundaries?
+* Are cards aligned?
+* Are headings aligned with their content?
+* Are buttons aligned?
+* Are form fields aligned?
+
+### Hierarchy
+
+* Is the primary content obvious?
+* Are secondary elements appropriately subdued?
+* Does spacing communicate grouping?
+* Are sections visually distinguishable?
+
+### Density
+
+* Does the interface feel cramped?
+* Does it feel unnecessarily empty?
+* Does the amount of information shown feel appropriate?
+
+### Typography
+
+* Are headings too large?
+* Are body texts too small?
+* Are line heights appropriate?
+* Are text blocks too wide?
+* Are labels and descriptions properly grouped?
+
+### Responsive behavior
+
+Check at least:
+
+```text
+Mobile
+Tablet
+Desktop
+Large desktop
+```
+
+Look specifically for:
+
+* Excessive horizontal padding
+* Content touching edges
+* Broken grids
+* Awkward wrapping
+* Excessive vertical height
+* Inconsistent spacing
+
+---
+
+# 29. Perform a Dedicated "Spacing Pass"
+
+Before considering the work complete, perform a second pass whose only purpose is spacing and composition.
+
+Do not focus on functionality during this pass.
+
+Ask:
+
+> If I removed all borders, shadows, and colors, would the layout still look well structured based purely on spacing and alignment?
+
+If the answer is no, fix the layout.
+
+Specifically inspect:
+
+```text
+Page → Section
+Section → Component
+Component → Group
+Group → Element
+Element → Element
+```
+
+Each level should have an intentional spacing relationship.
+
+---
+
+# 30. Visual QA Priority Order
+
+When something looks wrong, fix problems in this order:
+
+```text
+1. Overall layout
+2. Container width
+3. Alignment
+4. Spacing / padding
+5. Typography
+6. Component sizing
+7. Visual hierarchy
+8. Borders / radius / shadows
+9. Colors
+10. Micro-details
+```
+
+Do not polish shadows while the layout is poorly spaced.
+
+Do not adjust colors to compensate for bad hierarchy.
+
+---
+
+# 31. Preserve Existing Design Language
+
+When modifying an existing application, do not redesign everything unnecessarily.
+
+First understand the existing design language.
+
+Identify:
+
+* Existing spacing scale
+* Existing typography
+* Existing component dimensions
+* Existing border radius
+* Existing colors
+* Existing grid
+* Existing responsive behavior
+
+Then extend the system.
+
+Consistency with the existing product is generally more important than introducing a new aesthetic.
+
+---
+
+# 32. Avoid "AI UI"
+
+Do not produce interfaces that look obviously generated.
+
+Avoid:
+
+* Excessive rounded cards
+* Excessive gradients
+* Random glassmorphism
+* Huge headings everywhere
+* Excessive shadows
+* Arbitrary whitespace
+* Every element inside a card
+* Repeated identical cards
+* Generic dashboard layouts
+* Random icons
+* Inconsistent spacing
+* Overly decorative UI without purpose
+
+The interface should feel like a deliberate product designed by someone who understands the user's workflow.
+
+---
+
+# 33. Implementation Rule
+
+When asked to create or modify UI:
+
+### Step 1
+
+Understand the existing design system.
+
+### Step 2
+
+Understand the content hierarchy.
+
+### Step 3
+
+Establish the page/container layout.
+
+### Step 4
+
+Establish section spacing.
+
+### Step 5
+
+Establish component dimensions and padding.
+
+### Step 6
+
+Establish typography hierarchy.
+
+### Step 7
+
+Implement responsive behavior.
+
+### Step 8
+
+Render/inspect the result.
+
+### Step 9
+
+Perform a dedicated spacing and alignment pass.
+
+### Step 10
+
+Perform a final visual polish pass.
+
+Only then consider the UI complete.
+
+---
+
+# 34. Definition of Done
+
+A UI is not finished simply because:
+
+* It compiles
+* It works
+* The API works
+* The buttons work
+* The routes work
+* The components render
+
+It is finished when it is also:
+
+* Visually balanced
+* Consistently spaced
+* Properly aligned
+* Responsive
+* Hierarchically clear
+* Appropriately dense
+* Consistent with the product's design language
+* Comfortable to use
+* Free from obvious visual awkwardness
+
+**Functionality and visual quality are equally part of completion.**
+
+---
+
+# Final Instruction
+
+Whenever you build UI, **actively reason about spacing rather than adding padding reactively.**
+
+Do not ask:
+
+> "Where can I add padding?"
+
+Ask:
+
+> "What elements belong together, what elements are separate, and what spacing should communicate that relationship?"
+
+Then implement the spacing hierarchy and verify it against the rendered interface.
+
+**Never skip the visual QA and spacing pass.**

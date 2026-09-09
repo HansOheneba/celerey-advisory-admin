@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AddClientDialog } from "@/components/clients/add-client-dialog";
+import { Users } from "lucide-react";
+import { AddClientButton } from "@/components/clients/add-client-button";
 import { ClientsTable } from "@/components/clients/clients-table";
 import { ClientsTableSkeleton } from "@/components/clients/clients-table-skeleton";
-import { mergeAssignableAdvisors } from "@/lib/advisors/assignable";
-import { isAdmin } from "@/lib/auth/roles";
+import { MetricCard } from "@/components/shared/metric-card";
+import { PageHeader } from "@/components/shared/page-header";
+import { hasCapability } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { requireSession } from "@/lib/dal";
-import { listAdvisors } from "@/lib/repositories/advisors";
+import { getBookMetrics } from "@/lib/demo/repositories";
+import { formatCompactCurrency } from "@/lib/format";
 import { listClients } from "@/lib/repositories/clients";
 
 export const metadata: Metadata = {
@@ -27,7 +30,8 @@ type ClientsPageProps = {
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const session = await requireSession();
-  const admin = isAdmin(session.role);
+  const canCreate = hasCapability(session.capabilities, "create_client");
+  const canAssign = hasCapability(session.capabilities, "assign_advisor");
   const params = await searchParams;
 
   const query = params.query ?? "";
@@ -51,7 +55,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           : "asc";
   const page = Number(params.page ?? "1") || 1;
 
-  const [result, advisorsResult] = await Promise.all([
+  const [result, metrics] = await Promise.all([
     listClients({
       query,
       status,
@@ -61,40 +65,51 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       page,
       pageSize: 20,
     }),
-    admin
-      ? listAdvisors({ page: 1, pageSize: 100 }).catch(() => ({
-          items: [],
-          total: 0,
-          page: 1,
-          pageSize: 100,
-          pageCount: 1,
-        }))
-      : Promise.resolve({
-          items: [],
-          total: 0,
-          page: 1,
-          pageSize: 100,
-          pageCount: 1,
-        }),
+    getBookMetrics(),
   ]);
 
   return (
-    <div className={dashboardTheme.page}>
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-0.5">
-          <p className={dashboardTheme.sectionLabel}>Client book</p>
-          <h2 className={dashboardTheme.pageTitle}>Clients</h2>
-          <p className={dashboardTheme.pageDescription}>
-            {admin
-              ? "Browse relationships, assign advisors, and keep reviews moving forward."
-              : "Browse your assigned relationships and keep reviews moving forward."}
-          </p>
-        </div>
-        <AddClientDialog
-          canManageSubscriptions={admin}
-          advisors={mergeAssignableAdvisors(advisorsResult.items, session)}
+    <div className={dashboardTheme.pageContainer}>
+      <PageHeader
+        eyebrow="Client book"
+        title="Clients"
+        description={
+          canAssign
+            ? "Browse relationships, assign advisors, and keep reviews moving forward."
+            : "Browse your assigned relationships and keep reviews moving forward."
+        }
+        icon={Users}
+        actions={canCreate ? <AddClientButton /> : null}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="Total AUA"
+          value={formatCompactCurrency(metrics.totalAua)}
+          hint={`${metrics.clientCount} relationships`}
+          variant="accent"
         />
-      </section>
+        <MetricCard
+          label="Active clients"
+          value={String(metrics.activeClients)}
+          hint={`${metrics.onboarding} onboarding`}
+          variant="brand"
+        />
+        <MetricCard
+          label="Reviews due"
+          value={String(metrics.reviewsDue + metrics.reviewsOverdue)}
+          delta={
+            metrics.reviewsOverdue > 0
+              ? {
+                  value: `${metrics.reviewsOverdue} overdue`,
+                  positive: false,
+                }
+              : undefined
+          }
+          hint="next 7 days"
+          variant={metrics.reviewsOverdue > 0 ? "warning" : "info"}
+        />
+      </div>
 
       <Suspense fallback={<ClientsTableSkeleton />}>
         <ClientsTable
@@ -108,8 +123,8 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           riskLevel={riskLevel}
           sortBy={sortBy}
           sortDir={sortDir}
-          canManageSubscriptions={admin}
-          showAdvisorColumn={admin}
+          canManageSubscriptions={canAssign}
+          showAdvisorColumn={canAssign}
         />
       </Suspense>
     </div>

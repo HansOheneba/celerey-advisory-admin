@@ -1,0 +1,718 @@
+---
+alwaysApply: true
+---
+# 35. Visual Interest and Avoiding Bland UI
+
+A clean interface does **not** mean a colorless interface.
+
+Avoid the common AI tendency to produce interfaces consisting almost entirely of:
+
+* White or gray backgrounds
+* Black text
+* Gray borders
+* Identical white cards
+* One accent color used only on buttons
+* No visual differentiation between sections
+* No decorative or contextual elements
+
+This can make an interface technically clean but visually lifeless.
+
+The goal is:
+
+> **Clean, restrained, intentional visual richness.**
+
+Do not add decoration for decoration's sake.
+
+---
+
+# 36. No Gradient Slop
+
+Do NOT use gradients as the default solution for making a UI feel interesting.
+
+Avoid:
+
+* Purple → blue gradients everywhere
+* Blue → pink gradients
+* Gradient blobs behind every heading
+* Gradient text
+* Gradient buttons without a design reason
+* Glowing gradient cards
+* Gradient borders
+* "AI startup" purple backgrounds
+* Excessive glassmorphism
+* Neon glow effects
+
+A gradient should only exist when it is clearly part of the product's visual language.
+
+If the interface looks boring, **do not automatically add a gradient.**
+
+Find a better solution.
+
+---
+
+# 37. Use Color With Purpose
+
+Color should communicate something.
+
+Good uses include:
+
+* Brand identity
+* Status
+* Categorization
+* Emphasis
+* Section differentiation
+* Interactive states
+* Information hierarchy
+* Visual landmarks
+* Supporting illustrations or icons
+
+Color should help the user understand the interface.
+
+Do not randomly color elements simply because the screen looks too gray.
+
+---
+
+# 38. Build a Color Hierarchy
+
+A good interface typically has multiple levels of color.
+
+For example:
+
+```text
+Primary background
+↓
+Secondary surface
+↓
+Elevated surface
+↓
+Border / divider
+↓
+Primary text
+↓
+Secondary text
+↓
+Brand accent
+↓
+Semantic colors
+```
+
+Do not make every surface pure white.
+
+Subtle variations can create depth:
+
+```text
+Page background
+#F8F9FB
+
+Card
+#FFFFFF
+
+Secondary surface
+#F3F5F8
+
+Muted section
+#F7F8FA
+```
+
+The exact values depend on the product.
+
+The principle is to create **visual layers without relying on shadows or gradients.**
+
+---
+
+# 39. Use Tinted Surfaces
+
+One of the best ways to introduce color without making an interface loud is to use very subtle tinted surfaces.
+
+For example:
+
+```text
+Blue-tinted section
+Green-tinted success area
+Warm-tinted informational area
+Brand-tinted navigation area
+```
+
+Keep the tint restrained.
+
+The color should feel intentional rather than decorative.
+
+Bad:
+
+```text
+Bright blue card
+Bright purple card
+Bright pink card
+Bright green card
+Bright orange card
+```
+
+Good:
+
+```text
+Mostly neutral interface
++
+subtle brand-tinted surface
++
+one or two contextual accent surfaces
+```
+
+---
+
+# 40. Accent Color Should Have a Job
+
+Do not use the primary brand color on everything.
+
+Use accent color selectively for:
+
+* Primary actions
+* Active navigation
+* Important numbers
+* Selected states
+* Key indicators
+* Important labels
+* Visual anchors
+
+If everything is accented, nothing feels important.
+
+---
+
+# 41. Introduce Visual Variety Through Components
+
+A visually interesting interface does not need decorative effects.
+
+Create variation through component treatment.
+
+For example:
+
+```text
+Standard card
+Tinted information card
+Metric card
+Highlighted card
+Bordered panel
+Inset section
+Callout
+Timeline
+Status indicator
+Icon tile
+```
+
+These should still belong to the same design system.
+
+Do not make every component identical.
+
+---
+
+# 42. Iconography as Visual Color
+
+Icons can add significant visual personality without making the UI noisy.
+
+Use appropriately styled icons for:
+
+* Navigation
+* Categories
+* Metrics
+* Status
+* Actions
+* Empty states
+* Informational callouts
+
+Consider using subtle icon containers:
+
+```text
+┌────────┐
+│   ↗    │
+└────────┘
+```
+
+with:
+
+* Soft tinted background
+* Appropriate icon color
+* Consistent dimensions
+* Consistent radius
+
+Do not put an icon inside a colored circle simply because there is empty space.
+
+The icon should reinforce the meaning.
+
+---
+
+# 43. Color-Coded Information
+
+When appropriate, use semantic color.
+
+For example:
+
+```text
+Success → green
+Warning → amber
+Error → red
+Information → blue
+Neutral → gray
+```
+
+Use muted backgrounds with stronger foreground colors.
+
+For example:
+
+```text
+Soft green background
++
+green icon
++
+dark neutral text
+```
+
+rather than:
+
+```text
+Bright green entire card
+```
+
+Semantic color should remain accessible and understandable without relying exclusively on color.
+
+---
+
+# 44. Visual Anchors
+
+Every important screen should have visual anchors.
+
+These can be:
+
+* A strong heading
+* A prominent metric
+* A colored navigation state
+* A highlighted card
+* An illustration
+* A large icon
+* A meaningful image
+* A distinctive callout
+* A strong section header
+* A brand element
+
+Without visual anchors, the interface can feel like an undifferentiated spreadsheet.
+
+Ask:
+
+> Where should the user's eye land first?
+
+Then make that area visually important.
+
+---
+
+# 45. Don't Make Every Section Look Identical
+
+A common AI mistake:
+
+```text
+Heading
+↓
+White card
+↓
+Heading
+↓
+White card
+↓
+Heading
+↓
+White card
+```
+
+This becomes monotonous.
+
+Instead, use hierarchy and variation:
+
+```text
+Page header
+
+Primary content
+┌─────────────────────────┐
+│                         │
+└─────────────────────────┘
+
+Secondary information
+┌──────────┐ ┌──────────┐
+│          │ │          │
+└──────────┘ └──────────┘
+
+Supporting information
+─────────────────────────
+```
+
+Variation should come from **layout and hierarchy**, not random decoration.
+
+---
+
+# 46. Use Backgrounds to Separate Sections
+
+When appropriate, sections can use subtle background changes.
+
+For example:
+
+```text
+Page background
+─────────────────────────
+
+Primary section
+white
+
+─────────────────────────
+
+Insights section
+very subtle tinted background
+
+─────────────────────────
+
+Activity section
+white
+```
+
+This can create structure without cards around everything.
+
+A section does not always need a border and shadow.
+
+---
+
+# 47. Don't Put Everything in a Card
+
+This is especially important.
+
+AI-generated interfaces often turn every piece of content into:
+
+```text
+┌────────────────────┐
+│                    │
+│ Content            │
+│                    │
+└────────────────────┘
+```
+
+This produces card soup.
+
+Use:
+
+* Open layouts
+* Dividers
+* Background sections
+* Lists
+* Inline groups
+* Tables
+* Callouts
+* Panels
+* Cards only where they add value
+
+Cards should establish containment.
+
+If everything is contained, nothing feels special.
+
+---
+
+# 48. Use Borders Intentionally
+
+Borders can create visual structure without adding heavy shadows.
+
+Use:
+
+* Subtle section dividers
+* Card boundaries
+* Input boundaries
+* Selected states
+* Active navigation indicators
+* Table row separation
+
+Avoid putting borders around every possible element.
+
+---
+
+# 49. Shadows Should Be Subtle
+
+Do not rely on huge shadows to create hierarchy.
+
+Prefer:
+
+```text
+Very subtle shadow
++
+border
++
+background contrast
+```
+
+rather than:
+
+```text
+Massive floating shadow
+```
+
+Many modern interfaces can achieve depth almost entirely through:
+
+* Background differences
+* Borders
+* Spacing
+* Elevation
+* Typography
+
+---
+
+# 50. Use Shape Sparingly
+
+Visual interest can also come from shape.
+
+Examples:
+
+* Slightly rounded cards
+* More rounded icon containers
+* Pills for statuses
+* Circular avatars
+* Distinctive buttons
+* Image masks
+
+But do not make every element a pill.
+
+Avoid:
+
+```text
+pill button
+pill input
+pill card
+pill badge
+pill navigation
+pill everything
+```
+
+Shape should establish component hierarchy.
+
+---
+
+# 51. Images and Illustrations
+
+When the product context benefits from imagery, do not avoid it simply because the UI should be minimal.
+
+Use imagery where it adds:
+
+* Context
+* Personality
+* Emotional appeal
+* Explanation
+* Branding
+* Product recognition
+
+But do not add stock imagery simply to fill whitespace.
+
+---
+
+# 52. Decorative Elements
+
+Decorative elements are allowed when they support the visual identity.
+
+Examples:
+
+* Small geometric shapes
+* Subtle patterns
+* Accent lines
+* Section markers
+* Illustration fragments
+* Small brand motifs
+* Texture
+* Visual dividers
+
+Keep them subordinate to the content.
+
+Decoration should never compete with the primary interaction.
+
+---
+
+# 53. Use Contrast Instead of Effects
+
+When a UI feels bland, try these solutions **before** reaching for gradients:
+
+1. Improve spacing
+2. Improve typography hierarchy
+3. Introduce subtle surface variation
+4. Add a restrained accent color
+5. Improve component hierarchy
+6. Add meaningful icons
+7. Introduce a visual anchor
+8. Vary section treatment
+9. Improve borders/dividers
+10. Add appropriate imagery or illustration
+
+Only after these should you consider more decorative effects.
+
+---
+
+# 54. The "One Interesting Thing" Rule
+
+Every important screen should have at least one deliberate visual feature that gives it personality.
+
+Examples:
+
+* A distinctive header
+* A strong metric presentation
+* A colored information panel
+* An interesting empty state
+* A unique navigation treatment
+* A subtle brand motif
+* A strong illustration
+* A particularly well-designed data visualization
+
+It does **not** need five interesting things.
+
+One or two well-executed visual anchors are usually better than ten decorative effects.
+
+---
+
+# 55. Visual Hierarchy Before Decoration
+
+When a screen feels bland, diagnose the problem.
+
+Ask:
+
+### Is the hierarchy weak?
+
+Fix:
+
+* Typography
+* Size
+* Weight
+* Spacing
+* Position
+
+### Is the interface too monochromatic?
+
+Fix:
+
+* Surface colors
+* Accent colors
+* Tinted backgrounds
+* Semantic colors
+
+### Is everything visually identical?
+
+Fix:
+
+* Component hierarchy
+* Layout variation
+* Section treatment
+* Containment
+
+### Is there no personality?
+
+Fix:
+
+* Brand elements
+* Iconography
+* Imagery
+* Illustration
+* Carefully chosen decorative details
+
+Do not solve every problem with color.
+
+---
+
+# 56. Brand-Aware Color
+
+If the application has established brand colors, use them intelligently.
+
+Do not merely apply the brand color to:
+
+* Every button
+* Every heading
+* Every icon
+* Every border
+* Every background
+
+Instead, derive a visual system around the brand.
+
+Consider:
+
+```text
+Brand primary
+Brand dark
+Brand light
+Brand tinted surface
+Neutral surfaces
+Neutral text
+Semantic colors
+```
+
+The brand should be recognizable without overwhelming the interface.
+
+---
+
+# 57. Color Balance
+
+Aim for a visual balance such as:
+
+```text
+Mostly neutral
++
+small amount of brand color
++
+small amount of semantic color
+```
+
+The exact ratio depends on the product.
+
+The interface should not feel like a rainbow.
+
+At the same time, it should not feel like an unstyled grayscale wireframe.
+
+---
+
+# 58. Visual Review Question
+
+During the final visual QA pass, ask:
+
+> "If I saw this interface without knowing what product it belongs to, would it feel intentionally designed or like a collection of default components?"
+
+If it feels like default components:
+
+* Improve hierarchy
+* Introduce visual anchors
+* Add controlled color
+* Improve component differentiation
+* Refine typography
+* Refine spacing
+* Add appropriate visual context
+
+Do not immediately add gradients.
+
+---
+
+# 59. Final Visual Quality Test
+
+Before considering a UI complete, evaluate it across these dimensions:
+
+```text
+Layout
+Spacing
+Alignment
+Typography
+Hierarchy
+Color
+Density
+Component consistency
+Visual interest
+Brand expression
+Responsive behavior
+Interaction states
+```
+
+The final result should be:
+
+**Clean, but not sterile.**
+
+**Minimal, but not empty.**
+
+**Colorful, but not loud.**
+
+**Polished, but not over-designed.**
+
+**Modern, but not trend-chasing.**
+
+**Expressive, but still functional.**
+
+Avoid gradient-heavy, glassmorphic, neon, overly rounded "AI startup" aesthetics unless explicitly requested.

@@ -43,3 +43,6 @@ next-env.d.ts
 
 /mail
 /docs
+
+# local demo store and generated report PDFs
+/.data

@@ -1,12 +1,12 @@
+import { AppShell } from "@/components/app-shell/app-shell";
 import { requireSession } from "@/lib/dal";
-import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const advisor = await requireSession();
+  const session = await requireSession();
 
-  return <DashboardShell advisor={advisor}>{children}</DashboardShell>;
+  return <AppShell session={session}>{children}</AppShell>;
 }

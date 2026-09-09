@@ -1,0 +1,794 @@
+import { daysFromNow } from "@/lib/demo/seed/client-builder";
+import { seedClients } from "@/lib/demo/seed/clients";
+import { DEMO_USERS, type DemoUser } from "@/lib/demo/seed/users";
+import type {
+  DemoAlert,
+  DemoClientRecord,
+  DemoComplianceRecord,
+  DemoDatabase,
+  DemoRecommendation,
+  DemoServiceRequest,
+} from "@/lib/demo/types";
+import type { AuditLogEntry } from "@/lib/settings/audit";
+import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
+import type { ClientAvailability } from "@/lib/availability/types";
+import { DEFAULT_CLIENT_AVAILABILITY } from "@/lib/availability/types";
+import type { ClientDocument } from "@/lib/documents/types";
+import type { ConversationThread } from "@/lib/messages/types";
+import type { AdvisorSettings } from "@/lib/settings/local-store";
+import { defaultAdvisorSettings } from "@/lib/settings/local-store";
+import type { Task } from "@/lib/tasks/types";
+import type { Advisor } from "@/types/advisor";
+import type { ClientActivity } from "@/types/client";
+import type { AppRole, IdentityRole } from "@/lib/auth/roles";
+
+export const DEMO_DB_VERSION = 1;
+
+const APP_ROLE_BY_DEMO_ROLE: Record<DemoUser["demoRole"], AppRole> = {
+  relationship_manager: "advisor",
+  portfolio_officer: "advisor",
+  team_lead: "admin",
+  compliance: "admin",
+  management: "super_admin",
+};
+
+const IDENTITY_ROLES_BY_DEMO_ROLE: Record<DemoUser["demoRole"], IdentityRole[]> =
+  {
+    relationship_manager: ["advisor"],
+    portfolio_officer: ["advisor"],
+    team_lead: ["advisor", "admin"],
+    compliance: ["admin"],
+    management: ["advisor", "admin", "super_admin"],
+  };
+
+function buildAdvisors(clients: DemoClientRecord[]): Advisor[] {
+  return DEMO_USERS.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: APP_ROLE_BY_DEMO_ROLE[user.demoRole],
+    roles: IDENTITY_ROLES_BY_DEMO_ROLE[user.demoRole],
+    clientCount: clients.filter(
+      (record) => record.client.advisorId === user.id,
+    ).length,
+    createdAt: daysFromNow(-user.joinedDaysAgo),
+  }));
+}
+
+function threadFor(
+  record: DemoClientRecord,
+  messages: Array<{ author: "advisor" | "client" | "note"; body: string; daysAgo: number }>,
+  unreadCount: number,
+): ConversationThread {
+  const { client } = record;
+  const built = messages.map((message, index) => ({
+    id: `msg-${client.id}-${index}`,
+    author: message.author,
+    body: message.body,
+    createdAt: daysFromNow(-message.daysAgo),
+  }));
+
+  return {
+    id: `thread-${client.id}`,
+    clientId: client.id,
+    clientName: `${client.firstName} ${client.lastName}`,
+    clientEmail: client.email,
+    advisorId: client.advisorId,
+    updatedAt: built[built.length - 1]?.createdAt ?? daysFromNow(-1),
+    unreadCount,
+    lastMessage: built[built.length - 1] ?? null,
+    messages: built,
+  };
+}
+
+function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
+  const byId = new Map(clients.map((record) => [record.client.id, record]));
+  const threads: ConversationThread[] = [];
+
+  const oseiBonsu = byId.get("osei-bonsu");
+  if (oseiBonsu) {
+    threads.push(
+      threadFor(
+        oseiBonsu,
+        [
+          { author: "advisor", body: "Akosua, your Q3 review pack is ready. I have flagged the cash weighting and the 2027 education goal.", daysAgo: 9 },
+          { author: "client", body: "Thank you. I opened it — the cash figure surprised me. Can we discuss deploying some of it?", daysAgo: 8 },
+          { author: "advisor", body: "Absolutely. I will model a staged deployment into treasury plus and the credit sleeve before we meet.", daysAgo: 8 },
+          { author: "note", body: "Client is receptive to deployment. Prepare two options: full and staged over 3 months.", daysAgo: 8 },
+          { author: "client", body: "One more thing — could you look at whether the London property can support a facility instead of selling anything?", daysAgo: 2 },
+        ],
+        1,
+      ),
+    );
+  }
+
+  const darko = byId.get("darko");
+  if (darko) {
+    threads.push(
+      threadFor(
+        darko,
+        [
+          { author: "advisor", body: "Yaw, the portfolio has moved outside your agreed risk band after the equity run. I would like to rebalance.", daysAgo: 5 },
+          { author: "client", body: "I hear you, but the growth has been good. What exactly are we selling?", daysAgo: 4 },
+          { author: "advisor", body: "Trimming the technology sleeve back to target and moving proceeds into investment grade credit. I will send the detail.", daysAgo: 4 },
+        ],
+        0,
+      ),
+    );
+  }
+
+  const quaye = byId.get("quaye");
+  if (quaye) {
+    threads.push(
+      threadFor(
+        quaye,
+        [
+          { author: "client", body: "The sale proceeds have cleared. I am ready to fund whenever you are.", daysAgo: 3 },
+          { author: "advisor", body: "Excellent news. I will prepare the deployment plan across the growth sleeves and treasury plus for the reserve.", daysAgo: 2 },
+          { author: "client", body: "Perfect. Please keep six months of clinic operating costs liquid.", daysAgo: 2 },
+        ],
+        1,
+      ),
+    );
+  }
+
+  const mensah = byId.get("mensah-kofi");
+  if (mensah) {
+    threads.push(
+      threadFor(
+        mensah,
+        [
+          { author: "advisor", body: "Kofi, your sovereign note matures next week. Shall we roll it or move to the credit sleeve?", daysAgo: 6 },
+          { author: "client", body: "What would the income difference be? I do not want to take more risk at this stage.", daysAgo: 5 },
+        ],
+        1,
+      ),
+    );
+  }
+
+  const nkrumah = byId.get("nkrumah");
+  if (nkrumah) {
+    threads.push(
+      threadFor(
+        nkrumah,
+        [
+          { author: "client", body: "I am not comfortable with the structured note that was recommended. It does not match what we agreed.", daysAgo: 7 },
+          { author: "advisor", body: "Understood, and I apologise. I have withdrawn the recommendation and escalated it for review.", daysAgo: 7 },
+          { author: "note", body: "Escalation logged with Compliance. Portfolio is also outside the conservative band — rebalance required.", daysAgo: 6 },
+        ],
+        0,
+      ),
+    );
+  }
+
+  const owusu = byId.get("owusu-ansah");
+  if (owusu) {
+    threads.push(
+      threadFor(
+        owusu,
+        [
+          { author: "advisor", body: "Kwabena, rather than selling securities for the development draw, a Lombard facility could release liquidity.", daysAgo: 11 },
+          { author: "client", body: "That is interesting. Send me the terms and the margin mechanics.", daysAgo: 10 },
+        ],
+        0,
+      ),
+    );
+  }
+
+  const tetteh = byId.get("tetteh");
+  if (tetteh) {
+    threads.push(
+      threadFor(
+        tetteh,
+        [
+          { author: "advisor", body: "Naa, consolidating the two ISAs and reviewing the NHS pension would give us a complete picture.", daysAgo: 19 },
+        ],
+        0,
+      ),
+    );
+  }
+
+  const agyapong = byId.get("agyapong");
+  if (agyapong) {
+    threads.push(
+      threadFor(
+        agyapong,
+        [
+          { author: "advisor", body: "Welcome to Celerey, Selina. Two KYC documents are still outstanding — proof of address and the source of funds letter.", daysAgo: 3 },
+          { author: "client", body: "Will upload both this week.", daysAgo: 3 },
+        ],
+        0,
+      ),
+    );
+  }
+
+  return threads;
+}
+
+function buildDocuments(clients: DemoClientRecord[]): ClientDocument[] {
+  const documents: ClientDocument[] = [];
+  const targets = [
+    "osei-bonsu",
+    "darko",
+    "quaye",
+    "mensah-kofi",
+    "owusu-ansah",
+    "agyapong",
+  ];
+
+  const templates: Array<{
+    title: string;
+    category: ClientDocument["category"];
+    fileName: string;
+    sizeBytes: number;
+    uploadedBy: "advisor" | "client";
+    daysAgo: number;
+  }> = [
+    { title: "Q3 portfolio review", category: "review", fileName: "q3-portfolio-review.pdf", sizeBytes: 842_000, uploadedBy: "advisor", daysAgo: 9 },
+    { title: "Investment policy statement", category: "plan", fileName: "investment-policy-statement.pdf", sizeBytes: 318_000, uploadedBy: "advisor", daysAgo: 120 },
+    { title: "Passport copy", category: "identity", fileName: "passport.pdf", sizeBytes: 1_240_000, uploadedBy: "client", daysAgo: 300 },
+    { title: "Custody statement", category: "statement", fileName: "custody-statement.pdf", sizeBytes: 566_000, uploadedBy: "advisor", daysAgo: 32 },
+  ];
+
+  for (const clientId of targets) {
+    const record = clients.find((item) => item.client.id === clientId);
+    if (!record) continue;
+
+    templates.forEach((template, index) => {
+      documents.push({
+        id: `doc-${clientId}-${index}`,
+        clientId,
+        sessionId: null,
+        title: template.title,
+        category: template.category,
+        fileName: template.fileName,
+        contentType: "application/pdf",
+        sizeBytes: template.sizeBytes,
+        uploadedBy: template.uploadedBy,
+        uploadedByName:
+          template.uploadedBy === "advisor"
+            ? record.client.advisorName
+            : `${record.client.firstName} ${record.client.lastName}`,
+        createdAt: daysFromNow(-template.daysAgo),
+        downloadUrl: `/api/demo/documents/doc-${clientId}-${index}/download`,
+        downloadUrlExpiresAt: daysFromNow(1),
+      });
+    });
+  }
+
+  return documents;
+}
+
+function buildTasks(clients: DemoClientRecord[]): Task[] {
+  const specs: Array<{
+    clientId: string;
+    title: string;
+    description: string;
+    dueInDays: number;
+    priority: Task["priority"];
+    assignee: Task["assignee"];
+    category: Task["category"];
+    status: Task["status"];
+  }> = [
+    { clientId: "osei-bonsu", title: "Model staged cash deployment", description: "Two options: full deployment and staged over three months.", dueInDays: 2, priority: "high", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "osei-bonsu", title: "Prepare education goal top-up plan", description: "2027 tuition goal is 71% funded. Model a monthly uplift.", dueInDays: 5, priority: "high", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "osei-bonsu", title: "Confirm annual review date", description: "Client prefers the last week of the month.", dueInDays: 8, priority: "medium", assignee: "advisor", category: "other", status: "open" },
+    { clientId: "darko", title: "Issue rebalance recommendation", description: "Trim technology sleeve to target, move to IG credit.", dueInDays: 1, priority: "high", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "quaye", title: "Execute deployment plan", description: "Fund growth sleeves, retain six months operating costs.", dueInDays: 3, priority: "high", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "mensah-kofi", title: "Present reinvestment options", description: "Compare rolling the note against IG credit income.", dueInDays: 4, priority: "high", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "asare", title: "Third attempt to book annual review", description: "Review is 18 days overdue.", dueInDays: 1, priority: "high", assignee: "advisor", category: "other", status: "open" },
+    { clientId: "adjei", title: "Draft portfolio commentary", description: "Client requested written commentary on the growth sleeve.", dueInDays: 6, priority: "medium", assignee: "advisor", category: "documents", status: "open" },
+    { clientId: "nkrumah", title: "Close out structured note escalation", description: "Compliance review pending sign-off.", dueInDays: 2, priority: "high", assignee: "advisor", category: "other", status: "open" },
+    { clientId: "owusu-ansah", title: "Send Lombard facility terms", description: "Include margin mechanics and collateral schedule.", dueInDays: 3, priority: "medium", assignee: "advisor", category: "documents", status: "open" },
+    { clientId: "tetteh", title: "Request held-away statements", description: "NHS pension and two ISAs.", dueInDays: 9, priority: "low", assignee: "client", category: "documents", status: "open" },
+    { clientId: "agyapong", title: "Chase outstanding KYC documents", description: "Proof of address and source of funds letter.", dueInDays: 2, priority: "high", assignee: "client", category: "documents", status: "open" },
+    { clientId: "boadu", title: "Attrition risk outreach", description: "Fourth outreach attempt after 168 days of silence.", dueInDays: 1, priority: "high", assignee: "advisor", category: "other", status: "open" },
+    { clientId: "sarpong", title: "Prepare rebalance pack", description: "Equity sleeve is nine points above model.", dueInDays: 7, priority: "medium", assignee: "advisor", category: "financial", status: "open" },
+    { clientId: "osei-bonsu", title: "Circulate Q3 review pack", description: "Sent and opened by the client.", dueInDays: -9, priority: "medium", assignee: "advisor", category: "documents", status: "done" },
+    { clientId: "quaye", title: "Confirm cleared sale proceeds", description: "Proceeds confirmed in the premier cash account.", dueInDays: -3, priority: "high", assignee: "advisor", category: "financial", status: "done" },
+  ];
+
+  return specs.flatMap((spec, index) => {
+    const record = clients.find((item) => item.client.id === spec.clientId);
+    if (!record) return [];
+
+    return [
+      {
+        id: `task-${index}`,
+        title: spec.title,
+        description: spec.description,
+        clientId: spec.clientId,
+        clientName: `${record.client.firstName} ${record.client.lastName}`,
+        sessionId: null,
+        assignee: spec.assignee,
+        category: spec.category,
+        dueAt: daysFromNow(spec.dueInDays),
+        priority: spec.priority,
+        status: spec.status,
+      } satisfies Task,
+    ];
+  });
+}
+
+function buildAppointments(clients: DemoClientRecord[]): Appointment[] {
+  const specs: Array<{
+    clientId: string;
+    type: Appointment["type"];
+    title: string;
+    inDays: number;
+    status: Appointment["status"];
+    createdBy: Appointment["createdBy"];
+    withLog?: boolean;
+  }> = [
+    { clientId: "osei-bonsu", type: "annual_review", title: "Annual review", inDays: 21, status: "upcoming", createdBy: "advisor" },
+    { clientId: "quaye", type: "portfolio_update", title: "Deployment planning call", inDays: 2, status: "upcoming", createdBy: "advisor" },
+    { clientId: "darko", type: "review", title: "Rebalance discussion", inDays: 4, status: "upcoming", createdBy: "advisor" },
+    { clientId: "mensah-kofi", type: "portfolio_update", title: "Maturity reinvestment call", inDays: 3, status: "upcoming", createdBy: "advisor" },
+    { clientId: "owusu-ansah", type: "review", title: "Liquidity options review", inDays: 6, status: "requested", createdBy: "client" },
+    { clientId: "tetteh", type: "goal_check_in", title: "Held-away consolidation", inDays: 9, status: "requested", createdBy: "client" },
+    { clientId: "agyapong", type: "onboarding", title: "Onboarding completion call", inDays: 5, status: "upcoming", createdBy: "advisor" },
+    { clientId: "osei-bonsu", type: "quarterly_check_in", title: "Q3 review", inDays: -9, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "sarpong", type: "quarterly_check_in", title: "Q3 check-in", inDays: -22, status: "completed", createdBy: "advisor", withLog: true },
+  ];
+
+  return specs.flatMap((spec, index) => {
+    const record = clients.find((item) => item.client.id === spec.clientId);
+    if (!record) return [];
+
+    const { client } = record;
+
+    return [
+      {
+        id: `appt-${index}`,
+        clientId: client.id,
+        clientName: `${client.firstName} ${client.lastName}`,
+        advisorId: client.advisorId,
+        advisorName: client.advisorName,
+        planYear: String(new Date().getFullYear()),
+        type: spec.type,
+        title: spec.title,
+        scheduledAt: spec.status === "requested" ? null : daysFromNow(spec.inDays),
+        durationMinutes: 45,
+        status: spec.status,
+        createdBy: spec.createdBy,
+        log: spec.withLog
+          ? {
+              title: `${spec.title} summary`,
+              tags: ["portfolio", "goals"],
+              advisorAssessment:
+                "Relationship is healthy. Allocation drift and cash weighting are the two open items.",
+              discussionPoints: [
+                "Reviewed year to date performance and attribution",
+                "Discussed cash weighting against the mandate",
+                "Confirmed goal funding status",
+              ],
+              recommendations: [
+                { title: "Deploy excess cash in stages" },
+                { title: "Increase education goal contribution" },
+              ],
+              sessionNotes:
+                "Client engaged and receptive. Follow up with modelled options before the next meeting.",
+            }
+          : null,
+        progress: null,
+        actionIds: [],
+        documentIds: [],
+      } satisfies Appointment,
+    ];
+  });
+}
+
+function buildRecommendations(
+  clients: DemoClientRecord[],
+): DemoRecommendation[] {
+  const specs: Array<{
+    clientId: string;
+    title: string;
+    rationale: string;
+    productId: string | null;
+    amountUsd: number;
+    status: DemoRecommendation["status"];
+    proposedBy: string;
+    decidedBy?: string;
+    decisionNote?: string;
+    daysAgo: number;
+  }> = [
+    {
+      clientId: "osei-bonsu",
+      title: "Deploy $3.3m excess cash in three tranches",
+      rationale:
+        "Cash is 12% of the portfolio against a 4% mandate target, costing roughly 40 basis points of drag annually.",
+      productId: "prd-treasury-plus",
+      amountUsd: 3_300_000,
+      status: "pending_compliance",
+      proposedBy: "rm-akua",
+      daysAgo: 2,
+    },
+    {
+      clientId: "darko",
+      title: "Rebalance technology sleeve to model weight",
+      rationale:
+        "Portfolio has drifted 11.6 points outside the agreed moderate risk band after the equity run.",
+      productId: "prd-ig-credit",
+      amountUsd: 1_800_000,
+      status: "proposed",
+      proposedBy: "rm-akua",
+      daysAgo: 4,
+    },
+    {
+      clientId: "quaye",
+      title: "Fund growth sleeves with sale proceeds",
+      rationale:
+        "Proceeds of $2.95m have cleared. Deploy across growth sleeves, retaining six months of operating costs in treasury plus.",
+      productId: "prd-global-equity-core",
+      amountUsd: 2_350_000,
+      status: "approved",
+      proposedBy: "rm-akua",
+      decidedBy: "tl-nana",
+      decisionNote: "Suitable and within mandate. Approved for execution.",
+      daysAgo: 2,
+    },
+    {
+      clientId: "mensah-kofi",
+      title: "Roll maturing note into investment grade credit",
+      rationale:
+        "The $1.4m sovereign note matures in five days. IG credit offers additional yield within the conservative band.",
+      productId: "prd-ig-credit",
+      amountUsd: 1_400_000,
+      status: "proposed",
+      proposedBy: "rm-daniel",
+      daysAgo: 5,
+    },
+    {
+      clientId: "nkrumah",
+      title: "Allocate to Autocallable Equity Note",
+      rationale:
+        "Originally proposed for yield enhancement against a low-return cash position.",
+      productId: "prd-autocall-note",
+      amountUsd: 1_000_000,
+      status: "blocked",
+      proposedBy: "rm-daniel",
+      decidedBy: "cmp-esi",
+      decisionNote:
+        "Blocked. Product risk band is aggressive against a conservative mandate and no appropriateness assessment exists.",
+      daysAgo: 7,
+    },
+    {
+      clientId: "owusu-ansah",
+      title: "Establish $6m Lombard facility",
+      rationale:
+        "Releases development liquidity without crystallising gains or disturbing the securities portfolio.",
+      productId: "prd-lombard",
+      amountUsd: 6_000_000,
+      status: "pending_compliance",
+      proposedBy: "rm-akua",
+      daysAgo: 10,
+    },
+    {
+      clientId: "sarpong",
+      title: "Trim equity sleeve back to model",
+      rationale: "Equity exposure is nine points above the model allocation.",
+      productId: "prd-sovereign-ladder",
+      amountUsd: 940_000,
+      status: "draft",
+      proposedBy: "rm-akua",
+      daysAgo: 1,
+    },
+    {
+      clientId: "yeboah",
+      title: "Add private markets allocation",
+      rationale:
+        "Long horizon and liquid net worth support a 10% private markets sleeve.",
+      productId: "prd-private-equity-vi",
+      amountUsd: 1_500_000,
+      status: "executed",
+      proposedBy: "rm-akua",
+      decidedBy: "po-selorm",
+      decisionNote: "Executed at the quarterly capital call.",
+      daysAgo: 34,
+    },
+  ];
+
+  const userById = new Map(DEMO_USERS.map((user) => [user.id, user]));
+
+  return specs.flatMap((spec, index) => {
+    const record = clients.find((item) => item.client.id === spec.clientId);
+    if (!record) return [];
+
+    return [
+      {
+        id: `rec-${index}`,
+        clientId: spec.clientId,
+        clientName: `${record.client.firstName} ${record.client.lastName}`,
+        title: spec.title,
+        rationale: spec.rationale,
+        productId: spec.productId,
+        amountUsd: spec.amountUsd,
+        status: spec.status,
+        proposedBy: spec.proposedBy,
+        proposedByName: userById.get(spec.proposedBy)?.name ?? "Advisor",
+        decidedBy: spec.decidedBy ?? null,
+        decidedByName: spec.decidedBy
+          ? (userById.get(spec.decidedBy)?.name ?? null)
+          : null,
+        decisionNote: spec.decisionNote ?? null,
+        createdAt: daysFromNow(-spec.daysAgo),
+        updatedAt: daysFromNow(-spec.daysAgo + 0.5),
+      } satisfies DemoRecommendation,
+    ];
+  });
+}
+
+function buildServiceRequests(
+  clients: DemoClientRecord[],
+): DemoServiceRequest[] {
+  const specs: Array<{
+    clientId: string;
+    subject: string;
+    detail: string;
+    status: DemoServiceRequest["status"];
+    daysAgo: number;
+  }> = [
+    { clientId: "nkrumah", subject: "Dispute over structured note recommendation", detail: "Client states the recommendation did not reflect the agreed conservative mandate. Escalated to Compliance.", status: "in_progress", daysAgo: 7 },
+    { clientId: "osei-bonsu", subject: "Request for facility against London property", detail: "Client asked whether a facility can be raised instead of selling assets.", status: "open", daysAgo: 2 },
+    { clientId: "tetteh", subject: "Transfer of two ISA accounts", detail: "Client requested transfer paperwork for consolidation.", status: "open", daysAgo: 19 },
+    { clientId: "mensah-kofi", subject: "Change of correspondence address", detail: "Updated address confirmed and applied.", status: "resolved", daysAgo: 40 },
+  ];
+
+  return specs.flatMap((spec, index) => {
+    const record = clients.find((item) => item.client.id === spec.clientId);
+    if (!record) return [];
+
+    return [
+      {
+        id: `svc-${index}`,
+        clientId: spec.clientId,
+        clientName: `${record.client.firstName} ${record.client.lastName}`,
+        subject: spec.subject,
+        detail: spec.detail,
+        status: spec.status,
+        createdAt: daysFromNow(-spec.daysAgo),
+        updatedAt: daysFromNow(-spec.daysAgo + 1),
+      } satisfies DemoServiceRequest,
+    ];
+  });
+}
+
+function buildCompliance(
+  clients: DemoClientRecord[],
+): DemoComplianceRecord[] {
+  const records: DemoComplianceRecord[] = [];
+
+  for (const record of clients) {
+    const { client } = record;
+    const onboarding = client.status === "onboarding";
+
+    records.push(
+      {
+        id: `cmp-${client.id}-kyc`,
+        clientId: client.id,
+        label: "KYC verification",
+        status: onboarding ? "attention" : "passed",
+        detail: onboarding
+          ? "Proof of address and source of funds letter outstanding."
+          : "Identity and address verified against certified documents.",
+        reviewedAt: daysFromNow(onboarding ? -3 : -180),
+        reviewedBy: "Esi Appiah",
+      },
+      {
+        id: `cmp-${client.id}-aml`,
+        clientId: client.id,
+        label: "AML screening",
+        status: "passed",
+        detail: "No adverse media or sanctions matches on the latest screen.",
+        reviewedAt: daysFromNow(-30),
+        reviewedBy: "Esi Appiah",
+      },
+      {
+        id: `cmp-${client.id}-suitability`,
+        clientId: client.id,
+        label: "Suitability assessment",
+        status: record.portfolioDriftPct >= 8 ? "failed" : "passed",
+        detail:
+          record.portfolioDriftPct >= 8
+            ? `Portfolio sits ${record.portfolioDriftPct.toFixed(1)} points outside the agreed ${client.riskLevel} band.`
+            : `Allocation is consistent with the agreed ${client.riskLevel} risk band.`,
+        reviewedAt: daysFromNow(-14),
+        reviewedBy: "Esi Appiah",
+      },
+    );
+  }
+
+  return records;
+}
+
+function buildEventAlerts(clients: DemoClientRecord[]): DemoAlert[] {
+  const alerts: DemoAlert[] = [];
+  const byId = new Map(clients.map((record) => [record.client.id, record]));
+
+  const push = (
+    id: string,
+    clientId: string,
+    kind: DemoAlert["kind"],
+    severity: DemoAlert["severity"],
+    title: string,
+    detail: string,
+    daysAgo: number,
+    workspaceTab?: string,
+  ) => {
+    const record = byId.get(clientId);
+    if (!record) return;
+
+    alerts.push({
+      id,
+      kind,
+      severity,
+      title,
+      detail,
+      clientId,
+      clientName: `${record.client.firstName} ${record.client.lastName}`,
+      advisorId: record.client.advisorId,
+      workspaceTab,
+      createdAt: daysFromNow(-daysAgo),
+      read: false,
+    });
+  };
+
+  push("alert-escalation-nkrumah", "nkrumah", "escalation", "critical", "Escalation open", "Client disputes the structured note recommendation. Compliance review in progress.", 7, "compliance");
+  push("alert-message-osei-bonsu", "osei-bonsu", "client_message", "info", "New client message", "Asked whether the London property can support a facility instead of an asset sale.", 2, "comms");
+  push("alert-message-quaye", "quaye", "client_message", "info", "New client message", "Confirmed the sale proceeds have cleared and is ready to fund.", 3, "comms");
+  push("alert-message-mensah", "mensah-kofi", "client_message", "info", "New client message", "Asked for the income comparison before the note matures.", 5, "comms");
+  push("alert-doc-agyapong", "agyapong", "document_uploaded", "warning", "KYC documents outstanding", "Proof of address and source of funds letter still missing.", 3, "compliance");
+
+  return alerts;
+}
+
+function buildActivity(clients: DemoClientRecord[]): ClientActivity[] {
+  const specs: Array<{
+    clientId: string;
+    type: ClientActivity["type"];
+    summary: string;
+    daysAgo: number;
+  }> = [
+    { clientId: "osei-bonsu", type: "review", summary: "Q3 review pack sent and opened", daysAgo: 9 },
+    { clientId: "darko", type: "alert", summary: "Risk band breach flagged for review", daysAgo: 5 },
+    { clientId: "quaye", type: "message", summary: "Sale proceeds cleared — ready to fund", daysAgo: 3 },
+    { clientId: "mensah-kofi", type: "alert", summary: "Sovereign note matures in five days", daysAgo: 1 },
+    { clientId: "owusu-ansah", type: "message", summary: "Requested Lombard facility terms", daysAgo: 10 },
+    { clientId: "agyapong", type: "document", summary: "Onboarding started — KYC pending", daysAgo: 3 },
+    { clientId: "sarpong", type: "goal", summary: "Education goal funding updated", daysAgo: 12 },
+    { clientId: "nkrumah", type: "alert", summary: "Structured note recommendation blocked", daysAgo: 7 },
+  ];
+
+  return specs.flatMap((spec, index) => {
+    const record = clients.find((item) => item.client.id === spec.clientId);
+    if (!record) return [];
+
+    return [
+      {
+        id: `activity-${index}`,
+        clientId: spec.clientId,
+        clientName: `${record.client.firstName} ${record.client.lastName}`,
+        type: spec.type,
+        summary: spec.summary,
+        occurredAt: daysFromNow(-spec.daysAgo),
+      } satisfies ClientActivity,
+    ];
+  });
+}
+
+function buildAuditLogs(): AuditLogEntry[] {
+  const specs: Array<{
+    actorId: string;
+    action: string;
+    targetType: string | null;
+    targetId: string | null;
+    targetLabel: string | null;
+    daysAgo: number;
+  }> = [
+    { actorId: "cmp-esi", action: "recommendation.blocked", targetType: "recommendation", targetId: "rec-4", targetLabel: "Autocallable Equity Note — A. Nkrumah", daysAgo: 7 },
+    { actorId: "tl-nana", action: "recommendation.approved", targetType: "recommendation", targetId: "rec-2", targetLabel: "Fund growth sleeves — M. Quaye", daysAgo: 2 },
+    { actorId: "rm-akua", action: "recommendation.proposed", targetType: "recommendation", targetId: "rec-0", targetLabel: "Deploy excess cash — A. Osei-Bonsu", daysAgo: 2 },
+    { actorId: "rm-akua", action: "report.generated", targetType: "client", targetId: "osei-bonsu", targetLabel: "Q3 portfolio review", daysAgo: 9 },
+    { actorId: "po-selorm", action: "trade.executed", targetType: "recommendation", targetId: "rec-7", targetLabel: "Private markets allocation — C. Yeboah", daysAgo: 34 },
+    { actorId: "mgt-kwame", action: "roles.updated", targetType: "staff", targetId: "rm-daniel", targetLabel: "Daniel Mensah", daysAgo: 46 },
+    { actorId: "rm-daniel", action: "client.created", targetType: "client", targetId: "agyapong", targetLabel: "Selina Agyapong", daysAgo: 24 },
+    { actorId: "cmp-esi", action: "compliance.reviewed", targetType: "client", targetId: "darko", targetLabel: "Suitability assessment failed", daysAgo: 14 },
+    { actorId: "rm-akua", action: "message.sent", targetType: "client", targetId: "darko", targetLabel: "Rebalance discussion", daysAgo: 4 },
+    { actorId: "tl-nana", action: "assignment.changed", targetType: "client", targetId: "kyei", targetLabel: "Reassigned to Daniel Mensah", daysAgo: 60 },
+  ];
+
+  const userById = new Map(DEMO_USERS.map((user) => [user.id, user]));
+
+  return specs.map((spec, index) => ({
+    id: `audit-${index}`,
+    actorId: spec.actorId,
+    actorName: userById.get(spec.actorId)?.name ?? "Staff",
+    action: spec.action,
+    targetType: spec.targetType,
+    targetId: spec.targetId,
+    targetLabel: spec.targetLabel,
+    occurredAt: daysFromNow(-spec.daysAgo),
+  }));
+}
+
+function buildSettings(): Record<string, AdvisorSettings> {
+  const settings: Record<string, AdvisorSettings> = {};
+
+  for (const user of DEMO_USERS) {
+    settings[user.id] = {
+      ...defaultAdvisorSettings(user.name),
+      title: user.title,
+      phone: "+233 30 200 1000",
+      bio: `${user.title} at Celerey.`,
+    };
+  }
+
+  return settings;
+}
+
+function buildAvailability(
+  clients: DemoClientRecord[],
+): Record<string, ClientAvailability> {
+  const availability: Record<string, ClientAvailability> = {};
+
+  for (const record of clients) {
+    availability[record.client.id] = {
+      ...DEFAULT_CLIENT_AVAILABILITY,
+      timezone:
+        record.detail.user.resident_country === "United Kingdom"
+          ? "Europe/London"
+          : "Africa/Accra",
+    };
+  }
+
+  return availability;
+}
+
+function buildEntitlements(
+  clients: DemoClientRecord[],
+): Record<string, AdvisoryEntitlement> {
+  const entitlements: Record<string, AdvisoryEntitlement> = {};
+  const planYear = String(new Date().getFullYear());
+
+  for (const record of clients) {
+    const included = record.segment === "uhnw" ? 6 : 4;
+    const used = record.client.status === "onboarding" ? 1 : 2;
+
+    entitlements[record.client.id] = {
+      planYear,
+      included,
+      used,
+      remaining: included - used,
+    };
+  }
+
+  return entitlements;
+}
+
+export function buildDemoDatabase(): DemoDatabase {
+  const clients = seedClients();
+
+  return {
+    version: DEMO_DB_VERSION,
+    seededAt: new Date().toISOString(),
+    advisors: buildAdvisors(clients),
+    clients,
+    threads: buildThreads(clients),
+    documents: buildDocuments(clients),
+    tasks: buildTasks(clients),
+    appointments: buildAppointments(clients),
+    alerts: buildEventAlerts(clients),
+    readAlertIds: [],
+    recommendations: buildRecommendations(clients),
+    serviceRequests: buildServiceRequests(clients),
+    compliance: buildCompliance(clients),
+    reports: [],
+    aiSessions: [],
+    activity: buildActivity(clients),
+    auditLogs: buildAuditLogs(),
+    settings: buildSettings(),
+    availability: buildAvailability(clients),
+    entitlements: buildEntitlements(clients),
+  };
+}

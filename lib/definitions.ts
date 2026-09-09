@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { countryHasStates } from "@/lib/clients/location-options";
 import type { ActingRole, RoleScope, StaffRole } from "@/lib/auth/roles";
+import type { DemoRole } from "@/lib/auth/capabilities";
 
 export const LoginRoleSchema = z.enum(["advisor", "admin", "super_admin"], {
   error: "Choose whether you are signing in as an advisor, admin, or super admin.",
@@ -90,6 +92,8 @@ export type SessionPayload = {
   isSuperAdmin: boolean;
   availableRoles: StaffRole[];
   scope: RoleScope;
+  /** Drives the capability matrix. Present whenever the portal runs in demo mode. */
+  demoRole?: DemoRole;
 };
 
 export const CoreDurationDaysSchema = z.coerce
@@ -98,7 +102,19 @@ export const CoreDurationDaysSchema = z.coerce
   .min(1, { error: "Duration must be at least 1 day." })
   .max(3650, { error: "Duration can't exceed 3650 days (~10 years)." });
 
-export const CreateClientFormSchema = z.object({
+export const CreateClientModeSchema = z.enum(["invite", "direct"]);
+
+export const AccountModeSchema = z.enum(["solo", "partner", "family"]);
+
+const createClientSharedFields = {
+  email: z.email({ error: "Enter a valid email address." }).trim(),
+  grantCore: z.boolean(),
+  durationDays: CoreDurationDaysSchema,
+  advisorId: z.string().trim().optional(),
+};
+
+const InviteClientFieldsSchema = z.object({
+  creationMode: z.literal("invite"),
   firstName: z
     .string()
     .trim()
@@ -109,24 +125,132 @@ export const CreateClientFormSchema = z.object({
     .trim()
     .min(1, { error: "Last name is required." })
     .max(60, { error: "Last name is too long." }),
-  email: z.email({ error: "Enter a valid email address." }).trim(),
-  grantCore: z.boolean(),
-  durationDays: CoreDurationDaysSchema,
-  advisorId: z.string().trim().optional(),
+  ...createClientSharedFields,
 });
+
+const DirectClientFieldsSchema = z
+  .object({
+    creationMode: z.literal("direct"),
+    accountMode: AccountModeSchema,
+    firstName: z.string().trim().max(25).optional(),
+    lastName: z.string().trim().max(25).optional(),
+    displayName: z.string().trim().max(100).optional(),
+    dateOfBirth: z.string().trim().optional(),
+    phoneNumber: z
+      .string()
+      .trim()
+      .min(7, { error: "Enter a valid phone number." })
+      .max(30, { error: "Phone number is too long." }),
+    residentCountry: z
+      .string()
+      .trim()
+      .length(2, { error: "Choose a country." }),
+    residentState: z.string().trim().optional(),
+    residentCity: z
+      .string()
+      .trim()
+      .min(1, { error: "City is required." })
+      .max(80, { error: "City is too long." }),
+    currency: z
+      .string()
+      .trim()
+      .length(3, { error: "Choose a currency." }),
+    prefix: z.string().trim().optional(),
+    gender: z.enum(["M", "F", "O", "X"]).optional(),
+    maritalStatus: z
+      .enum(["single", "married", "divorced", "widowed", "separated"])
+      .optional(),
+    occupation: z.string().trim().max(50).optional(),
+    ...createClientSharedFields,
+  })
+  .superRefine((data, ctx) => {
+    if (
+      countryHasStates(data.residentCountry) &&
+      !data.residentState?.trim()
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["residentState"],
+        message: "State / region is required for this country.",
+      });
+    }
+
+    if (data.accountMode === "solo") {
+      if (!data.firstName?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["firstName"],
+          message: "First name is required.",
+        });
+      }
+      if (!data.lastName?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["lastName"],
+          message: "Last name is required.",
+        });
+      }
+      if (!data.dateOfBirth?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["dateOfBirth"],
+          message: "Date of birth is required.",
+        });
+      } else {
+        const birthDate = new Date(data.dateOfBirth);
+        const minimumAgeCutoff = new Date();
+        minimumAgeCutoff.setFullYear(minimumAgeCutoff.getFullYear() - 16);
+
+        if (
+          Number.isNaN(birthDate.getTime()) ||
+          birthDate > minimumAgeCutoff
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["dateOfBirth"],
+            message: "Client must be at least 16 years old.",
+          });
+        }
+      }
+    } else if (!data.displayName?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["displayName"],
+        message: "Household name is required.",
+      });
+    }
+  });
+
+export const CreateClientFormSchema = z.discriminatedUnion("creationMode", [
+  InviteClientFieldsSchema,
+  DirectClientFieldsSchema,
+]);
 
 export type CreateClientFormState =
   | {
       errors?: {
         firstName?: string[];
         lastName?: string[];
+        displayName?: string[];
+        dateOfBirth?: string[];
         email?: string[];
+        accountMode?: string[];
+        phoneNumber?: string[];
+        residentCountry?: string[];
+        residentState?: string[];
+        residentCity?: string[];
+        currency?: string[];
+        prefix?: string[];
+        gender?: string[];
+        maritalStatus?: string[];
+        occupation?: string[];
         grantCore?: string[];
         durationDays?: string[];
         advisorId?: string[];
       };
       message?: string;
       success?: boolean;
+      creationMode?: "invite" | "direct";
     }
   | undefined;
 

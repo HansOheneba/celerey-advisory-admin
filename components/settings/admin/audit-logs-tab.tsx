@@ -34,8 +34,8 @@ export function AuditLogsTab({ initialLogs }: AuditLogsTabProps) {
               <ScrollText className="size-6 text-muted-foreground" />
               <p className="text-sm font-medium">No audit events yet</p>
               <p className="max-w-sm text-sm text-muted-foreground">
-                Assignments, role changes, and organization updates will appear
-                here as they happen.
+                No audit events logged yet. Assignments and role changes show
+                here when recorded.
               </p>
             </div>
           </div>

@@ -43,6 +43,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-brand: var(--surface-brand);
+  --color-surface-success: var(--surface-success);
+  --color-surface-warning: var(--surface-warning);
+  --color-surface-info: var(--surface-info);
+  --color-surface-ai: var(--surface-ai);
+  --color-surface-muted: var(--surface-muted);
+  --color-accent-purple: var(--accent-purple);
 }
 
 :root {
@@ -78,7 +85,14 @@
   --sidebar-ring: rgba(255, 255, 255, 0.3);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  --dashboard-surface: rgb(247, 247, 247);
+  --dashboard-surface: #f9f9fb;
+  --surface-muted: #f3f5f8;
+  --surface-brand: color-mix(in oklch, var(--primary) 9%, white);
+  --surface-success: color-mix(in oklch, #10b981 9%, white);
+  --surface-warning: color-mix(in oklch, #f59e0b 9%, white);
+  --surface-info: color-mix(in oklch, #2563eb 8%, white);
+  --surface-ai: color-mix(in oklch, #8c80f8 9%, white);
+  --accent-purple: #8c80f8;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -147,6 +161,14 @@
 
 .celerey-stagger > *:nth-child(6) {
   animation-delay: 200ms;
+}
+
+.celerey-stagger > *:nth-child(7) {
+  animation-delay: 240ms;
+}
+
+.celerey-stagger > *:nth-child(8) {
+  animation-delay: 280ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -5,6 +5,10 @@ import { decrypt, SESSION_COOKIE } from "@/lib/session-crypto";
 const protectedPrefixes = [
   "/dashboard",
   "/clients",
+  "/copilot",
+  "/insights",
+  "/products",
+  "/tools",
   "/advisors",
   "/assignments",
   "/appointments",
@@ -42,6 +46,10 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/clients/:path*",
+    "/copilot/:path*",
+    "/insights/:path*",
+    "/products/:path*",
+    "/tools/:path*",
     "/advisors/:path*",
     "/assignments/:path*",
     "/appointments/:path*",

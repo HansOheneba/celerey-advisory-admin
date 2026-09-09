@@ -11,6 +11,15 @@ import {
   type RoleScope,
   type StaffRole,
 } from "@/lib/auth/roles";
+import {
+  bookScope,
+  can,
+  capabilitySet,
+  isDemoRole,
+  type Capability,
+  type CapabilitySet,
+  type DemoRole,
+} from "@/lib/auth/capabilities";
 import { decrypt, getSessionToken } from "@/lib/session";
 import type { Client } from "@/types/client";
 
@@ -25,7 +34,25 @@ export type AdvisorSession = {
   isSuperAdmin: boolean;
   availableRoles: StaffRole[];
   scope: RoleScope;
+  demoRole: DemoRole;
+  capabilities: CapabilitySet;
 };
+
+/**
+ * Fall back to a sensible demo role for sessions created before demo mode, so
+ * an existing cookie never lands the user in a capability-less state.
+ */
+function resolveDemoRole(value: unknown, role: AppRole): DemoRole {
+  if (isDemoRole(typeof value === "string" ? value : null)) {
+    return value as DemoRole;
+  }
+
+  if (role === "super_admin") {
+    return "management";
+  }
+
+  return role === "admin" ? "team_lead" : "relationship_manager";
+}
 
 export const verifySession = cache(async (): Promise<AdvisorSession | null> => {
   const token = await getSessionToken();
@@ -44,12 +71,16 @@ export const verifySession = cache(async (): Promise<AdvisorSession | null> => {
     scope: payload.scope,
   });
 
+  const demoRole = resolveDemoRole(payload.demoRole, roleFields.role);
+
   return {
     userId: payload.userId,
     name: payload.name,
     email: payload.email,
     accessToken: payload.accessToken,
     ...roleFields,
+    demoRole,
+    capabilities: capabilitySet(demoRole),
   };
 });
 
@@ -83,8 +114,19 @@ export async function requireSuperAdmin() {
   return session;
 }
 
+/** Guard a page or action on a capability rather than a raw role. */
+export async function requireCapability(capability: Capability) {
+  const session = await requireSession();
+
+  if (!can(session.demoRole, capability)) {
+    redirect("/dashboard");
+  }
+
+  return session;
+}
+
 export function canAccessClient(session: AdvisorSession, client: Client) {
-  if (isAdmin(session.role)) {
+  if (bookScope(session.demoRole) !== "own_book" || isAdmin(session.role)) {
     return true;
   }
 

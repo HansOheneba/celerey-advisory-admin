@@ -2,6 +2,9 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
+import { DEMO_MODE } from "@/lib/demo/config";
+import { routeDemoUsecase } from "@/lib/demo/api-router";
+
 export type ExecuteSuccess<T> = {
   ok: true;
   data: T;
@@ -191,6 +194,34 @@ export async function executeApi<T>(
     searchParams,
     redirectOnUnauthorized,
   } = options;
+
+  if (DEMO_MODE) {
+    const demoResult = await routeDemoUsecase(usecase, {
+      accessToken,
+      body,
+      searchParams,
+    });
+
+    if (demoResult) {
+      if (!demoResult.ok) {
+        redirectToLoginIfUnauthorized({
+          accessToken,
+          redirectOnUnauthorized,
+          status: demoResult.status,
+          message: demoResult.message,
+        });
+
+        return demoResult;
+      }
+
+      return {
+        ok: true,
+        status: demoResult.status,
+        data: demoResult.data as T,
+      };
+    }
+  }
+
   const url = buildUrl(usecase, searchParams);
 
   const headers: HeadersInit = {
@@ -303,6 +334,26 @@ export async function executeMultipartApi<T>(
     method = "POST",
     redirectOnUnauthorized,
   } = options;
+
+  if (DEMO_MODE) {
+    const demoResult = await routeDemoUsecase(usecase, {
+      accessToken,
+      formData,
+    });
+
+    if (demoResult) {
+      if (!demoResult.ok) {
+        return demoResult;
+      }
+
+      return {
+        ok: true,
+        status: demoResult.status,
+        data: demoResult.data as T,
+      };
+    }
+  }
+
   const url = buildUrl(usecase);
 
   const headers: HeadersInit = {

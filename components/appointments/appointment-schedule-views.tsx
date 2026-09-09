@@ -99,7 +99,7 @@ export function AppointmentWeekCalendar({
         <p className="text-sm font-medium text-muted-foreground">
           {formatWeekRange(weekStart)}
         </p>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"

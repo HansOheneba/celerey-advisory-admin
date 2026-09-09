@@ -11,15 +11,34 @@ import type { Client, ClientSubscription } from "@/types/client";
 
 export { normalizeClient };
 
+export type ClientIdentityInput = {
+  account_mode: "solo" | "partner" | "family";
+  phone_number: string;
+  resident_country: string;
+  resident_city: string;
+  currency: string;
+  display_name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  date_of_birth?: string | null;
+  resident_state?: string | null;
+  prefix?: string | null;
+  gender?: string | null;
+  marital_status?: string | null;
+  occupation?: string | null;
+};
+
 export type CreateClientInput = {
   firstName: string;
   lastName: string;
   email: string;
+  creationMode?: "invite" | "direct";
   sendInvite?: boolean;
   grantCore?: boolean;
   /** Celerey Core access length in days. Only applied when grantCore is true. */
   durationDays?: number;
   advisorId?: string;
+  identity?: ClientIdentityInput;
 };
 
 export type CreateClientResult = {
@@ -69,12 +88,14 @@ export async function createClientApi(
     firstName: input.firstName,
     lastName: input.lastName,
     email: input.email,
-    sendInvite: input.sendInvite ?? true,
+    creationMode: input.creationMode ?? "invite",
+    sendInvite: input.sendInvite ?? input.creationMode !== "direct",
     grantCore: input.grantCore ?? true,
     ...(input.grantCore && input.durationDays
       ? { duration: input.durationDays }
       : {}),
     ...(input.advisorId ? { advisor_id: input.advisorId } : {}),
+    ...(input.identity ? { identity: input.identity } : {}),
   };
 
   return executeApi<CreateClientResult>("admin.clients.create", {

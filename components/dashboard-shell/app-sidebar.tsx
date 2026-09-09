@@ -34,7 +34,7 @@ import {
 function getPrimaryNav(admin: boolean) {
   return [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { title: admin ? "Clients" : "My Clients", href: "/clients", icon: Users },
+    { title: "Clients", href: "/clients", icon: Users },
     ...(admin
       ? [
           { title: "Advisors", href: "/advisors", icon: UserRoundCog },

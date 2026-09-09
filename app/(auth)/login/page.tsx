@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { LoginForm } from "@/components/auth/login-form";
 import { LoginHero } from "@/components/auth/login-hero";
+import { DemoRolePicker } from "@/components/auth/demo-role-picker";
+import { DEMO_MODE } from "@/lib/demo/config";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -40,12 +42,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </h1>
               <p className="text-sm leading-relaxed text-white/60">
                 {sessionExpired
-                  ? "Your session expired. Choose advisor or admin and sign in again."
-                  : "Choose whether you are an advisor or an admin, then we'll send a one-time code."}
+                  ? "Your session expired. Choose a role and sign in again."
+                  : DEMO_MODE
+                    ? "Choose the role you want to explore. You can switch at any time from the top bar."
+                    : "Choose whether you are an advisor or an admin, then we'll send a one-time code."}
               </p>
             </div>
 
-            <LoginForm />
+            {DEMO_MODE ? <DemoRolePicker /> : <LoginForm />}
           </div>
         </div>
 

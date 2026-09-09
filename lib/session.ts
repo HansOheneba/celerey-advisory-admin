@@ -9,6 +9,7 @@ import {
   type RoleScope,
   type StaffRole,
 } from "@/lib/auth/roles";
+import type { DemoRole } from "@/lib/auth/capabilities";
 import { decrypt, encrypt, SESSION_COOKIE } from "@/lib/session-crypto";
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -24,6 +25,7 @@ export async function createSession(user: {
   isSuperAdmin?: boolean;
   availableRoles?: StaffRole[];
   scope?: RoleScope;
+  demoRole?: DemoRole;
 }) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
   const base = contextFromRole(user.role);
@@ -45,6 +47,7 @@ export async function createSession(user: {
     email: user.email,
     accessToken: user.accessToken,
     ...roleFields,
+    ...(user.demoRole ? { demoRole: user.demoRole } : {}),
     expiresAt: expiresAt.toISOString(),
   });
   const cookieStore = await cookies();

@@ -234,7 +234,7 @@ export function ClientDocumentsCard({
                   {formatDate(document.createdAt)}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="flex shrink-0 items-center gap-2">
                 {document.downloadUrl ? (
                   <a
                     href={document.downloadUrl}
