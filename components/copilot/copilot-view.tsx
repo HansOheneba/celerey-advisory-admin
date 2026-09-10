@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ArrowUp, Sparkles, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { toast } from "sonner";
 
+import { CelereyAiSymbol } from "@/components/brand/celerey-ai-symbol";
 import { CopilotMarkdown } from "@/components/copilot/copilot-markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { streamCopilotAnswer } from "@/lib/ai/stream-copilot-client";
+import { dashboardTheme } from "@/lib/dashboard-theme";
 import { cn } from "@/lib/utils";
 
 const SUGGESTIONS = [
@@ -26,7 +28,7 @@ const SUGGESTIONS = [
   "Talking points for my next three reviews",
 ];
 
-const COLUMN = "mx-auto w-full max-w-2xl";
+const COLUMN = "mx-auto w-full max-w-3xl";
 
 type ChatMessage = {
   id: string;
@@ -155,7 +157,7 @@ export function CopilotView({ clients, scopeLabel }: CopilotViewProps) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Copilot could not complete that request.",
+          : "Celerey Copilot could not complete that request.",
       );
     } finally {
       if (abortRef.current === controller) {
@@ -180,15 +182,23 @@ export function CopilotView({ clients, scopeLabel }: CopilotViewProps) {
   );
 
   return (
-    <div className="flex h-[calc(100svh-3.5rem)] flex-col">
+    <div
+      className={cn(
+        dashboardTheme.page,
+        "flex h-[calc(100svh-3.5rem)] flex-col",
+      )}
+    >
       {isEmpty ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4">
           <div className={cn(COLUMN, "flex flex-1 flex-col justify-center py-10")}>
             <div className="celerey-enter mb-8 text-center">
-              <Sparkles
-                className="mx-auto mb-4 size-6 text-[var(--accent-purple)]"
-                aria-hidden
+              <CelereyAiSymbol
+                size="hero"
+                className="mx-auto mb-4 size-[4.5rem] sm:size-20"
               />
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.08em] text-accent-purple">
+                Celerey Copilot
+              </p>
               <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">
                 What do you want to look at?
               </h1>

@@ -44,7 +44,7 @@ export async function prepareCopilotRequest(
   if (!can(session.demoRole, "use_copilot")) {
     return {
       ok: false,
-      message: "Your role does not have access to Copilot.",
+      message: "Your role does not have access to Celerey Copilot.",
     };
   }
 

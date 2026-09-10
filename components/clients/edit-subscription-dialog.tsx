@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateClientSubscriptionAction } from "@/app/actions/clients";
 import { CoreDurationFields } from "@/components/clients/core-duration-fields";
@@ -89,8 +90,9 @@ function SubscriptionForm({
       ) : null}
 
       <DialogFooter>
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save subscription"}
+        <Button type="submit" disabled={pending} aria-busy={pending}>
+          {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
+          Save subscription
         </Button>
       </DialogFooter>
     </form>

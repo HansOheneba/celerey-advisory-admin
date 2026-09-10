@@ -119,7 +119,7 @@ export function CommsTab({
                   className={cn(
                     "max-w-[85%] rounded-lg p-3 text-sm leading-relaxed",
                     message.author === "client" &&
-                      "border border-border/50 bg-card",
+                      "border border-border bg-card",
                     message.author === "advisor" &&
                       "ml-auto bg-primary text-primary-foreground",
                     message.author === "note" &&
@@ -148,7 +148,7 @@ export function CommsTab({
           </div>
 
           {canMessage ? (
-            <div className="space-y-2 border-t border-border/50 pt-3">
+            <div className="space-y-2 border-t border-border pt-3">
               <Textarea
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
@@ -172,7 +172,7 @@ export function CommsTab({
               </div>
             </div>
           ) : (
-            <p className="border-t border-border/50 pt-3 text-sm text-muted-foreground">
+            <p className="border-t border-border pt-3 text-sm text-muted-foreground">
               Your role has read-only access to client communications.
             </p>
           )}

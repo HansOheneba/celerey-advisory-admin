@@ -15,13 +15,15 @@ export function KpiCard({ label, value, hint, icon, className }: KpiCardProps) {
   return (
     <Card className={cn(dashboardTheme.kpiCard, className)}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <CardTitle className={dashboardTheme.sectionLabel}>{label}</CardTitle>
+        <CardTitle className={dashboardTheme.statLabel}>{label}</CardTitle>
         {icon ? (
-          <div className="rounded-md bg-primary/5 p-1.5 text-primary">{icon}</div>
+          <div className="flex size-10 items-center justify-center rounded-md bg-surface-brand text-primary">
+            {icon}
+          </div>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-1">
-        <p className="text-2xl font-semibold tracking-tight">{value}</p>
+        <p className={dashboardTheme.statValueLarge}>{value}</p>
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </CardContent>
     </Card>

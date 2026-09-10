@@ -79,7 +79,7 @@ export function ServiceTab({
               serviceRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="space-y-1 border-b border-border/50 pb-3 last:border-0 last:pb-0"
+                  className="space-y-1 border-b border-border pb-3 last:border-0 last:pb-0"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium">
@@ -120,7 +120,7 @@ export function ServiceTab({
             {openTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-start justify-between gap-3 border-b border-border/50 pb-2 last:border-0 last:pb-0"
+                className="flex items-start justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{task.title}</p>
@@ -139,7 +139,7 @@ export function ServiceTab({
             {upcoming.map((appointment) => (
               <div
                 key={appointment.id}
-                className="flex items-start justify-between gap-3 border-b border-border/50 pb-2 last:border-0 last:pb-0"
+                className="flex items-start justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{appointment.title}</p>

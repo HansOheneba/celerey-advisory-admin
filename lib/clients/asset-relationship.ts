@@ -2,18 +2,18 @@
  * Asset relationship classification for Celerey advisory clients.
  *
  * Definitions:
- * - AUA (Assets Under Advice): assets Celerey advises on or includes in planning,
- *   but does not manage under a discretionary mandate.
- * - AUM (Assets Under Management): assets Celerey actively manages.
- * - Total assets covered: aua + aum. Never label this "Total AUM".
+ * - AUA (Assets Under Advice): total assets Celerey advises on, including managed
+ *   and advised-only holdings. AUA >= AUM always.
+ * - AUM (Assets Under Management): subset of AUA that Celerey actively manages.
+ * - Advised-only (held away): AUA − AUM. Never add AUA + AUM — that double-counts.
  *
  * Demo demarcation rules (tune for business):
  * - Account at institution containing "Celerey" → AUM
- * - Account at any other institution → AUA
+ * - Account at any other institution → advised-only (counts toward AUA)
  * - Holding default → AUM (Celerey-managed portfolio sleeves)
- * - Holding explicitly marked relationship: "aua" in seed → AUA
- * - heldAwayUsd on client record → AUA (synthetic advised external pool)
- * - Property, liabilities, unadvised personal assets → excluded from covered totals
+ * - Holding explicitly marked relationship: "aua" in seed → advised-only
+ * - heldAwayUsd on client record → advised-only (synthetic external pool)
+ * - Property, liabilities, unadvised personal assets → excluded from AUA/AUM
  */
 
 import type { DemoClientRecord } from "@/lib/demo/types";
@@ -23,9 +23,10 @@ export type AssetRelationship = "aua" | "aum";
 export type AssetRelationshipKind = "aua" | "aum" | "aua+aum" | "none";
 
 export type ClientAssetTotals = {
+  /** Total assets under advice (managed + advised-only). */
   aua: number;
+  /** Managed subset of AUA. */
   aum: number;
-  totalCovered: number;
 };
 
 export const ASSET_RELATIONSHIP_SHORT_LABELS: Record<AssetRelationship, string> =
@@ -41,8 +42,8 @@ export const ASSET_RELATIONSHIP_LONG_LABELS: Record<AssetRelationship, string> =
   };
 
 export const ASSET_RELATIONSHIP_HINTS: Record<AssetRelationship, string> = {
-  aua: "Advised but held outside Celerey-managed portfolios",
-  aum: "Managed through Celerey",
+  aua: "Total assets under advice (includes managed)",
+  aum: "Actively managed through Celerey",
 };
 
 const CELEREY_INSTITUTION_PATTERN = /celerey/i;
@@ -51,22 +52,25 @@ function round(value: number): number {
   return Math.round(value);
 }
 
-export function totalAssetsCovered(aua: number, aum: number): number {
-  return aua + aum;
+/** Assets advised on but not under Celerey management mandate. */
+export function advisedOnlyAssets(aua: number, aum: number): number {
+  return Math.max(0, aua - aum);
 }
 
 export function deriveRelationshipKind(
   aua: number,
   aum: number,
 ): AssetRelationshipKind {
-  if (aua > 0 && aum > 0) {
+  const advisedOnly = advisedOnlyAssets(aua, aum);
+
+  if (aum > 0 && advisedOnly > 0) {
     return "aua+aum";
-  }
-  if (aua > 0) {
-    return "aua";
   }
   if (aum > 0) {
     return "aum";
+  }
+  if (aua > 0) {
+    return "aua";
   }
   return "none";
 }
@@ -110,26 +114,25 @@ export function computeAssetTotalsFromPools(
   pools: AssetPool[],
   heldAwayUsd = 0,
 ): ClientAssetTotals {
-  let aua = 0;
+  let advisedOnly = 0;
   let aum = 0;
 
   for (const pool of pools) {
-    if (pool.relationship === "aua") {
-      aua += pool.value;
-    } else {
+    if (pool.relationship === "aum") {
       aum += pool.value;
+    } else {
+      advisedOnly += pool.value;
     }
   }
 
-  aua += heldAwayUsd;
+  advisedOnly += heldAwayUsd;
 
-  const roundedAua = round(aua);
   const roundedAum = round(aum);
+  const roundedAua = round(advisedOnly + aum);
 
   return {
     aua: roundedAua,
     aum: roundedAum,
-    totalCovered: roundedAua + roundedAum,
   };
 }
 

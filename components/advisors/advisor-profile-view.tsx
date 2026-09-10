@@ -79,7 +79,7 @@ export function AdvisorProfileView({
         <Card className={dashboardTheme.card}>
           <CardHeader className="pb-2">
             <p className={dashboardTheme.sectionLabel}>Book</p>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
+            <CardTitle className="text-2xl font-medium tabular-nums">
               {totalClients}
             </CardTitle>
           </CardHeader>
@@ -90,7 +90,7 @@ export function AdvisorProfileView({
         <Card className={dashboardTheme.card}>
           <CardHeader className="pb-2">
             <p className={dashboardTheme.sectionLabel}>Role</p>
-            <CardTitle className="text-2xl font-semibold">
+            <CardTitle className="text-2xl font-medium">
               {advisor.roles.length > 0
                 ? advisor.roles.map(identityRoleLabel).join(" · ")
                 : roleLabel(advisor.role)}

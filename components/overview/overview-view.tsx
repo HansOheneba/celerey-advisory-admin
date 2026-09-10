@@ -88,7 +88,7 @@ export function OverviewView({
         <MetricCard
           label="Assets Under Advice"
           value={formatCompactCurrency(metrics.totalAua)}
-          hint="Advised but held outside managed portfolios"
+          hint="Total advised book (includes managed)"
           icon={DollarSign}
           variant="info"
         />
@@ -99,7 +99,11 @@ export function OverviewView({
             value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
             positive: metrics.weightedPerformancePct >= 0,
           }}
-          hint={`${formatCompactCurrency(metrics.totalCovered)} total covered · ${metrics.clientsWithBoth} AUA + AUM`}
+          hint={
+            metrics.totalAua > 0
+              ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA managed · ${metrics.clientsWithMixedMandate} mixed mandate`
+              : "Managed subset of AUA"
+          }
           icon={Wallet}
           variant="brand"
         />

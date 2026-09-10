@@ -257,7 +257,7 @@ export function AssignmentsWorkspace({
       {selected.size > 0 ? (
         <form
           action={action}
-          className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-border/50 bg-popover/95 p-3 shadow-md ring-1 ring-foreground/10 backdrop-blur-sm animate-in fade-in-0 slide-in-from-bottom-2 duration-[var(--duration-fast)] ease-[var(--ease-out)] motion-reduce:animate-none"
+          className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-popover/95 p-3 shadow-md ring-1 ring-foreground/10 backdrop-blur-sm animate-in fade-in-0 slide-in-from-bottom-2 duration-[var(--duration-fast)] ease-[var(--ease-out)] motion-reduce:animate-none"
         >
           {Array.from(selected).map((clientId) => (
             <input key={clientId} type="hidden" name="clientIds" value={clientId} />

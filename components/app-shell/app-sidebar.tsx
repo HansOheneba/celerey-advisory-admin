@@ -19,6 +19,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { NavItemIcon } from "@/components/shared/nav-item-icon";
+import { cn } from "@/lib/utils";
 import type { CapabilitySet } from "@/lib/auth/capabilities";
 import { isActiveRoute, sidebarNavFor } from "@/lib/navigation";
 
@@ -34,30 +36,37 @@ export function AppSidebar({ capabilities }: AppSidebarProps) {
   const settingsActive =
     pathname === "/settings" || pathname.startsWith("/settings/");
 
+  const navButtonClass = (active: boolean, isAi = false) =>
+    cn(
+      "rounded-none px-3 py-2 text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-secondary/70 hover:text-foreground active:scale-[0.98]",
+      active && "sidebar-nav-active",
+      active && isAi && "[&_svg]:text-accent-purple",
+    );
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="flex h-12 shrink-0 items-center justify-center border-b border-sidebar-border px-2">
+      <SidebarHeader className="flex h-14 shrink-0 flex-row items-center justify-center gap-0 border-b border-border p-0 px-3">
         <Link
           href="/dashboard"
-          className="flex size-full items-center justify-center transition-opacity duration-[var(--duration-press)] ease-[var(--ease-out)] hover:opacity-90 active:scale-[0.97]"
+          className="flex size-full items-center justify-center transition-opacity duration-150 ease-out hover:opacity-90 active:scale-[0.98]"
           aria-label="Celerey home"
         >
           {showSymbol ? (
             <Image
-              src="/logos/CelereySymbolLight.png"
+              src="/logos/Celerey-Secondary-Symbol-Dark.png"
               alt="Celerey"
-              width={32}
-              height={32}
-              className="size-7 object-contain"
+              width={40}
+              height={40}
+              className="size-9 object-contain"
               priority
             />
           ) : (
             <Image
-              src="/logos/logoWhite.png"
+              src="/logos/logoDark.png"
               alt="Celerey"
-              width={150}
-              height={38}
-              className="h-7 w-auto"
+              width={176}
+              height={44}
+              className="h-10 w-auto"
               priority
             />
           )}
@@ -66,23 +75,25 @@ export function AppSidebar({ capabilities }: AppSidebarProps) {
 
       <SidebarContent>
         {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroup key={group.label} className="p-0 py-2">
+            <SidebarGroupLabel className="px-3 text-[11px] text-muted-foreground">
+              {group.label}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
-                  const Icon = item.icon;
                   const active = isActiveRoute(pathname, item.href);
+                  const isAi = item.symbol === "celerey-ai";
 
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
                         isActive={active}
                         tooltip={item.label}
-                        className="data-[active=true]:border-l-2 data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-accent"
+                        className={navButtonClass(active, isAi)}
                         render={<Link href={item.href} />}
                       >
-                        <Icon />
+                        <NavItemIcon icon={item.icon} symbol={item.symbol} />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -94,12 +105,13 @@ export function AppSidebar({ capabilities }: AppSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border p-0 py-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={settingsActive}
               tooltip="Settings"
+              className={navButtonClass(settingsActive)}
               render={<Link href="/settings" />}
             >
               <Settings />

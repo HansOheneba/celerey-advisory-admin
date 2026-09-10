@@ -46,7 +46,7 @@ export type MeetingAiNotes = {
   fullTranscript: string;
 };
 
-export type SessionActionCategory = "financial" | "documents" | "other";
+export type SessionActionCategory = "financial" | "documents" | "goals" | "other";
 
 export type SessionRecommendation = {
   title: string;

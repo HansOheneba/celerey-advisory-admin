@@ -21,6 +21,8 @@ export type ApiClientRow = Partial<Client> & {
   advisor_name?: string;
   risk_level?: string;
   last_contact_at?: string | null;
+  last_contact_source?: string | null;
+  review_frequency_days?: number;
   next_review_at?: string | null;
   joined_at?: string;
   goals_count?: number;
@@ -99,6 +101,16 @@ export function normalizeClient(row: ApiClientRow): Client {
     lastContactAt: String(
       row.lastContactAt ?? row.last_contact_at ?? emptyDate,
     ),
+    lastContactSource:
+      typeof row.lastContactSource === "string"
+        ? (row.lastContactSource as Client["lastContactSource"])
+        : typeof row.last_contact_source === "string"
+          ? (row.last_contact_source as Client["lastContactSource"])
+          : null,
+    reviewFrequencyDays:
+      typeof row.reviewFrequencyDays === "number"
+        ? row.reviewFrequencyDays
+        : toNumber(row.review_frequency_days) || 180,
     nextReviewAt: String(row.nextReviewAt ?? row.next_review_at ?? emptyDate),
     joinedAt: String(row.joinedAt ?? row.joined_at ?? emptyDate),
     goalsCount:

@@ -181,7 +181,7 @@ export function PortfolioTab({
               </ResponsiveContainer>
             </div>
 
-            <div className="mt-3 grid grid-cols-3 gap-3 border-t border-border/50 pt-3">
+            <div className="mt-3 grid grid-cols-3 gap-3 border-t border-border pt-3">
               <MiniStat
                 label="Model drift"
                 value={`${driftPct.toFixed(1)} pts`}
@@ -260,7 +260,7 @@ export function PortfolioTab({
                     <TableCell
                       className={cn(
                         "text-right",
-                        gainPct >= 0 ? "text-emerald-600" : "text-destructive",
+                        gainPct >= 0 ? "text-success" : "text-destructive",
                       )}
                     >
                       {gainPct >= 0 ? "+" : ""}
@@ -330,7 +330,7 @@ function MiniStat({
         className={cn(
           "text-sm font-medium",
           tone === "bad" && "text-destructive",
-          tone === "warn" && "text-amber-600",
+          tone === "warn" && "text-warning",
         )}
       >
         {value}

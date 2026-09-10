@@ -4,7 +4,7 @@ import type { AlertSeverity } from "@/lib/demo/types";
 
 const SEVERITY_STYLES: Record<AlertSeverity, string> = {
   critical: "border-destructive/20 bg-destructive/10 text-destructive",
-  warning: "border-amber-500/20 bg-amber-500/10 text-amber-700",
+  warning: "border-amber-500/20 bg-amber-500/10 text-warning",
   info: "border-primary/20 bg-primary/10 text-primary",
 };
 

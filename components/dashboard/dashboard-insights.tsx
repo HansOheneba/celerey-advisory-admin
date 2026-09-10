@@ -8,7 +8,7 @@ type DashboardInsightsProps = {
 };
 
 const toneClass: Record<string, string> = {
-  neutral: "border-border/50",
+  neutral: "border-border",
   attention: "border-amber-500/30 bg-amber-500/[0.04]",
   positive: "border-emerald-500/25 bg-emerald-500/[0.04]",
 };

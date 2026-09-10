@@ -62,7 +62,7 @@ export function CalculatorCard({
 }) {
   return (
     <article className={cn(dashboardTheme.elevatedSection, "space-y-6")}>
-      <header className="flex items-start gap-3 border-b border-border/50 pb-5">
+      <header className="flex items-start gap-3 border-b border-border pb-5">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/50 text-muted-foreground">
           <Icon className="size-[18px]" aria-hidden />
         </div>
@@ -77,7 +77,7 @@ export function CalculatorCard({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-3">
           <p className={dashboardTheme.sectionLabel}>Inputs</p>
-          <div className="grid gap-3 rounded-lg border border-border/50 bg-muted/20 p-4 sm:grid-cols-2">
+          <div className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
             {inputs}
           </div>
         </div>
@@ -90,7 +90,7 @@ export function CalculatorCard({
             <p
               className={cn(
                 "mt-1 text-3xl font-semibold tabular-nums tracking-tight",
-                primaryResult.tone === "good" && "text-emerald-700",
+                primaryResult.tone === "good" && "text-success",
                 primaryResult.tone === "bad" && "text-destructive",
               )}
             >
@@ -99,7 +99,7 @@ export function CalculatorCard({
           </div>
 
           {talkingPoint ? (
-            <div className="rounded-lg border border-border/50 border-l-[3px] border-l-foreground/20 bg-muted/25 px-4 py-3.5">
+            <div className="rounded-lg border border-border border-l-[3px] border-l-foreground/20 bg-muted/25 px-4 py-3.5">
               <p className={dashboardTheme.sectionLabel}>Say this</p>
               <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">
                 {talkingPoint}
@@ -116,7 +116,7 @@ export function CalculatorCard({
                   <span
                     className={cn(
                       "font-medium tabular-nums",
-                      result.tone === "good" && "text-emerald-700",
+                      result.tone === "good" && "text-success",
                       result.tone === "bad" && "text-destructive",
                     )}
                   >

@@ -6,7 +6,6 @@ import {
   FileText,
   Scale,
   ShieldAlert,
-  Sparkles,
   Wallet,
 } from "lucide-react";
 
@@ -42,7 +41,6 @@ import type { CapabilitySet } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import type { BookMetrics } from "@/lib/demo/insights";
 import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
-import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
 import {
   computeAgeAnalytics,
@@ -60,7 +58,6 @@ type SegmentRow = {
   clients: number;
   aua: number;
   aum: number;
-  totalCovered: number;
   revenue: number;
   performancePct: number;
 };
@@ -81,31 +78,27 @@ function buildSegmentRows(records: DemoClientRecord[]): SegmentRow[] {
     .map(([segment, group]) => {
       const aua = group.reduce((total, item) => total + item.client.aua, 0);
       const aum = group.reduce((total, item) => total + item.client.aum, 0);
-      const totalCovered = aua + aum;
 
       return {
         label: segment.toUpperCase(),
         clients: group.length,
         aua,
         aum,
-        totalCovered,
         revenue: group.reduce(
           (total, item) => total + item.revenueQtdUsd,
           0,
         ),
         performancePct:
-          totalCovered > 0
+          aua > 0
             ? group.reduce(
                 (total, item) =>
-                  total +
-                  item.performanceYtdPct *
-                    (item.client.aua + item.client.aum),
+                  total + item.performanceYtdPct * item.client.aua,
                 0,
-              ) / totalCovered
+              ) / aua
             : 0,
       };
     })
-    .sort((a, b) => b.totalCovered - a.totalCovered);
+    .sort((a, b) => b.aua - a.aua);
 }
 
 type InsightsViewProps = {
@@ -135,11 +128,7 @@ export function InsightsView({
   );
 
   const topClients = [...records]
-    .sort(
-      (a, b) =>
-        totalAssetsCovered(b.client.aua, b.client.aum) -
-        totalAssetsCovered(a.client.aua, a.client.aum),
-    )
+    .sort((a, b) => b.client.aua - a.client.aua)
     .slice(0, 10);
 
   return (
@@ -167,10 +156,10 @@ export function InsightsView({
           variant="info"
         />
         <MetricCard
-          label="Copilot sessions"
+          label="Celerey Copilot sessions"
           value={String(aiSessions.length)}
           hint="book and client queries"
-          icon={Sparkles}
+          symbol="celerey-ai"
           variant="ai"
         />
         <MetricCard
@@ -194,7 +183,7 @@ export function InsightsView({
             ) : null}
           </TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="ai">Copilot activity</TabsTrigger>
+          <TabsTrigger value="ai">Celerey Copilot activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
@@ -202,7 +191,11 @@ export function InsightsView({
             <MetricCard
               label="Assets under advice"
               value={formatCompactCurrency(metrics.totalAua)}
-              hint={`${metrics.clientsWithBoth > 0 ? `${metrics.clientsWithBoth} clients with both · ` : ""}advised outside managed portfolios`}
+              hint={
+                metrics.clientsWithMixedMandate > 0
+                  ? `${metrics.clientsWithMixedMandate} mixed mandate · total advised book`
+                  : "Total advised book (includes managed)"
+              }
               icon={DollarSign}
             />
             <MetricCard
@@ -212,7 +205,11 @@ export function InsightsView({
                 value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
                 positive: metrics.weightedPerformancePct >= 0,
               }}
-              hint={`${formatCompactCurrency(metrics.totalCovered)} total covered`}
+              hint={
+                metrics.totalAua > 0
+                  ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA under management`
+                  : "Managed subset of AUA"
+              }
               icon={Wallet}
             />
             <MetricCard
@@ -233,8 +230,8 @@ export function InsightsView({
           />
 
           <SectionPanel
-            title="Assets covered trend"
-            description="Trailing six-month AUA and AUM movement."
+            title="AUA and AUM trend"
+            description="Trailing six-month movement. AUM is a subset of AUA."
           >
             <BookTrendChart
               currentAua={metrics.totalAua}
@@ -361,7 +358,6 @@ export function InsightsView({
                     <TableHead>Relationship manager</TableHead>
                     <TableHead className="text-right">AUA</TableHead>
                     <TableHead className="text-right">AUM</TableHead>
-                    <TableHead className="text-right">Covered</TableHead>
                     <TableHead className="text-right">TTM</TableHead>
                     <TableHead className="text-right">Revenue QTD</TableHead>
                     <TableHead className="text-right">Next review</TableHead>
@@ -393,14 +389,6 @@ export function InsightsView({
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCompactCurrency(record.client.aum)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCompactCurrency(
-                          totalAssetsCovered(
-                            record.client.aua,
-                            record.client.aum,
-                          ),
-                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {record.performanceYtdPct >= 0 ? "+" : ""}
@@ -501,23 +489,25 @@ export function InsightsView({
 
         <TabsContent value="ai">
           <SectionPanel
-            title="Copilot activity log"
+            title="Celerey Copilot activity log"
             description="Each query, the data scopes read, and who asked."
             variant="ai"
           >
             {aiSessions.length === 0 ? (
               <EmptyState
                 icon={Bot}
-                title="No copilot activity"
-                description="No Copilot sessions yet. Queries from the Copilot page log here."
+                title="No Celerey Copilot activity"
+                description="No Celerey Copilot sessions yet. Queries from the Celerey Copilot page log here."
                 variant="ai"
               />
             ) : (
-              <div className="divide-y divide-border/50">
+              <div className="divide-y divide-border">
                 {aiSessions.map((entry) => (
                   <ListRow
                     key={entry.id}
-                    leading={<IconTile icon={Sparkles} variant="ai" size="sm" />}
+                    leading={
+                      <IconTile symbol="celerey-ai" variant="ai" size="sm" />
+                    }
                     title={
                       <>
                         <span className="text-sm font-medium">{entry.prompt}</span>

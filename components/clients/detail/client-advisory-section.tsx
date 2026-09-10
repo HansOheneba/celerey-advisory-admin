@@ -99,7 +99,7 @@ export function ClientAdvisorySection({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-lg border border-border/50 px-3 py-2">
+              <div className="rounded-lg border border-border px-3 py-2">
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Included
                 </p>
@@ -107,7 +107,7 @@ export function ClientAdvisorySection({
                   {entitlement.included}
                 </p>
               </div>
-              <div className="rounded-lg border border-border/50 px-3 py-2">
+              <div className="rounded-lg border border-border px-3 py-2">
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Used
                 </p>
@@ -115,7 +115,7 @@ export function ClientAdvisorySection({
                   {entitlement.used}
                 </p>
               </div>
-              <div className="rounded-lg border border-border/50 px-3 py-2">
+              <div className="rounded-lg border border-border px-3 py-2">
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   Remaining
                 </p>
@@ -237,7 +237,7 @@ export function ClientAdvisorySection({
                 {lastSession.progress.metrics.map((metric) => (
                   <div
                     key={metric.key}
-                    className="rounded-lg border border-border/50 px-3 py-2"
+                    className="rounded-lg border border-border px-3 py-2"
                   >
                     <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                       {metric.label}

@@ -154,7 +154,7 @@ export function ToolsView({ clients }: ToolsViewProps) {
           </div>
 
           {activeTool ? (
-            <p className="border-b border-border/50 pb-3 text-sm font-semibold lg:hidden">
+            <p className="border-b border-border pb-3 text-sm font-semibold lg:hidden">
               {activeTool.label}
             </p>
           ) : null}

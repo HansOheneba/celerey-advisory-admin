@@ -1,6 +1,7 @@
 import "server-only";
 
 import { executeApi } from "@/lib/api/execute";
+import { pickParty, pickString } from "@/lib/api/portal-field-aliases";
 import type {
   AdvisoryEntitlement,
   Appointment,
@@ -190,7 +191,9 @@ function normalizeTranscriptStatus(value: unknown): TranscriptStatus {
 function normalizeAppointment(row: Record<string, unknown>): Appointment {
   const type = asString(row.type);
   const status = asString(row.status);
-  const createdBy = asString(row.createdBy ?? row.created_by, "advisor");
+  const createdBy =
+    pickParty(row, "createdBy", "created_by", "initiatedBy", "initiated_by") ??
+    "advisor";
   const title = asString(row.title);
   const typeLabel = APPOINTMENT_TYPES.has(type as AppointmentType)
     ? (type as AppointmentType)
@@ -200,7 +203,7 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
   const documentIds = row.documentIds ?? row.document_ids;
 
   return {
-    id: asString(row.id),
+    id: pickString(row, "id", "appointmentId", "appointment_id"),
     clientId: asString(row.clientId ?? row.client_id),
     clientName: asString(row.clientName ?? row.client_name),
     advisorId: asString(row.advisorId ?? row.advisor_id),
@@ -219,11 +222,8 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
     status: normalizeStatus(status),
     createdBy: createdBy === "client" ? "client" : "advisor",
     proposedBy:
-      row.proposedBy === "client" || row.proposed_by === "client"
-        ? "client"
-        : row.proposedBy === "advisor" || row.proposed_by === "advisor"
-          ? "advisor"
-          : undefined,
+      pickParty(row, "proposedBy", "proposed_by") ??
+      pickParty(row, "initiatedBy", "initiated_by"),
     proposedSlots: (() => {
       const slotsValue = row.proposedSlots ?? row.proposed_slots;
       if (!Array.isArray(slotsValue)) {
@@ -238,7 +238,9 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
     meetingProvider: normalizeMeetingProvider(
       row.meetingProvider ?? row.meeting_provider,
     ),
-    meetingUrl: asString(row.meetingUrl ?? row.meeting_url) || null,
+    meetingUrl:
+      pickString(row, "meetingUrl", "meeting_url", "joinUrl", "join_url") ||
+      null,
     calendarSynced: Boolean(row.calendarSynced ?? row.calendar_synced),
     transcriptStatus: normalizeTranscriptStatus(
       row.transcriptStatus ?? row.transcript_status,
@@ -250,7 +252,10 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
       row.aiNotesDraft ?? row.ai_notes_draft,
     ),
     aiNotesPublished: normalizeMeetingAiNotes(
-      row.aiNotesPublished ?? row.ai_notes_published,
+      row.aiNotesPublished ??
+        row.ai_notes_published ??
+        row.publishedNotes ??
+        row.published_notes,
     ),
     publishedAt: asString(row.publishedAt ?? row.published_at) || null,
     publishedByAdvisorId:

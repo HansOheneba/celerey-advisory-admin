@@ -41,7 +41,8 @@ import {
 import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
 import type { ClientAvailability } from "@/lib/availability/types";
 import type { ClientDocument } from "@/lib/documents/types";
-import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
+import { advisedOnlyAssets } from "@/lib/clients/asset-relationship";
+import { formatLastContactProvenance } from "@/lib/clients/contact-tracking";
 import type { Client } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
 import { cn } from "@/lib/utils";
@@ -94,7 +95,7 @@ function Section({
 }) {
   return (
     <section className={cn("space-y-2", className)}>
-      <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
+      <h3 className="text-sm font-medium tracking-tight">{title}</h3>
       {children}
     </section>
   );
@@ -123,7 +124,7 @@ function CompactTable({
   return (
     <Card className={cn(dashboardTheme.tableShell, "overflow-hidden")}>
       <CardHeader className="px-3 py-2">
-        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <Table>
         <TableHeader>
@@ -197,7 +198,7 @@ export function ClientDetailView({
     (sum, item) => sum + (Number(item.balance) || 0),
     0,
   );
-  const totalCovered = totalAssetsCovered(client.aua, client.aum);
+  const advisedOnly = advisedOnlyAssets(client.aua, client.aum);
   const netWorth = holdingsValue + accountsValue + propertyValue - liabilityValue;
 
   const profileFields = [
@@ -238,9 +239,9 @@ export function ClientDetailView({
   const showFreshness = state.freshness.length > 0;
 
   const kpis = [
-    { label: "Covered", value: formatCompactCurrency(totalCovered) },
     { label: "AUA", value: formatCompactCurrency(client.aua) },
     { label: "AUM", value: formatCompactCurrency(client.aum) },
+    { label: "Advised only", value: formatCompactCurrency(advisedOnly) },
     { label: "Net", value: formatCompactCurrency(netWorth) },
     {
       label: "Surplus / mo",
@@ -291,7 +292,9 @@ export function ClientDetailView({
                   .join(" · ")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Last contact {formatDate(client.lastContactAt)} · Next review{" "}
+                Last contact {formatDate(client.lastContactAt)} (
+                {formatLastContactProvenance(client)}) · Review every{" "}
+                {client.reviewFrequencyDays} days · Next{" "}
                 {formatDate(client.nextReviewAt)} · Joined{" "}
                 {formatDate(client.joinedAt)}
               </p>
@@ -323,7 +326,7 @@ export function ClientDetailView({
           <Card className={dashboardTheme.card}>
             <CardHeader className="pb-2">
               <p className={dashboardTheme.sectionLabel}>Notes</p>
-              <CardTitle className="text-base font-semibold">
+              <CardTitle className="text-base font-medium">
                 Relationship notes
               </CardTitle>
             </CardHeader>
@@ -370,7 +373,7 @@ export function ClientDetailView({
         <Card className={dashboardTheme.card}>
           <CardHeader>
             <p className={dashboardTheme.sectionLabel}>Access</p>
-            <CardTitle className="text-base font-semibold">
+            <CardTitle className="text-base font-medium">
               Contact profile
             </CardTitle>
           </CardHeader>
@@ -587,7 +590,7 @@ export function ClientDetailView({
                 <Card key={goal.id} className={dashboardTheme.card}>
                   <CardContent className="space-y-2 p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold leading-snug">
+                      <p className="text-sm font-medium leading-snug">
                         {goal.title}
                       </p>
                       <Badge variant="outline" className="shrink-0 text-[10px]">
@@ -637,7 +640,7 @@ export function ClientDetailView({
                 {state.allocation.length > 0 ? (
                   <Card className={dashboardTheme.card}>
                     <CardHeader className="px-3 py-2">
-                      <CardTitle className="text-sm font-semibold">
+                      <CardTitle className="text-sm font-medium">
                         Allocation
                       </CardTitle>
                     </CardHeader>
@@ -674,7 +677,7 @@ export function ClientDetailView({
                 {state.portfolioPerformance.length > 0 ? (
                   <Card className={dashboardTheme.card}>
                     <CardHeader className="px-3 py-2">
-                      <CardTitle className="text-sm font-semibold">
+                      <CardTitle className="text-sm font-medium">
                         Portfolio value
                       </CardTitle>
                     </CardHeader>
@@ -692,7 +695,7 @@ export function ClientDetailView({
                           <Line
                             type="monotone"
                             dataKey="value"
-                            stroke="#151339"
+                            stroke="var(--primary)"
                             strokeWidth={2}
                             dot={false}
                           />
@@ -734,7 +737,7 @@ export function ClientDetailView({
               ) : (
                 <Card className={dashboardTheme.card}>
                   <CardHeader className="px-3 py-2">
-                    <CardTitle className="text-sm font-semibold">
+                    <CardTitle className="text-sm font-medium">
                       Holdings
                     </CardTitle>
                   </CardHeader>
@@ -793,7 +796,7 @@ export function ClientDetailView({
                     className={dashboardTheme.card}
                   >
                     <CardContent className="space-y-1 p-3">
-                      <p className="text-sm font-semibold">{property.name}</p>
+                      <p className="text-sm font-medium">{property.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {[property.city, property.country]
                           .filter(Boolean)

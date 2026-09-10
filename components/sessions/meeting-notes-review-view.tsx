@@ -243,7 +243,7 @@ export function MeetingNotesReviewView({
             {actionItems.map((item, index) => (
               <div
                 key={`action-${index}`}
-                className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-4"
+                className="space-y-3 rounded-lg border border-border bg-muted/20 p-4"
               >
                 <div className="flex items-start justify-between gap-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -325,12 +325,12 @@ export function MeetingNotesReviewView({
 
         <section className={`${dashboardTheme.elevatedSection} space-y-3`}>
           <h2 className={dashboardTheme.sectionTitle}>Transcript excerpt</h2>
-          <p className="rounded-lg border border-border/50 bg-muted/20 p-4 text-sm leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-border bg-muted/20 p-4 text-sm leading-relaxed text-muted-foreground">
             {draft.transcriptExcerpt}
           </p>
         </section>
 
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/50 pt-4">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
           <Button
             type="button"
             variant="outline"

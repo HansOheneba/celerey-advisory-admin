@@ -130,13 +130,13 @@ export function AppointmentWeekCalendar({
       </div>
 
       <div className={cn(dashboardTheme.card, "overflow-hidden rounded-xl")}>
-        <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-border/50">
+        <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-border">
           <div />
           {weekDays.map((day) => (
             <div
               key={day.toISOString()}
               className={cn(
-                "border-l border-border/50 px-2 py-3 text-center",
+                "border-l border-border px-2 py-3 text-center",
                 isToday(day) && "bg-primary/5",
               )}
             >
@@ -172,7 +172,7 @@ export function AppointmentWeekCalendar({
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "relative border-l border-border/50",
+                  "relative border-l border-border",
                   isToday(day) && "bg-primary/[0.03]",
                 )}
                 style={{ height: gridHeight }}
@@ -329,7 +329,7 @@ export function AppointmentDayTimeline({
   return (
     <div className={cn(dashboardTheme.card, "overflow-hidden rounded-xl")}>
       <div className="grid grid-cols-[3.5rem_minmax(0,1fr)]">
-        <div className="relative border-r border-border/50" style={{ height: gridHeight }}>
+        <div className="relative border-r border-border" style={{ height: gridHeight }}>
           {hours.map((hour, index) => (
             <div
               key={hour}

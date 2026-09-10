@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
+import { CelereyAiSymbol } from "@/components/brand/celerey-ai-symbol";
 import { Card, CardContent } from "@/components/ui/card";
 import { dashboardTheme, type TintedSurfaceVariant } from "@/lib/dashboard-theme";
 import { cn } from "@/lib/utils";
@@ -9,11 +10,10 @@ type MetricCardVariant = "default" | "accent" | TintedSurfaceVariant;
 type MetricCardProps = {
   label: string;
   value: string;
-  /** Short supporting line, e.g. "vs. last quarter". */
   hint?: string;
-  /** Signed change rendered in green or red. */
   delta?: { value: string; positive: boolean };
   icon?: LucideIcon;
+  symbol?: "celerey-ai";
   variant?: MetricCardVariant;
 };
 
@@ -28,15 +28,24 @@ const VARIANT_SURFACE: Record<MetricCardVariant, string> = {
   muted: dashboardTheme.tintedSurface.muted,
 };
 
+const VARIANT_ICON: Partial<Record<MetricCardVariant, string>> = {
+  warning: "text-warning",
+  success: "text-success",
+  info: "text-accent-blue",
+  ai: "text-accent-purple",
+};
+
 export function MetricCard({
   label,
   value,
   hint,
   delta,
   icon: Icon,
+  symbol,
   variant = "default",
 }: MetricCardProps) {
   const showTint = variant !== "default";
+  const showIcon = Boolean(Icon || symbol);
 
   return (
     <Card
@@ -48,29 +57,30 @@ export function MetricCard({
     >
       <CardContent className="space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <p className={dashboardTheme.sectionLabel}>{label}</p>
-          {Icon ? (
-            <Icon
+          <p className={dashboardTheme.statLabel}>{label}</p>
+          {showIcon ? (
+            <div
               className={cn(
-                "size-4 shrink-0 text-muted-foreground",
-                variant === "warning" && "text-amber-600",
-                variant === "success" && "text-emerald-600",
-                !showTint && "text-primary/70",
+                "flex size-10 items-center justify-center rounded-md bg-surface-brand",
+                VARIANT_ICON[variant] ?? "text-primary",
               )}
-              aria-hidden
-            />
+            >
+              {symbol === "celerey-ai" ? (
+                <CelereyAiSymbol size="sm" />
+              ) : Icon ? (
+                <Icon className="size-4 shrink-0" aria-hidden />
+              ) : null}
+            </div>
           ) : null}
         </div>
-        <p className="text-2xl font-semibold tabular-nums tracking-tight">
-          {value}
-        </p>
+        <p className={dashboardTheme.statValueLarge}>{value}</p>
         {delta || hint ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             {delta ? (
               <span
                 className={cn(
                   "font-medium",
-                  delta.positive ? "text-emerald-600" : "text-destructive",
+                  delta.positive ? "text-success" : "text-destructive",
                 )}
               >
                 {delta.value}

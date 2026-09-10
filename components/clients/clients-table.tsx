@@ -19,7 +19,7 @@ import {
   AssetAmountCell,
   AssetRelationshipBadge,
 } from "@/components/clients/asset-relationship-badge";
-import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
+import { formatLastContactProvenance } from "@/lib/clients/contact-tracking";
 import { SubscriptionBadge } from "@/components/clients/subscription-badge";
 import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -126,7 +126,7 @@ export function ClientsTable({
 
     updateParams({
       sortBy: column,
-      sortDir: column === "joinedAt" || column === "covered" ? "desc" : "asc",
+      sortDir: column === "joinedAt" || column === "aua" || column === "aum" ? "desc" : "asc",
       page: "1",
     });
   }
@@ -249,21 +249,12 @@ export function ClientsTable({
                   <ArrowDownUp className="size-3.5 text-muted-foreground" />
                 </button>
               </TableHead>
-              <TableHead>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 font-medium"
-                  onClick={() => toggleSort("covered")}
-                >
-                  Covered
-                  <ArrowDownUp className="size-3.5 text-muted-foreground" />
-                </button>
-              </TableHead>
               <TableHead className="hidden xl:table-cell">
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 font-medium"
                   onClick={() => toggleSort("lastContactAt")}
+                  title="Counts: client/advisor messages (not notes), completed sessions. See lib/clients/contact-tracking.ts"
                 >
                   Last contact
                   <ArrowDownUp className="size-3.5 text-muted-foreground" />
@@ -289,7 +280,7 @@ export function ClientsTable({
               <TableRow>
                 <TableCell
                   colSpan={
-                    9 +
+                    8 +
                     (canManageSubscriptions ? 1 : 0) +
                     (showAdvisorColumn ? 1 : 0) +
                     1
@@ -374,14 +365,13 @@ export function ClientsTable({
                       format={formatCurrency}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(
-                      totalAssetsCovered(client.aua, client.aum),
-                      client.currency,
-                    )}
-                  </TableCell>
                   <TableCell className="hidden text-muted-foreground xl:table-cell">
-                    {formatDate(client.lastContactAt)}
+                    <span
+                      title={formatLastContactProvenance(client)}
+                      className="cursor-help border-b border-dotted border-muted-foreground/40"
+                    >
+                      {formatDate(client.lastContactAt)}
+                    </span>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground xl:table-cell">
                     {formatDate(client.nextReviewAt)}

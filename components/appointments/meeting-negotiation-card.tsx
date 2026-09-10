@@ -76,7 +76,7 @@ export function MeetingNegotiationCard({
         <div
           className={cn(
             "flex shrink-0 flex-wrap items-center gap-2",
-            "border-t border-border/50 pt-4 sm:border-t-0 sm:pt-0",
+            "border-t border-border pt-4 sm:border-t-0 sm:pt-0",
           )}
         >
           <Button

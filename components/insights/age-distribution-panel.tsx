@@ -49,7 +49,7 @@ export function AgeDistributionPanel({ analytics }: AgeDistributionPanelProps) {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{bucket.label}</span>
               <span className="text-right text-muted-foreground tabular-nums">
-                {bucket.count} · {formatCompactCurrency(bucket.totalCovered)}
+                {bucket.count} · {formatCompactCurrency(bucket.aua)} AUA
                 <span className="block text-[10px]">
                   AUA {formatCompactCurrency(bucket.aua)} · AUM{" "}
                   {formatCompactCurrency(bucket.aum)}

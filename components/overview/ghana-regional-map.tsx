@@ -71,11 +71,11 @@ export function GhanaRegionalMap({ spread }: GhanaRegionalMapProps) {
   return (
     <SectionPanel
       title="Client locations in Ghana"
-      description={`${spread.totalClients} relationships · ${formatCompactCurrency(spread.totalCovered)} covered (AUA ${formatCompactCurrency(spread.totalAua)} · AUM ${formatCompactCurrency(spread.totalAum)}) across ${spread.regions.length} region${spread.regions.length === 1 ? "" : "s"}`}
+      description={`${spread.totalClients} relationships · AUA ${formatCompactCurrency(spread.totalAua)} · AUM ${formatCompactCurrency(spread.totalAum)} across ${spread.regions.length} region${spread.regions.length === 1 ? "" : "s"}`}
       variant="muted"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-stretch">
-        <div className="mx-auto w-full max-w-[520px] overflow-hidden rounded-lg border border-border/50 bg-[#e8edf4] lg:mx-0 lg:max-w-none">
+        <div className="mx-auto w-full max-w-[520px] overflow-hidden rounded-lg border border-border bg-surface-muted lg:mx-0 lg:max-w-none">
           <Suspense
             fallback={
               <div
@@ -123,7 +123,7 @@ export function GhanaRegionalMap({ spread }: GhanaRegionalMapProps) {
                 "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                 activeLabel === region.label
                   ? "border-primary/40 bg-primary/5"
-                  : "border-border/50 hover:bg-muted/40",
+                  : "border-border hover:bg-muted/40",
               )}
             >
               <div>
@@ -135,7 +135,7 @@ export function GhanaRegionalMap({ spread }: GhanaRegionalMapProps) {
               </div>
               <div className="text-right">
                 <p className="font-medium tabular-nums">
-                  {formatCompactCurrency(region.totalCovered)}
+                  {formatCompactCurrency(region.aua)}
                 </p>
                 <p className="text-[10px] text-muted-foreground tabular-nums">
                   AUA {formatCompactCurrency(region.aua)} · AUM{" "}

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { executeApi } from "@/lib/api/execute";
+import { pickNullableString, pickString } from "@/lib/api/portal-field-aliases";
 import type {
   Task,
   TaskAssignee,
@@ -12,7 +13,12 @@ import type {
 const PRIORITIES = new Set<TaskPriority>(["low", "medium", "high"]);
 const STATUSES = new Set<TaskStatus>(["open", "done"]);
 const ASSIGNEES = new Set<TaskAssignee>(["advisor", "client"]);
-const CATEGORIES = new Set<TaskCategory>(["financial", "documents", "other"]);
+const CATEGORIES = new Set<TaskCategory>([
+  "financial",
+  "documents",
+  "goals",
+  "other",
+]);
 
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -21,16 +27,18 @@ function asString(value: unknown, fallback = "") {
 function normalizeTask(row: Record<string, unknown>): Task {
   const priority = asString(row.priority, "medium");
   const status = asString(row.status, "open");
-  const assignee = asString(row.assignee, "advisor");
+  const assignee = pickString(row, "assignee", "assignedTo", "assigned_to") || "advisor";
   const category = asString(row.category, "other");
   const clientId = row.clientId ?? row.client_id;
   const clientName = row.clientName ?? row.client_name;
-  const sessionId = row.sessionId ?? row.session_id;
+  const sessionId =
+    pickNullableString(row, "sessionId", "session_id", "appointmentId", "appointment_id") ??
+    null;
   const dueAt = row.dueAt ?? row.due_at;
   const description = row.description;
 
   return {
-    id: asString(row.id),
+    id: pickString(row, "id", "taskId", "task_id"),
     title: asString(row.title),
     description:
       typeof description === "string" && description ? description : null,

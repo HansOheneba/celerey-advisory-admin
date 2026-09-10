@@ -4,7 +4,7 @@ export type TaskStatus = "open" | "done";
 
 export type TaskAssignee = "advisor" | "client";
 
-export type TaskCategory = "financial" | "documents" | "other";
+export type TaskCategory = "financial" | "documents" | "goals" | "other";
 
 export type Task = {
   id: string;
@@ -34,5 +34,6 @@ export const TASK_ASSIGNEE_LABELS: Record<TaskAssignee, string> = {
 export const TASK_CATEGORY_LABELS: Record<TaskCategory, string> = {
   financial: "Financial",
   documents: "Documents",
+  goals: "Goals",
   other: "Other",
 };

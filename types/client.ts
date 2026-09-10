@@ -16,15 +16,24 @@ export type Client = {
   status: ClientStatus;
   riskLevel: RiskLevel;
   subscription: ClientSubscription;
-  /** Assets advised on but not managed by Celerey */
+  /** Total assets under advice (includes managed; AUA >= AUM). */
   aua: number;
-  /** Assets under Celerey management mandate */
+  /** Managed subset of AUA. */
   aum: number;
   currency: "USD" | "GHS" | "GBP";
   advisorId: string;
   advisorName: string;
   location: string;
   lastContactAt: string;
+  /** What last updated lastContactAt — see lib/clients/contact-tracking.ts */
+  lastContactSource?:
+    | "message"
+    | "session_logged"
+    | "onboarding"
+    | "seed"
+    | null;
+  /** Days between scheduled reviews for this client. */
+  reviewFrequencyDays: number;
   nextReviewAt: string;
   joinedAt: string;
   goalsCount: number;

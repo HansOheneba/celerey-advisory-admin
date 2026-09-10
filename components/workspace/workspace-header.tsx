@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
-import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import { formatCompactCurrency, formatDate, getInitials } from "@/lib/format";
 import { CLIENT_SEGMENT_LABELS, type DemoClientRecord } from "@/lib/demo/types";
 
@@ -55,7 +54,7 @@ export function WorkspaceHeader({
           </Avatar>
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+              <h1 className="text-xl font-medium tracking-tight">
                 {name}
               </h1>
               <Badge variant="secondary">
@@ -98,12 +97,10 @@ export function WorkspaceHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 border-t border-border/50 pt-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
         <Stat
-          label="Total covered"
-          value={formatCompactCurrency(
-            totalAssetsCovered(client.aua, client.aum),
-          )}
+          label="AUA"
+          value={formatCompactCurrency(client.aua)}
         />
         <Stat
           label="TTM performance"

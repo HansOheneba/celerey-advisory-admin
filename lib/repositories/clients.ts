@@ -33,7 +33,7 @@ export type ClientListParams = {
   status?: string;
   riskLevel?: string;
   subscription?: string;
-  sortBy?: ApiClientSort | "joinedAt" | "covered" | "aum";
+  sortBy?: ApiClientSort | "joinedAt" | "aum";
   sortDir?: "asc" | "desc";
   page?: number;
   pageSize?: number;
@@ -81,16 +81,13 @@ function sortByJoinedAt(items: Client[], sortDir: "asc" | "desc") {
 
 function sortClientsLocally(
   items: Client[],
-  sortBy: "joinedAt" | "covered" | "aum",
+  sortBy: "joinedAt" | "aum",
   sortDir: "asc" | "desc",
 ) {
   return [...items].sort((a, b) => {
     let delta = 0;
 
     switch (sortBy) {
-      case "covered":
-        delta = a.aua + a.aum - (b.aua + b.aum);
-        break;
       case "aum":
         delta = a.aum - b.aum;
         break;
@@ -127,7 +124,7 @@ export async function listClients(
   } = params;
 
   const sortLocally =
-    sortBy === "joinedAt" || sortBy === "covered" || sortBy === "aum";
+    sortBy === "joinedAt" || sortBy === "aum";
   const listQuery = {
     query,
     status,

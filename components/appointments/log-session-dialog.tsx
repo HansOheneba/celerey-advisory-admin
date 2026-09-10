@@ -32,6 +32,7 @@ import { TASK_PRIORITY_LABELS, type TaskPriority } from "@/lib/tasks/types";
 const ACTION_CATEGORIES: Record<SessionActionCategory, string> = {
   financial: "Financial",
   documents: "Documents",
+  goals: "Goals",
   other: "Other",
 };
 
@@ -252,7 +253,7 @@ export function LogSessionDialog({
             {actions.map((action, index) => (
               <div
                 key={`action-${index}`}
-                className="space-y-2 rounded-lg border border-border/50 p-3"
+                className="space-y-2 rounded-lg border border-border p-3"
               >
                 <Input
                   value={action.title}

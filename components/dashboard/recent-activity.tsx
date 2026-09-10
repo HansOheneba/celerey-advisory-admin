@@ -27,7 +27,7 @@ export function RecentActivity({
           {activity.map((item) => (
             <div
               key={item.id}
-              className="flex items-start justify-between gap-3 border-b border-border/50 pb-3 last:border-0 last:pb-0"
+              className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{item.clientName}</p>
@@ -55,7 +55,7 @@ export function RecentActivity({
           {recentClients.map((client) => (
             <div
               key={client.id}
-              className="flex items-center justify-between gap-3 border-b border-border/50 pb-3 last:border-0 last:pb-0"
+              className="flex items-center justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
             >
               <div className="flex items-center gap-3">
                 <Avatar size="sm">

@@ -54,7 +54,7 @@ type HoldingDraft = {
 const VALUATION_STYLES: Record<ValuationMethod, string> = {
   market: "border-sky-500/20 bg-sky-500/10 text-sky-700",
   auto_calculated: "border-violet-500/20 bg-violet-500/10 text-violet-700",
-  manual: "border-amber-500/20 bg-amber-500/10 text-amber-700",
+  manual: "border-amber-500/20 bg-amber-500/10 text-warning",
 };
 
 const VALUATION_HINTS: Record<ValuationMethod, string> = {
@@ -241,7 +241,7 @@ export function AssetHoldingFields({
               {valuationMethodLabel(valuationMethod)}
             </Badge>
             {showLiveBadge ? (
-              <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
+              <Badge variant="outline" className="border-emerald-500/20 bg-surface-success text-success">
                 Live price
               </Badge>
             ) : null}
@@ -323,7 +323,7 @@ export function AssetHoldingFields({
           />
 
           {isDuplicate ? (
-            <p className="flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-700">
+            <p className="flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-warning">
               <AlertTriangle className="size-3.5 shrink-0" />
               {symbol} is already on another holding. The client dashboard blocks duplicate
               active positions.

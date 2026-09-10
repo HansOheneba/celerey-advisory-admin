@@ -63,7 +63,7 @@ export function AppointmentDetailSheet({
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
-        <SheetHeader className="border-b border-border/50 px-5 py-4 text-left">
+        <SheetHeader className="border-b border-border px-5 py-4 text-left">
           <div className="flex flex-wrap items-center gap-2 pr-8">
             <AppointmentStatusBadge status={appointment.status} />
             {appointment.meetingProvider ? (
@@ -119,7 +119,7 @@ export function AppointmentDetailSheet({
           )}
 
           {canLog ? (
-            <div className="rounded-lg border border-border/50 bg-muted/20 px-4 py-3">
+            <div className="rounded-lg border border-border bg-muted/20 px-4 py-3">
               <p className="text-sm font-medium">Meeting finished?</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Log the session record for compliance. Notes and assessment
@@ -138,7 +138,7 @@ export function AppointmentDetailSheet({
           ) : null}
         </div>
 
-        <SheetFooter className="border-t border-border/50 px-5 py-4 sm:flex-row sm:justify-between">
+        <SheetFooter className="border-t border-border px-5 py-4 sm:flex-row sm:justify-between">
           <Button type="button" variant="outline" onClick={onClose}>
             Close
           </Button>

@@ -101,19 +101,19 @@ export function SessionsWorkspace({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className={cnStatCard()}>
           <p className={dashboardTheme.sectionLabel}>Total sessions</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
+          <p className="mt-1 text-2xl font-medium tabular-nums">
             {pastSessions.length}
           </p>
         </div>
         <div className={cnStatCard()}>
           <p className={dashboardTheme.sectionLabel}>Pending review</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
+          <p className="mt-1 text-2xl font-medium tabular-nums">
             {pendingReview.length}
           </p>
         </div>
         <div className={cnStatCard()}>
           <p className={dashboardTheme.sectionLabel}>Clients</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
+          <p className="mt-1 text-2xl font-medium tabular-nums">
             {clients.length}
           </p>
         </div>

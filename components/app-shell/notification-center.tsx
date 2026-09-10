@@ -22,7 +22,7 @@ import type { AlertSeverity, DemoAlert } from "@/lib/demo/types";
 
 const SEVERITY_STYLES: Record<AlertSeverity, string> = {
   critical: "bg-destructive/10 text-destructive border-destructive/20",
-  warning: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  warning: "bg-amber-500/10 text-warning border-amber-500/20",
   info: "bg-primary/10 text-primary border-primary/20",
 };
 
@@ -76,7 +76,7 @@ export function NotificationCenter({ alerts }: NotificationCenterProps) {
       </SheetTrigger>
 
       <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
-        <SheetHeader className="border-b border-border/50">
+        <SheetHeader className="border-b border-border">
           <SheetTitle>Alerts</SheetTitle>
           <SheetDescription>
             {unread > 0
@@ -165,7 +165,7 @@ export function NotificationCenter({ alerts }: NotificationCenterProps) {
         </div>
 
         {unread > 0 ? (
-          <div className="border-t border-border/50 p-4">
+          <div className="border-t border-border p-4">
             <Button
               variant="outline"
               className="w-full"

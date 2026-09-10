@@ -84,7 +84,7 @@ export async function generateClientNarrative(
 
   if (!can(session.demoRole, "use_copilot")) {
     return {
-      content: "Your role does not have access to Copilot.",
+      content: "Your role does not have access to Celerey Copilot.",
       offline: true,
     };
   }
@@ -133,7 +133,7 @@ export async function askCopilot(
 
   if (!can(session.demoRole, "use_copilot")) {
     return {
-      content: "Your role does not have access to Copilot.",
+      content: "Your role does not have access to Celerey Copilot.",
       offline: true,
     };
   }

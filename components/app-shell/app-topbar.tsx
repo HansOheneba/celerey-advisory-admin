@@ -5,11 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 
-import { dashboardContentFrameClass } from "@/components/app-shell/dashboard-content-frame";
 import { NotificationCenter } from "@/components/app-shell/notification-center";
 import { RoleSwitcher } from "@/components/app-shell/role-switcher";
 import { UserMenu } from "@/components/app-shell/user-menu";
-import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,7 +17,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { AdvisorSession } from "@/lib/dal";
 import type { DemoAlert } from "@/lib/demo/types";
@@ -66,74 +63,70 @@ export function AppTopbar({ session, alerts }: AppTopbarProps) {
   const { capabilities } = session;
 
   return (
-    <header className="sticky top-0 z-20 shrink-0 border-b border-border/60 bg-card/95 shadow-[0_1px_0_0_var(--surface-brand)] backdrop-blur">
-      <div
-        className={cn(
-          dashboardContentFrameClass,
-          "flex h-14 items-center gap-3",
-        )}
-      >
-      <SidebarTrigger className="-ml-1" />
-      <Separator
-        orientation="vertical"
-        className="my-2.5 hidden h-6 sm:block"
-      />
+    <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card/90 backdrop-blur-sm">
+      <div className="flex h-14 items-center gap-3 px-4 md:px-5">
+        <SidebarTrigger className="shrink-0" />
 
-      <Breadcrumb className="hidden min-w-0 flex-1 md:block">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/dashboard" />}>
-              Home
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {crumbs.map((crumb) => (
-            <Fragment key={crumb.href}>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                {crumb.current ? (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink render={<Link href={crumb.href} />}>
-                    {crumb.label}
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </Fragment>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
+        <Breadcrumb className="hidden min-w-0 flex-1 text-sm md:block">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                className="text-muted-foreground"
+                render={<Link href="/dashboard" />}
+              >
+                Home
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {crumbs.map((crumb) => (
+              <Fragment key={crumb.href}>
+                <BreadcrumbSeparator className="[&>svg]:size-3.5 [&>svg]:text-muted-foreground" />
+                <BreadcrumbItem>
+                  {crumb.current ? (
+                    <BreadcrumbPage className="font-medium text-foreground">
+                      {crumb.label}
+                    </BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      className="text-muted-foreground"
+                      render={<Link href={crumb.href} />}
+                    >
+                      {crumb.label}
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
 
-      <form
-        action="/clients"
-        className="ml-auto hidden max-w-xs flex-1 lg:block xl:max-w-sm"
-      >
-        <div className="relative">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            type="search"
-            name="query"
-            placeholder="Search clients"
-            aria-label="Search clients"
-            className="border-primary/15 bg-surface-brand pl-9 focus-visible:border-primary/30 focus-visible:ring-primary/20"
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <form action="/clients" className="hidden w-[200px] lg:block xl:w-[240px]">
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                type="search"
+                name="query"
+                placeholder="Search clients"
+                aria-label="Search clients"
+                className="border-primary/15 bg-surface-brand pl-9 focus-visible:border-primary/30 focus-visible:ring-primary/20"
+              />
+            </div>
+          </form>
+
+          <span className="hidden rounded-md border border-primary/15 bg-surface-brand px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-primary/80 xl:inline">
+            {SCOPE_LABELS[capabilities.scope]}
+          </span>
+          <NotificationCenter alerts={alerts} />
+          <RoleSwitcher activeRole={capabilities.role} />
+          <UserMenu
+            name={session.name}
+            email={session.email}
+            roleLabel={capabilities.label}
           />
         </div>
-      </form>
-
-      <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
-        <span className="hidden rounded-full border border-primary/15 bg-surface-brand px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-primary/80 xl:inline">
-          {SCOPE_LABELS[capabilities.scope]}
-        </span>
-        <NotificationCenter alerts={alerts} />
-        <RoleSwitcher activeRole={capabilities.role} />
-        <UserMenu
-          name={session.name}
-          email={session.email}
-          roleLabel={capabilities.label}
-        />
-      </div>
       </div>
     </header>
   );

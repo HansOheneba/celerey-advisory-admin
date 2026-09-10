@@ -39,9 +39,9 @@ const CALENDAR_VIEWPORT_MAX_HEIGHT = "min(28rem, 52vh)";
 
 function eventTone(status: Appointment["status"]) {
   if (status === "requested" || status === "proposed" || status === "counter_proposed") {
-    return "border-[#8c80f8] bg-[#8c80f8]/10 text-[#151339] hover:bg-[#8c80f8]/15 dark:text-foreground";
+    return "border-accent-purple bg-surface-ai text-primary hover:bg-surface-ai/80";
   }
-  return "border-[#8c80f8] bg-[#8c80f8] text-white hover:bg-[#7a6ef0]";
+  return "border-accent-purple bg-accent-purple text-primary-foreground hover:bg-accent-purple/90";
 }
 
 export function GoogleWeekCalendar({
@@ -100,7 +100,7 @@ export function GoogleWeekCalendar({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-border/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -144,7 +144,7 @@ export function GoogleWeekCalendar({
 
       {nextInOtherWeek?.scheduledAt &&
       weekDays.every((day) => appointmentsForDay(day).length === 0) ? (
-        <div className="border-b border-border/50 bg-muted/20 px-4 py-2 text-sm text-muted-foreground">
+        <div className="border-b border-border bg-muted/20 px-4 py-2 text-sm text-muted-foreground">
           Next: {nextInOtherWeek.clientName} ·{" "}
           {getAppointmentTitle(nextInOtherWeek)} ·{" "}
           <button
@@ -161,7 +161,7 @@ export function GoogleWeekCalendar({
 
       <div className="overflow-x-auto">
         <div className="min-w-[720px]">
-          <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b border-border/50 bg-card">
+          <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b border-border bg-card">
             <div className="flex items-end justify-end border-r border-border px-2 pb-2">
               <span className="text-[10px] font-medium text-muted-foreground">
                 GMT

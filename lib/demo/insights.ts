@@ -486,8 +486,7 @@ export type AdvisorySessionMetrics = {
 export type BookMetrics = {
   totalAua: number;
   totalAum: number;
-  totalCovered: number;
-  clientsWithBoth: number;
+  clientsWithMixedMandate: number;
   aumGrowthPct: number;
   revenueQtd: number;
   netFlowQtd: number;
@@ -544,9 +543,9 @@ export function bookMetrics(
     (total, record) => total + record.client.aum,
     0,
   );
-  const totalCovered = totalAua + totalAum;
-  const clientsWithBoth = records.filter(
-    (record) => record.client.aua > 0 && record.client.aum > 0,
+  const clientsWithMixedMandate = records.filter(
+    (record) =>
+      record.client.aum > 0 && record.client.aua > record.client.aum,
   ).length;
   const idleCashRecords = records.filter(
     (record) =>
@@ -559,21 +558,18 @@ export function bookMetrics(
             total + record.performanceYtdPct * record.client.aum,
           0,
         ) / totalAum
-      : totalCovered > 0
+      : totalAua > 0
         ? records.reduce(
             (total, record) =>
-              total +
-              record.performanceYtdPct *
-                (record.client.aua + record.client.aum),
+              total + record.performanceYtdPct * record.client.aua,
             0,
-          ) / totalCovered
+          ) / totalAua
         : 0;
 
   return {
     totalAua,
     totalAum,
-    totalCovered,
-    clientsWithBoth,
+    clientsWithMixedMandate,
     aumGrowthPct: Math.round(weightedPerformance * 10) / 10,
     revenueQtd: records.reduce(
       (total, record) => total + record.revenueQtdUsd,

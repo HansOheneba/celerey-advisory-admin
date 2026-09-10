@@ -30,11 +30,11 @@ const STATUS_META: Record<
   ComplianceCheckStatus,
   { label: string; icon: typeof CheckCircle2; className: string }
 > = {
-  passed: { label: "Passed", icon: CheckCircle2, className: "text-emerald-600" },
+  passed: { label: "Passed", icon: CheckCircle2, className: "text-success" },
   attention: {
     label: "Attention",
     icon: CircleAlert,
-    className: "text-amber-600",
+    className: "text-warning",
   },
   failed: { label: "Failed", icon: CircleSlash, className: "text-destructive" },
 };
@@ -71,7 +71,7 @@ export function ComplianceTab({
               return (
                 <div
                   key={entry.id}
-                  className="space-y-1 border-b border-border/50 pb-3 last:border-0 last:pb-0"
+                  className="space-y-1 border-b border-border pb-3 last:border-0 last:pb-0"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 text-sm font-medium">
@@ -126,7 +126,7 @@ export function ComplianceTab({
               </p>
             )}
 
-            <div className="space-y-2 border-t border-border/50 pt-3">
+            <div className="space-y-2 border-t border-border pt-3">
               <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                 Suitability gate
               </p>

@@ -188,9 +188,9 @@ export function MessagesWorkspace({
         </p>
       </section>
 
-      <div className="grid min-h-[32rem] overflow-hidden rounded-xl border border-border/50 bg-card lg:grid-cols-[20rem_1fr]">
-        <aside className="flex flex-col border-b border-border/50 lg:border-r lg:border-b-0">
-          <div className="space-y-2 border-b border-border/50 p-3">
+      <div className="grid min-h-[32rem] overflow-hidden rounded-xl border border-border bg-card lg:grid-cols-[20rem_1fr]">
+        <aside className="flex flex-col border-b border-border lg:border-r lg:border-b-0">
+          <div className="space-y-2 border-b border-border p-3">
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -276,7 +276,7 @@ export function MessagesWorkspace({
         <section className="flex min-h-[24rem] flex-col">
           {active ? (
             <>
-              <header className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-3">
+              <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
                     {active.clientName}
@@ -361,7 +361,7 @@ export function MessagesWorkspace({
                 )}
               </div>
 
-              <footer className="border-t border-border/50 p-3">
+              <footer className="border-t border-border p-3">
                 <div className="space-y-2">
                   <textarea
                     value={draft}

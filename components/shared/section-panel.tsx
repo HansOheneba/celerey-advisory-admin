@@ -18,10 +18,13 @@ export function SectionPanel({
   children,
   className,
 }: SectionPanelProps) {
+  const hasHeader = Boolean(title || description || actions);
+
   return (
     <section
       className={cn(
-        dashboardTheme.section,
+        dashboardTheme.card,
+        "overflow-hidden",
         variant === "muted" && dashboardTheme.surfaceMuted,
         variant !== "default" &&
           variant !== "muted" &&
@@ -29,22 +32,33 @@ export function SectionPanel({
         className,
       )}
     >
-      {title || description || actions ? (
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            {title ? (
-              <h2 className={dashboardTheme.sectionTitle}>{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
+      {hasHeader ? (
+        <>
+          <div
+            className={cn(
+              dashboardTheme.sectionHeader,
+              "flex flex-wrap items-start justify-between gap-3",
+            )}
+          >
+            <div className="space-y-1">
+              {title ? (
+                <h2 className={dashboardTheme.sectionTitle}>{title}</h2>
+              ) : null}
+              {description ? (
+                <p className={dashboardTheme.sectionDescription}>
+                  {description}
+                </p>
+              ) : null}
+            </div>
+            {actions ? (
+              <div className="flex items-center gap-2">{actions}</div>
             ) : null}
           </div>
-          {actions ? (
-            <div className="flex items-center gap-2">{actions}</div>
-          ) : null}
-        </div>
-      ) : null}
-      {children}
+          <div className={dashboardTheme.sectionBody}>{children}</div>
+        </>
+      ) : (
+        <div className="p-5">{children}</div>
+      )}
     </section>
   );
 }

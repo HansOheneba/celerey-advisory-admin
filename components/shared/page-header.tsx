@@ -27,11 +27,18 @@ export function PageHeader({
         {Icon ? <IconTile icon={Icon} variant={iconVariant} size="lg" /> : null}
         <div className="min-w-0 space-y-1">
           {eyebrow ? (
-            <p className={dashboardTheme.sectionLabel}>{eyebrow}</p>
+            <p
+              className={cn(
+                dashboardTheme.sectionLabel,
+                iconVariant === "ai" && "text-accent-purple",
+              )}
+            >
+              {eyebrow}
+            </p>
           ) : null}
           <h1 className={dashboardTheme.pageTitle}>{title}</h1>
           {description ? (
-            <p className={cn(dashboardTheme.pageDescription)}>{description}</p>
+            <p className={dashboardTheme.pageDescription}>{description}</p>
           ) : null}
         </div>
       </div>

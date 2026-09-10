@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 
-import { IconTile } from "@/components/shared/icon-tile";
 import { dashboardTheme, type TintedSurfaceVariant } from "@/lib/dashboard-theme";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +13,7 @@ type EmptyStateProps = {
 };
 
 export function EmptyState({
-  icon,
+  icon: Icon,
   title,
   description,
   action,
@@ -25,19 +24,21 @@ export function EmptyState({
     <div
       className={cn(
         dashboardTheme.emptyState,
-        "celerey-enter flex flex-col items-center gap-3",
+        "celerey-enter flex flex-col items-center text-center",
         variant !== "default" && dashboardTheme.tintedSurface[variant],
         className,
       )}
     >
-      <IconTile icon={icon} variant={variant === "default" ? "brand" : variant} size="lg" />
-      <div className="max-w-sm space-y-1">
-        <p className="text-sm font-medium">{title}</p>
-        {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        ) : null}
+      <div className="flex size-12 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+        <Icon className="size-5" aria-hidden />
       </div>
-      {action ? <div className="pt-1">{action}</div> : null}
+      <h2 className="mt-4 text-sm font-medium">{title}</h2>
+      {description ? (
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+          {description}
+        </p>
+      ) : null}
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }

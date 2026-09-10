@@ -31,7 +31,7 @@ export function PropertyInsuranceFields({
           standalone life or health policies.
         </p>
         {insurance.keys.length === 0 ? (
-          <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-400">
+          <p className="mt-2 text-xs font-medium text-warning dark:text-amber-400">
             No coverage
           </p>
         ) : null}

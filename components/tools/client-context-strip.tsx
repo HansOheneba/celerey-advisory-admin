@@ -122,7 +122,7 @@ export function ClientContextStrip({
       </div>
 
       {cashDrift > 2 ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
           <p className="text-xs text-muted-foreground">
             Cash {cashDrift.toFixed(1)} pts over target.
           </p>

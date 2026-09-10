@@ -244,7 +244,7 @@ function ProductCard({ product }: { product: DemoProduct }) {
           {product.summary}
         </p>
 
-        <StatGrid columns={2} className="gap-3 border-t border-border/50 pt-3">
+        <StatGrid columns={2} className="gap-3 border-t border-border pt-3">
           <StatItem
             label="Return TTM"
             value={`${product.returnPct >= 0 ? "+" : ""}${product.returnPct.toFixed(1)}%`}
@@ -263,7 +263,7 @@ function ProductCard({ product }: { product: DemoProduct }) {
         </StatGrid>
 
         {product.restrictions.length > 0 ? (
-          <div className="space-y-1 border-t border-border/50 pt-3">
+          <div className="space-y-1 border-t border-border pt-3">
             <p className={dashboardTheme.statLabel}>Restrictions</p>
             <ul className="space-y-0.5 text-xs leading-relaxed text-muted-foreground">
               {product.restrictions.map((restriction) => (

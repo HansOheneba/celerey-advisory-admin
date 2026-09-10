@@ -21,7 +21,7 @@ export function AppointmentSummaryStrip({
   sessionsHref,
 }: AppointmentSummaryStripProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border/50 bg-card">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="grid grid-cols-2 divide-x divide-y divide-border/50 sm:grid-cols-4 sm:divide-y-0">
         {ITEMS.map((item) => {
           const isRequests = item.key === "requests";
@@ -35,7 +35,7 @@ export function AppointmentSummaryStrip({
               <p className={dashboardTheme.sectionLabel}>{item.label}</p>
               <p
                 className={cn(
-                  "mt-1 text-2xl font-semibold tabular-nums tracking-tight",
+                  "mt-1 text-2xl font-medium tabular-nums tracking-tight",
                   hasRequests && "text-foreground",
                 )}
               >

@@ -199,8 +199,8 @@ export function AppointmentsWorkspace({
               under Sessions.
             </p>
           </div>
-          <div className="flex flex-wrap items-stretch gap-3 border-t border-border/50 pt-3">
-            <div className="min-w-[5.5rem] space-y-0.5 border-r border-border/50 pr-3">
+          <div className="flex flex-wrap items-stretch gap-3 border-t border-border pt-3">
+            <div className="min-w-[5.5rem] space-y-0.5 border-r border-border pr-3">
               <p className={dashboardTheme.sectionLabel}>Today</p>
               <p className="text-sm font-semibold text-foreground">
                 {formatHeaderDate(todayDate)}
@@ -208,7 +208,7 @@ export function AppointmentsWorkspace({
             </div>
             <div
               className={cn(
-                "min-w-[5.5rem] space-y-0.5 border-r border-border/50 pr-3",
+                "min-w-[5.5rem] space-y-0.5 border-r border-border pr-3",
                 stats.requests > 0 && "text-foreground",
               )}
             >

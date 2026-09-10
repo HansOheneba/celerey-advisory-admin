@@ -72,7 +72,7 @@ export function ClientReportsPanel({
           reports.map((report) => (
             <div
               key={report.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/50 p-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3"
             >
               <div className="min-w-0 space-y-0.5">
                 <p className="flex flex-wrap items-center gap-2 text-sm font-medium">

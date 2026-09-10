@@ -72,7 +72,7 @@ export function ToolSidebar({
   return (
     <aside
       className={cn(
-        "flex max-h-[min(720px,calc(100vh-10rem))] flex-col gap-4 rounded-xl border border-border/50 bg-card p-4 lg:sticky lg:top-6",
+        "flex max-h-[min(720px,calc(100vh-10rem))] flex-col gap-4 rounded-xl border border-border bg-card p-4 lg:sticky lg:top-6",
         className,
       )}
     >

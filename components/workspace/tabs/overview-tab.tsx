@@ -261,9 +261,9 @@ export function OverviewTab({
                         {pct}%
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-emerald-500/10">
+                    <div className="h-2 overflow-hidden rounded-full bg-surface-success">
                       <div
-                        className="h-full rounded-full bg-emerald-600 transition-[width] duration-300 ease-out"
+                        className="h-full rounded-full bg-success transition-[width] duration-300 ease-out"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

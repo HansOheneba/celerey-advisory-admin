@@ -8,7 +8,6 @@ import {
   MessageSquareText,
   NotebookText,
   Package,
-  Sparkles,
   UserRoundCog,
   Users,
   type LucideIcon,
@@ -20,11 +19,14 @@ import {
   type MenuKey,
 } from "@/lib/auth/capabilities";
 
+export type NavSymbol = "celerey-ai";
+
 export type NavItem = {
   key: MenuKey;
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  symbol?: NavSymbol;
   description: string;
 };
 
@@ -47,8 +49,8 @@ export const PRIMARY_NAV: NavItem[] = [
   {
     key: "copilot",
     href: "/copilot",
-    label: "Copilot",
-    icon: Sparkles,
+    label: "Celerey Copilot",
+    symbol: "celerey-ai",
     description: "Query the book and draft client material",
   },
   {
@@ -89,7 +91,8 @@ export function isActiveRoute(pathname: string, href: string): boolean {
 export type SidebarNavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  symbol?: NavSymbol;
 };
 
 export type SidebarNavGroup = {
@@ -104,7 +107,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   new: "Add client",
   invite: "Send invite",
   direct: "Create client",
-  copilot: "Copilot",
+  copilot: "Celerey Copilot",
   insights: "Insights",
   products: "Products",
   tools: "Tools",
@@ -130,6 +133,7 @@ export function sidebarNavFor(capabilities: CapabilitySet): SidebarNavGroup[] {
         href: item.href,
         label: item.label,
         icon: item.icon,
+        symbol: item.symbol,
       })),
     },
   ];

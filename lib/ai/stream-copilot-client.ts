@@ -21,11 +21,11 @@ export async function streamCopilotAnswer(
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || "Copilot request failed.");
+    throw new Error(message || "Celerey Copilot request failed.");
   }
 
   if (!response.body) {
-    throw new Error("Copilot returned an empty stream.");
+    throw new Error("Celerey Copilot returned an empty stream.");
   }
 
   const offline = response.headers.get("X-Copilot-Offline") === "true";

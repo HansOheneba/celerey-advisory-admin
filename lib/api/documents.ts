@@ -1,6 +1,7 @@
 import "server-only";
 
 import { executeApi, executeMultipartApi } from "@/lib/api/execute";
+import { pickNullableString, pickString } from "@/lib/api/portal-field-aliases";
 import type { ClientDocument, DocumentCategory } from "@/lib/documents/types";
 
 const CATEGORIES = new Set<DocumentCategory>([
@@ -25,12 +26,18 @@ function asNumber(value: unknown, fallback = 0) {
 function normalizeDocument(row: Record<string, unknown>): ClientDocument {
   const category = asString(row.category, "other");
   const uploadedBy = asString(row.uploadedBy ?? row.uploaded_by, "advisor");
-  const sessionId = row.sessionId ?? row.session_id;
+  const sessionId = pickNullableString(
+    row,
+    "sessionId",
+    "session_id",
+    "appointmentId",
+    "appointment_id",
+  );
 
   return {
-    id: asString(row.id),
+    id: pickString(row, "id", "documentId", "document_id"),
     clientId: asString(row.clientId ?? row.client_id),
-    sessionId: typeof sessionId === "string" && sessionId ? sessionId : null,
+    sessionId,
     title: asString(row.title),
     category: CATEGORIES.has(category as DocumentCategory)
       ? (category as DocumentCategory)

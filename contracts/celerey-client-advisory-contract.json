@@ -1,0 +1,817 @@
+{
+  "meta": {
+    "title": "Client Advisory API - Full contract",
+    "version": "1.0.0",
+    "purpose": "Complete backend API contract for the client portal Advisory feature (Sessions, Tasks, Messages, Documents, Availability). Send to backend as the source of truth for implementation.",
+    "source": "celerey-client-frontend lib/book-api.ts, app/dashboard/advisor, docs/frontend-flow-tasks-sessions-messages-documents.md",
+    "as_of": "2026-09-10",
+    "audience": "backend",
+    "base_url": "${NEXT_PUBLIC_BASE_API_URL}",
+    "transport": {
+      "client_calls": "POST /api/proxy with JSON envelope { path, method, body }",
+      "upload_calls": "POST /api/proxy multipart/form-data with path field + file",
+      "auth": "Bearer token from HttpOnly session cookie (proxy attaches it). Never send clientId from the client.",
+      "response_envelope": {
+        "success": "boolean",
+        "data": "payload (shape per endpoint)",
+        "message": "string (error or info, optional)"
+      }
+    },
+    "frontend": {
+      "page": "/dashboard/advisor",
+      "demo_page": "/dashboard/demo/advisor",
+      "tabs": ["sessions", "tasks", "messages", "documents"],
+      "tab_query_param": "tab"
+    }
+  },
+  "enums": {
+    "AppointmentType": ["review", "annual_review", "quarterly_check_in", "onboarding", "goal_check_in", "portfolio_update"],
+    "AppointmentDuration": [15, 30, 45, 60, 75],
+    "AppointmentStatus": {
+      "all": ["proposed", "counter_proposed", "upcoming", "in_progress", "processing_notes", "pending_review", "published", "completed", "cancelled"],
+      "legacy_aliases": { "requested": "maps to proposed (client-initiated)" },
+      "client_portal_next_session": ["proposed", "counter_proposed", "upcoming", "in_progress"],
+      "client_portal_history": ["published", "completed"],
+      "never_expose_to_client": ["processing_notes", "pending_review"]
+    },
+    "Party": ["client", "advisor"],
+    "TaskStatus": ["open", "done"],
+    "TaskPriority": ["high", "medium", "low"],
+    "TaskCategory": ["financial", "documents", "goals", "other"],
+    "TaskAssignee": ["client", "advisor"],
+    "DocumentCategory": ["identity", "statement", "tax", "contract", "report", "plan", "review", "other"],
+    "DocumentUploader": ["advisor", "client"],
+    "MessageAuthor": ["client", "advisor"],
+    "Weekday": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+  },
+  "shared_errors": {
+    "401": { "code": "unauthorized", "message": "Session expired or missing." },
+    "403": { "code": "forbidden", "message": "Not allowed for this role or resource." },
+    "404": { "code": "not_found", "message": "Resource not found." },
+    "409": {
+      "codes": {
+        "no_advisor": "Client has no assigned advisor yet.",
+        "no_sessions_remaining": "No sessions remaining in plan year.",
+        "slot_not_in_overlap": "Time not in both calendars.",
+        "invalid_transition": "Appointment status does not allow this action.",
+        "conflict": "Generic scheduling conflict."
+      }
+    },
+    "413": { "code": "payload_too_large", "message": "File exceeds 15 MB." },
+    "415": { "code": "unsupported_media_type", "message": "File type not allowed." },
+    "502": { "code": "upstream_error", "message": "Backend unreachable." }
+  },
+  "schemas": {
+    "AdvisoryEntitlement": {
+      "type": "object",
+      "required": ["planYear", "included", "used", "remaining"],
+      "properties": {
+        "planYear": { "type": "string", "example": "2026 - 2027" },
+        "included": { "type": "integer", "minimum": 0 },
+        "used": { "type": "integer", "minimum": 0 },
+        "remaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "AdvisorProfile": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "advisorId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "title": { "type": "string" },
+        "initials": { "type": "string", "maxLength": 4 },
+        "replySlaLabel": { "type": "string", "default": "Usually replies within 1 - 2 days" }
+      }
+    },
+    "ProposalEntry": {
+      "type": "object",
+      "required": ["proposedBy", "scheduledAt", "durationMinutes", "proposedAt"],
+      "properties": {
+        "proposedBy": { "$ref": "#/enums/Party" },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "durationMinutes": { "$ref": "#/enums/AppointmentDuration" },
+        "proposedAt": { "type": "string", "format": "date-time" },
+        "message": { "type": "string" }
+      }
+    },
+    "Appointment": {
+      "type": "object",
+      "required": ["appointmentId", "type", "durationMinutes", "status", "initiatedBy", "proposedBy"],
+      "properties": {
+        "appointmentId": { "type": "string" },
+        "type": { "$ref": "#/enums/AppointmentType" },
+        "title": { "type": "string" },
+        "scheduledAt": { "type": ["string", "null"], "format": "date-time" },
+        "durationMinutes": { "$ref": "#/enums/AppointmentDuration" },
+        "status": { "$ref": "#/enums/AppointmentStatus/all" },
+        "initiatedBy": { "$ref": "#/enums/Party" },
+        "proposedBy": { "$ref": "#/enums/Party" },
+        "advisorName": { "type": "string" },
+        "joinUrl": { "type": ["string", "null"], "format": "uri" },
+        "rescheduleUrl": { "type": ["string", "null"], "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "confirmedAt": { "type": ["string", "null"], "format": "date-time" },
+        "proposalHistory": {
+          "type": "array",
+          "items": { "$ref": "#/schemas/ProposalEntry" }
+        }
+      }
+    },
+    "SessionLog": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "advisorAssessment": { "type": "string" },
+        "discussionPoints": { "type": "array", "items": { "type": "string" } },
+        "recommendations": {
+          "type": "array",
+          "items": { "type": "object", "required": ["title"], "properties": { "title": { "type": "string" } } }
+        },
+        "sessionNotes": { "type": "string" }
+      }
+    },
+    "PublishedActionItem": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string" },
+        "owner": { "$ref": "#/enums/Party" },
+        "dueAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "PublishedSessionNotes": {
+      "type": "object",
+      "required": ["summary", "publishedAt"],
+      "properties": {
+        "summary": { "type": "string" },
+        "discussionPoints": { "type": "array", "items": { "type": "string" } },
+        "actionItems": { "type": "array", "items": { "$ref": "#/schemas/PublishedActionItem" } },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "transcriptExcerpt": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ProgressMetric": {
+      "type": "object",
+      "required": ["key", "label", "value", "unit"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string" },
+        "value": { "type": "number" },
+        "previous": { "type": ["number", "null"] },
+        "unit": { "type": "string", "enum": ["currency", "percent", "pp", "pct", ""] },
+        "currency": { "type": "string", "description": "ISO 4217 when unit is currency" }
+      }
+    },
+    "CompletedSession": {
+      "allOf": [
+        { "$ref": "#/schemas/Appointment" },
+        {
+          "type": "object",
+          "properties": {
+            "log": { "$ref": "#/schemas/SessionLog" },
+            "publishedNotes": { "$ref": "#/schemas/PublishedSessionNotes" },
+            "progress": {
+              "type": "object",
+              "properties": {
+                "metrics": { "type": "array", "items": { "$ref": "#/schemas/ProgressMetric" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AdvisoryOverview": {
+      "type": "object",
+      "required": ["entitlement", "history"],
+      "properties": {
+        "entitlement": { "$ref": "#/schemas/AdvisoryEntitlement" },
+        "advisor": { "$ref": "#/schemas/AdvisorProfile" },
+        "advisorName": { "type": "string", "description": "Backward compat alias of advisor.name" },
+        "messagesUnreadCount": { "type": "integer", "minimum": 0, "default": 0 },
+        "pendingAppointments": {
+          "type": "array",
+          "items": { "$ref": "#/schemas/Appointment" },
+          "description": "All proposed/counter_proposed awaiting agreement"
+        },
+        "nextSession": {
+          "oneOf": [{ "$ref": "#/schemas/Appointment" }, { "type": "null" }],
+          "description": "Primary confirmed or most relevant upcoming/pending item"
+        },
+        "lastSession": {
+          "oneOf": [{ "$ref": "#/schemas/CompletedSession" }, { "type": "null" }]
+        },
+        "history": {
+          "type": "array",
+          "items": { "$ref": "#/schemas/CompletedSession" },
+          "description": "published + completed only, newest first"
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/schemas/Task" },
+          "description": "Optional embed; Tasks tab prefers client.tasks.find"
+        },
+        "documents": {
+          "type": "array",
+          "items": { "$ref": "#/schemas/Document" },
+          "description": "Optional embed; Documents tab prefers client.documents.find"
+        }
+      }
+    },
+    "Task": {
+      "type": "object",
+      "required": ["taskId", "title", "category", "priority", "status", "assignedTo"],
+      "properties": {
+        "taskId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "$ref": "#/enums/TaskCategory" },
+        "priority": { "$ref": "#/enums/TaskPriority" },
+        "dueAt": { "type": ["string", "null"], "format": "date-time" },
+        "status": { "$ref": "#/enums/TaskStatus" },
+        "assignedTo": { "$ref": "#/enums/TaskAssignee" },
+        "appointmentId": { "type": "string", "description": "Originating session if from session log" },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Message": {
+      "type": "object",
+      "required": ["messageId", "author", "body", "createdAt"],
+      "properties": {
+        "messageId": { "type": "string" },
+        "author": { "type": "string", "enum": ["client", "advisor"], "description": "Never return author=note to client" },
+        "body": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "readAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "MessageThread": {
+      "type": "object",
+      "required": ["items", "page", "pageSize"],
+      "properties": {
+        "threadId": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "#/schemas/Message" } },
+        "page": { "type": "integer", "minimum": 1 },
+        "pageSize": { "type": "integer", "minimum": 1 },
+        "total": { "type": "integer", "minimum": 0 },
+        "unreadCount": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "required": ["documentId", "title", "category", "uploadedBy", "createdAt"],
+      "properties": {
+        "documentId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "$ref": "#/enums/DocumentCategory" },
+        "uploadedBy": { "$ref": "#/enums/DocumentUploader" },
+        "appointmentId": { "type": "string" },
+        "sessionId": { "type": "string", "description": "Alias of appointmentId (FE accepts either)" },
+        "downloadUrl": { "type": "string", "format": "uri", "description": "Optional on find; prefer documents.download for fresh signed URL" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "sizeBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ClientAvailability": {
+      "type": "object",
+      "required": ["timezone", "hoursStart", "hoursEnd", "daysAvailable"],
+      "properties": {
+        "timezone": { "type": "string", "description": "IANA timezone", "example": "Africa/Accra" },
+        "hoursStart": { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$", "example": "09:00" },
+        "hoursEnd": { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$", "example": "17:00" },
+        "daysAvailable": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/enums/Weekday" }
+        }
+      }
+    },
+    "Slot": {
+      "type": "object",
+      "required": ["start"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "product_rules": {
+    "session_mutual_agreement": "A session is never confirmed (status=upcoming) until both client and advisor agree on date/time. Either party may initiate. Counter-proposals stay in proposed/counter_proposed until accepted.",
+    "session_history": "Client history shows published + completed only. Never expose processing_notes or pending_review.",
+    "messages": "One thread per client-advisor pair. Internal notes (author=note) never returned to client.",
+    "tasks": "Client portal lists tasks where assignedTo=client. Client may toggle open/done only. RM creates tasks.",
+    "documents": "Formats: pdf, jpeg, jpg, png, webp, docx. Max 15 MB. Advisor uploads may be delete-protected (403)."
+  },
+  "endpoints": [
+    {
+      "id": "client.advisory.overview",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.advisory.overview",
+      "summary": "Bootstrap the Advisory page (all tabs)",
+      "description": "Returns entitlement, advisor, pending/upcoming appointments, session history, and optional embedded tasks/documents.",
+      "auth": "required",
+      "query": {
+        "planYear": { "type": "string", "required": false, "description": "Filter entitlement to plan year" }
+      },
+      "request_body": null,
+      "response_200": { "$ref": "#/schemas/AdvisoryOverview" },
+      "response_errors": [
+        { "status": 401, "$ref": "#/shared_errors/401" },
+        { "status": 409, "code": "no_advisor", "message": "No assigned advisor", "frontend_behavior": "Show empty state: advisor assignment pending" }
+      ],
+      "frontend_usage": "Sessions tab on load via useAdvisoryOverview"
+    },
+    {
+      "id": "client.advisory.session.get",
+      "status": "new",
+      "method": "GET",
+      "path": "client.advisory.session.get",
+      "summary": "Get one completed session by ID",
+      "description": "Returns full session detail for history sheet. Only published or completed sessions.",
+      "auth": "required",
+      "query": {
+        "appointmentId": { "type": "string", "required": true }
+      },
+      "request_body": null,
+      "response_200": { "$ref": "#/schemas/CompletedSession" },
+      "response_errors": [
+        { "status": 404, "$ref": "#/shared_errors/404" },
+        { "status": 403, "message": "Session not yet visible to client (e.g. pending_review)" }
+      ],
+      "frontend_usage": "Session history detail sheet (optional; today embedded in overview.history)"
+    },
+    {
+      "id": "client.appointments.find",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.appointments.find",
+      "summary": "List appointments for the logged-in client",
+      "description": "Filter by status. Use for pending negotiations list and appointment management.",
+      "auth": "required",
+      "query": {
+        "status": {
+          "type": "string",
+          "required": false,
+          "default": "all",
+          "enum": ["all", "proposed", "counter_proposed", "upcoming", "in_progress", "completed", "published", "cancelled"]
+        }
+      },
+      "request_body": null,
+      "response_200": {
+        "type": "object",
+        "properties": {
+          "appointments": { "type": "array", "items": { "$ref": "#/schemas/Appointment" } }
+        },
+        "alternate_shape": { "type": "array", "items": { "$ref": "#/schemas/Appointment" } }
+      },
+      "response_errors": [{ "status": 409, "code": "no_advisor" }],
+      "frontend_usage": "Planned: pending proposals UI. Exists in book-api.ts, not wired yet."
+    },
+    {
+      "id": "client.appointments.get",
+      "status": "new",
+      "method": "GET",
+      "path": "client.appointments.get",
+      "summary": "Get one appointment by ID",
+      "description": "Returns scheduling detail including proposalHistory for negotiation UI.",
+      "auth": "required",
+      "query": {
+        "appointmentId": { "type": "string", "required": true }
+      },
+      "request_body": null,
+      "response_200": { "$ref": "#/schemas/Appointment" },
+      "response_errors": [{ "status": 404, "$ref": "#/shared_errors/404" }],
+      "frontend_usage": "Session details sheet, accept/counter flows"
+    },
+    {
+      "id": "client.appointments.slots.find",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.appointments.slots.find",
+      "summary": "Find mutually available booking slots",
+      "description": "Overlap of client availability, advisor calendar, and existing bookings. Used when booking dialog is open.",
+      "auth": "required",
+      "query": {
+        "from": { "type": "string", "format": "date", "required": true, "example": "2026-09-10" },
+        "to": { "type": "string", "format": "date", "required": true, "example": "2026-09-24" },
+        "durationMinutes": { "$ref": "#/enums/AppointmentDuration", "required": true }
+      },
+      "request_body": null,
+      "response_200": {
+        "type": "object",
+        "properties": {
+          "slots": { "type": "array", "items": { "$ref": "#/schemas/Slot" } }
+        },
+        "alternate_shape": { "type": "array", "items": { "$ref": "#/schemas/Slot" } }
+      },
+      "response_errors": [
+        { "status": 409, "code": "no_advisor" },
+        { "status": 409, "code": "no_sessions_remaining" }
+      ],
+      "frontend_usage": "RequestSessionDialog slot pills (14-day window)"
+    },
+    {
+      "id": "client.appointments.request",
+      "status": "existing",
+      "method": "POST",
+      "path": "client.appointments.request",
+      "summary": "Client proposes a new session time",
+      "description": "Creates appointment in status=proposed (or counter_proposed if countering). Does NOT confirm. Advisor must accept.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["type", "scheduledAt", "durationMinutes"],
+        "properties": {
+          "type": { "$ref": "#/enums/AppointmentType" },
+          "scheduledAt": { "type": "string", "format": "date-time" },
+          "durationMinutes": { "$ref": "#/enums/AppointmentDuration" },
+          "title": { "type": "string" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Appointment" },
+      "response_errors": [
+        { "status": 409, "code": "no_advisor" },
+        { "status": 409, "code": "no_sessions_remaining" },
+        { "status": 409, "code": "conflict", "message": "Time conflicts with existing booking" }
+      ],
+      "frontend_usage": "RequestSessionDialog → Request session button"
+    },
+    {
+      "id": "client.appointments.accept",
+      "status": "new",
+      "method": "PUT",
+      "path": "client.appointments.accept",
+      "summary": "Client accepts a proposed session time",
+      "description": "Transitions proposed or counter_proposed → upcoming. Only valid when client is the non-proposing party OR both have agreed.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["appointmentId"],
+        "properties": {
+          "appointmentId": { "type": "string" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Appointment", "notes": "status must be upcoming, confirmedAt set" },
+      "response_errors": [
+        { "status": 404, "$ref": "#/shared_errors/404" },
+        { "status": 409, "code": "invalid_transition" },
+        { "status": 409, "code": "no_sessions_remaining" }
+      ],
+      "frontend_usage": "Pending proposal card → Accept button (planned)"
+    },
+    {
+      "id": "client.appointments.counter",
+      "status": "new",
+      "method": "PUT",
+      "path": "client.appointments.counter",
+      "summary": "Client counter-proposes a different time",
+      "description": "Updates scheduledAt on an existing pending appointment. Sets status=counter_proposed and appends proposalHistory.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["appointmentId", "scheduledAt", "durationMinutes"],
+        "properties": {
+          "appointmentId": { "type": "string" },
+          "scheduledAt": { "type": "string", "format": "date-time" },
+          "durationMinutes": { "$ref": "#/enums/AppointmentDuration" },
+          "title": { "type": "string" },
+          "message": { "type": "string", "description": "Optional note to advisor" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Appointment" },
+      "response_errors": [
+        { "status": 404, "$ref": "#/shared_errors/404" },
+        { "status": 409, "code": "invalid_transition" }
+      ],
+      "frontend_usage": "Pending proposal card → Suggest another time (planned)"
+    },
+    {
+      "id": "client.appointments.cancel",
+      "status": "existing",
+      "method": "PUT",
+      "path": "client.appointments.cancel",
+      "summary": "Cancel a pending or upcoming appointment",
+      "description": "Sets status=cancelled. Valid for proposed, counter_proposed, upcoming.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["appointmentId"],
+        "properties": {
+          "appointmentId": { "type": "string" },
+          "reason": { "type": "string", "required": false }
+        }
+      },
+      "response_200": { "type": "object", "properties": { "success": { "type": "boolean" } } },
+      "response_errors": [
+        { "status": 404, "$ref": "#/shared_errors/404" },
+        { "status": 409, "code": "invalid_transition" }
+      ],
+      "frontend_usage": "UpcomingSessionCard, SessionDetailsSheet → Cancel"
+    },
+    {
+      "id": "client.appointments.create",
+      "status": "deprecated",
+      "method": "POST",
+      "path": "client.appointments.create",
+      "summary": "[DEPRECATED] Instant book on overlapping slot",
+      "description": "Currently used by FE for instant confirm. CONFLICTS with mutual agreement rule. Remove or redefine as accept-only when slot was pre-approved by advisor.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["type", "scheduledAt", "durationMinutes"],
+        "properties": {
+          "type": { "$ref": "#/enums/AppointmentType" },
+          "scheduledAt": { "type": "string", "format": "date-time" },
+          "durationMinutes": { "$ref": "#/enums/AppointmentDuration" },
+          "title": { "type": "string" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Appointment" },
+      "response_errors": [
+        { "status": 409, "code": "no_advisor" },
+        { "status": 409, "code": "slot_not_in_overlap" }
+      ],
+      "frontend_usage": "RequestSessionDialog → Book this time (to be removed)",
+      "replacement": "Use client.appointments.request then client.appointments.accept after advisor agrees, OR accept a slot from client.appointments.slots.find via accept endpoint"
+    },
+    {
+      "id": "client.tasks.find",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.tasks.find",
+      "summary": "List tasks for the logged-in client",
+      "description": "Returns tasks assigned to this client. FE filters assignedTo=client if backend returns all.",
+      "auth": "required",
+      "query": {
+        "status": { "type": "string", "enum": ["all", "open", "done"], "default": "all" }
+      },
+      "request_body": null,
+      "response_200": {
+        "type": "object",
+        "properties": {
+          "tasks": { "type": "array", "items": { "$ref": "#/schemas/Task" } }
+        },
+        "alternate_shape": { "type": "array", "items": { "$ref": "#/schemas/Task" } }
+      },
+      "response_errors": [{ "status": 409, "code": "no_advisor" }],
+      "frontend_usage": "Tasks tab via useAdvisoryTasks"
+    },
+    {
+      "id": "client.tasks.update-status",
+      "status": "existing",
+      "method": "PUT",
+      "path": "client.tasks.update-status",
+      "summary": "Toggle task open/done",
+      "description": "Client marks their assigned task complete or reopens it.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["taskId", "status"],
+        "properties": {
+          "taskId": { "type": "string" },
+          "status": { "$ref": "#/enums/TaskStatus" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Task" },
+      "response_errors": [
+        { "status": 404, "$ref": "#/shared_errors/404" },
+        { "status": 403, "message": "Task not assigned to client" }
+      ],
+      "frontend_usage": "Tasks tab checkbox, session history action toggles"
+    },
+    {
+      "id": "client.messages.thread.get",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.messages.thread.get",
+      "summary": "Get message thread with advisor",
+      "description": "One thread per client. Paginated, oldest-first or newest-first (document sort order). Never include author=note.",
+      "auth": "required",
+      "query": {
+        "page": { "type": "integer", "minimum": 1, "default": 1 },
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+      },
+      "request_body": null,
+      "response_200": { "$ref": "#/schemas/MessageThread" },
+      "response_errors": [{ "status": 409, "code": "no_advisor" }],
+      "frontend_usage": "Messages tab via useAdvisoryMessages"
+    },
+    {
+      "id": "client.messages.send",
+      "status": "existing",
+      "method": "POST",
+      "path": "client.messages.send",
+      "summary": "Send a message to advisor",
+      "description": "Appends client message to thread. Creates thread if none exists.",
+      "auth": "required",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["body"],
+        "properties": {
+          "body": { "type": "string", "minLength": 1, "maxLength": 10000 }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Message" },
+      "response_errors": [
+        { "status": 409, "code": "no_advisor" },
+        { "status": 403, "message": "Messaging not enabled for plan" }
+      ],
+      "frontend_usage": "Messages tab composer"
+    },
+    {
+      "id": "client.messages.thread.mark-read",
+      "status": "existing",
+      "method": "POST",
+      "path": "client.messages.thread.mark-read",
+      "summary": "Mark advisor messages as read",
+      "description": "Clears unread count for client. Call when thread is opened.",
+      "auth": "required",
+      "query": null,
+      "request_body": { "type": "object", "properties": {} },
+      "response_200": { "type": "object", "properties": { "success": { "type": "boolean" } } },
+      "response_errors": [],
+      "frontend_usage": "Called after fetchMessageThread in useAdvisoryMessages"
+    },
+    {
+      "id": "client.documents.find",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.documents.find",
+      "summary": "List client documents",
+      "auth": "required",
+      "query": {
+        "category": {
+          "type": "string",
+          "enum": ["all", "identity", "statement", "tax", "contract", "report", "plan", "review", "other"],
+          "default": "all"
+        },
+        "appointmentId": { "type": "string", "required": false, "description": "Filter to one session" }
+      },
+      "request_body": null,
+      "response_200": {
+        "type": "object",
+        "properties": {
+          "documents": { "type": "array", "items": { "$ref": "#/schemas/Document" } }
+        },
+        "alternate_shape": { "type": "array", "items": { "$ref": "#/schemas/Document" } }
+      },
+      "response_errors": [{ "status": 409, "code": "no_advisor" }],
+      "frontend_usage": "Documents tab, overview embed"
+    },
+    {
+      "id": "client.documents.upload",
+      "status": "existing",
+      "method": "POST",
+      "path": "client.documents.upload",
+      "summary": "Upload a document",
+      "description": "Multipart upload. Title defaults to filename if omitted.",
+      "auth": "required",
+      "content_type": "multipart/form-data",
+      "query": null,
+      "request_body": {
+        "type": "object",
+        "required": ["file"],
+        "properties": {
+          "file": { "type": "string", "format": "binary" },
+          "title": { "type": "string" },
+          "category": { "$ref": "#/enums/DocumentCategory" },
+          "appointmentId": { "type": "string", "description": "Optional link to session" }
+        }
+      },
+      "response_200": { "$ref": "#/schemas/Document" },
+      "response_errors": [
+        { "status": 413, "$ref": "#/shared_errors/413" },
+        { "status": 415, "$ref": "#/shared_errors/415" },
+        { "status": 409, "code": "no_advisor" }
+      ],
+      "frontend_usage": "Documents tab upload form"
+    },
+    {
+      "id": "client.documents.download",
+      "status": "new",
+      "method": "GET",
+      "path": "client.documents.download",
+      "summary": "Get signed download URL for one document",
+      "auth": "required",
+      "query": {
+        "documentId": { "type": "string", "required": true }
+      },
+      "request_body": null,
+      "response_200": {
+        "type": "object",
+        "required": ["downloadUrl"],
+        "properties": {
+          "downloadUrl": { "type": "string", "format": "uri" },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "response_errors": [{ "status": 404, "$ref": "#/shared_errors/404" }],
+      "frontend_usage": "Documents tab download (replaces re-fetching all documents)"
+    },
+    {
+      "id": "client.documents.delete",
+      "status": "existing",
+      "method": "DELETE",
+      "path": "client.documents.delete",
+      "summary": "Delete a client-uploaded document",
+      "auth": "required",
+      "query": {
+        "documentId": { "type": "string", "required": true }
+      },
+      "request_body": null,
+      "response_200": { "type": "object", "properties": { "success": { "type": "boolean" } } },
+      "response_errors": [
+        { "status": 403, "message": "Advisor-uploaded files are read-only for client" },
+        { "status": 404, "$ref": "#/shared_errors/404" }
+      ],
+      "frontend_usage": "Documents tab delete"
+    },
+    {
+      "id": "client.availability.get",
+      "status": "existing",
+      "method": "GET",
+      "path": "client.availability.get",
+      "summary": "Get client bookable hours",
+      "auth": "required",
+      "query": null,
+      "request_body": null,
+      "response_200": { "$ref": "#/schemas/ClientAvailability" },
+      "response_errors": [{ "status": 409, "code": "no_advisor" }],
+      "frontend_usage": "Availability card read view"
+    },
+    {
+      "id": "client.availability.update",
+      "status": "existing",
+      "method": "PUT",
+      "path": "client.availability.update",
+      "summary": "Update client bookable hours",
+      "auth": "required",
+      "query": null,
+      "request_body": { "$ref": "#/schemas/ClientAvailability" },
+      "response_200": { "$ref": "#/schemas/ClientAvailability" },
+      "response_errors": [
+        { "status": 400, "message": "hoursEnd must be after hoursStart" },
+        { "status": 400, "message": "daysAvailable must have at least one day" },
+        { "status": 409, "code": "no_advisor" }
+      ],
+      "frontend_usage": "Availability edit dialog → Save hours"
+    }
+  ],
+  "endpoint_index": {
+    "advisory": ["client.advisory.overview", "client.advisory.session.get"],
+    "appointments": [
+      "client.appointments.find",
+      "client.appointments.get",
+      "client.appointments.slots.find",
+      "client.appointments.request",
+      "client.appointments.accept",
+      "client.appointments.counter",
+      "client.appointments.cancel",
+      "client.appointments.create"
+    ],
+    "tasks": ["client.tasks.find", "client.tasks.update-status"],
+    "messages": ["client.messages.thread.get", "client.messages.send", "client.messages.thread.mark-read"],
+    "documents": ["client.documents.find", "client.documents.upload", "client.documents.download", "client.documents.delete"],
+    "availability": ["client.availability.get", "client.availability.update"]
+  },
+  "status_legend": {
+    "existing": "Already in book-api.ts and/or wired in frontend",
+    "new": "Required by frontend; not implemented yet",
+    "deprecated": "Remove or change behavior; frontend will migrate"
+  },
+  "state_machine": {
+    "scheduling": {
+      "confirmed_state": "upcoming",
+      "rule": "Session never confirmed until both parties accept",
+      "transitions": [
+        { "action": "client.appointments.request", "from": null, "to": "proposed" },
+        { "action": "advisor propose (admin)", "from": null, "to": "proposed" },
+        { "action": "client.appointments.counter", "from": ["proposed", "counter_proposed"], "to": "counter_proposed" },
+        { "action": "client.appointments.accept", "from": ["proposed", "counter_proposed"], "to": "upcoming" },
+        { "action": "client.appointments.cancel", "from": ["proposed", "counter_proposed", "upcoming"], "to": "cancelled" },
+        { "action": "meeting start", "from": "upcoming", "to": "in_progress" },
+        { "action": "meeting end (manual)", "from": "in_progress", "to": "completed" },
+        { "action": "meeting end (AI)", "from": "in_progress", "to": "processing_notes" },
+        { "action": "advisor publish (admin)", "from": "pending_review", "to": "published" }
+      ]
+    }
+  },
+  "implementation_priority": [
+    { "p": 1, "endpoints": ["client.appointments.accept", "client.appointments.counter"], "schemas": ["Appointment.initiatedBy", "Appointment.proposedBy", "AdvisoryOverview.pendingAppointments"], "deprecate": ["client.appointments.create"] },
+    { "p": 2, "endpoints": ["client.tasks.find"], "schemas": ["Task.assignedTo", "Task.appointmentId", "Task.completedAt"] },
+    { "p": 3, "endpoints": ["client.messages.thread.get"], "schemas": ["MessageThread.unreadCount", "AdvisoryOverview.messagesUnreadCount"] },
+    { "p": 4, "endpoints": ["client.documents.download"] },
+    { "p": 5, "endpoints": ["client.advisory.session.get", "client.appointments.get"], "schemas": ["CompletedSession.publishedNotes", "Appointment.joinUrl"] },
+    { "p": 6, "schemas": ["AdvisoryOverview.advisor"] }
+  ]
+}

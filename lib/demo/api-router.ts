@@ -1,6 +1,7 @@
 import "server-only";
 
 import { DEMO_USERS, demoUserById, type DemoUser } from "@/lib/demo/seed/users";
+import { recordClientContact } from "@/lib/clients/contact-tracking";
 import { daysFromNow } from "@/lib/demo/seed/client-builder";
 import { deriveAlerts } from "@/lib/demo/insights";
 import { mutateDemoDb, readDemoDb } from "@/lib/demo/store";
@@ -222,11 +223,6 @@ function sortClients(
         return (a.client.aua - b.client.aua) * direction;
       case "aum":
         return (a.client.aum - b.client.aum) * direction;
-      case "covered":
-        return (
-          (a.client.aua + a.client.aum - (b.client.aua + b.client.aum)) *
-          direction
-        );
       case "lastContactAt":
         return (
           (Date.parse(a.client.lastContactAt) -
@@ -435,7 +431,9 @@ const HANDLERS: Record<string, Handler> = {
         advisorName: advisor?.name ?? ctx.user.name,
         location,
         lastContactAt: new Date().toISOString(),
-        nextReviewAt: daysFromNow(30),
+        lastContactSource: "onboarding",
+        reviewFrequencyDays: 180,
+        nextReviewAt: daysFromNow(180),
         joinedAt: new Date().toISOString(),
         goalsCount: 0,
         notes: "",
@@ -1015,8 +1013,7 @@ const HANDLERS: Record<string, Handler> = {
           (candidate) => candidate.client.id === thread.clientId,
         );
         if (record) {
-          record.client.lastContactAt = message.createdAt;
-          record.lastEngagementDays = 0;
+          recordClientContact(record, message.createdAt, "message", body.slice(0, 80));
         }
 
         recordAudit(db, ctx.user, "message.sent", {
@@ -1392,6 +1389,18 @@ const HANDLERS: Record<string, Handler> = {
         entitlement.remaining = Math.max(
           0,
           entitlement.included - entitlement.used,
+        );
+      }
+
+      const clientRecord = db.clients.find(
+        (candidate) => candidate.client.id === appointment.clientId,
+      );
+      if (clientRecord) {
+        recordClientContact(
+          clientRecord,
+          new Date().toISOString(),
+          "session_logged",
+          appointment.title,
         );
       }
 

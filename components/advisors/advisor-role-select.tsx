@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateStaffRolesAction } from "@/app/actions/advisors";
 import { Badge } from "@/components/ui/badge";
@@ -244,8 +244,14 @@ export function AdvisorRoleSelect({
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave} disabled={saveDisabled}>
-            {pending ? "Saving..." : isSelf ? "Add roles" : "Save roles"}
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={saveDisabled}
+            aria-busy={pending}
+          >
+            {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
+            {isSelf ? "Add roles" : "Save roles"}
           </Button>
         </DialogFooter>
       </DialogContent>

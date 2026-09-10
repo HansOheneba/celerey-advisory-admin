@@ -1,6 +1,7 @@
 import "server-only";
 
 import { executeApi } from "@/lib/api/execute";
+import { pickString } from "@/lib/api/portal-field-aliases";
 import type {
   ConversationMessage,
   ConversationThread,
@@ -30,7 +31,7 @@ function normalizeAuthor(value: unknown): MessageAuthor {
 
 function normalizeMessage(row: Record<string, unknown>): ConversationMessage {
   return {
-    id: asString(row.id),
+    id: pickString(row, "id", "messageId", "message_id"),
     author: normalizeAuthor(row.author),
     body: asString(row.body),
     createdAt: asString(row.createdAt ?? row.created_at),
@@ -47,7 +48,7 @@ function normalizeThread(row: Record<string, unknown>): ConversationThread {
     .map(normalizeMessage);
 
   return {
-    id: asString(row.id),
+    id: pickString(row, "id", "threadId", "thread_id"),
     clientId: asString(row.clientId ?? row.client_id),
     clientName: asString(row.clientName ?? row.client_name),
     clientEmail: asString(row.clientEmail ?? row.client_email),

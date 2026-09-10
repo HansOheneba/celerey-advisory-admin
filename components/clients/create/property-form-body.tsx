@@ -182,7 +182,7 @@ export function PropertyFormBody({
                   lvr > 80
                     ? "text-rose-600 dark:text-rose-400"
                     : lvr > 60
-                      ? "text-amber-600 dark:text-amber-400"
+                      ? "text-warning dark:text-amber-400"
                       : "text-foreground",
                 )}
               >

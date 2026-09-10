@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Sparkles } from "lucide-react";
-
 import {
   generateClientNarrative,
   type CopilotMode,
@@ -60,7 +58,7 @@ export function IntelligenceTab({
                 </Badge>
               ) : null}
             </div>
-            <h3 className="mt-2 text-sm font-semibold">{card.what}</h3>
+            <h3 className="mt-2 text-sm font-medium">{card.what}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {card.why}
             </p>
@@ -71,12 +69,12 @@ export function IntelligenceTab({
 
       {canUseCopilot ? (
         <SectionPanel
-          title="Copilot"
+          title="Celerey Copilot"
           description="Drafts from this client's portal data. Check before you send anything."
           variant="ai"
         >
           <div className="mb-3 flex items-start gap-3">
-            <IconTile icon={Sparkles} variant="ai" />
+            <IconTile symbol="celerey-ai" variant="ai" />
           </div>
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">

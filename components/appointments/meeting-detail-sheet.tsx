@@ -44,7 +44,7 @@ export function MeetingDetailSheet({
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <SheetHeader className="border-b border-border/50 px-5 py-4 text-left">
+        <SheetHeader className="border-b border-border px-5 py-4 text-left">
           <div className="flex flex-wrap items-center gap-2 pr-8">
             <AppointmentStatusBadge status={appointment.status} />
             {appointment.meetingProvider ? (

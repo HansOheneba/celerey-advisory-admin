@@ -125,7 +125,7 @@ export function SessionNotesContent({ appointment }: SessionNotesContentProps) {
                 {published.actionItems.map((item) => (
                   <li
                     key={item.title}
-                    className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2"
+                    className="rounded-lg border border-border bg-muted/30 px-3 py-2"
                   >
                     <p className="font-medium">{item.title}</p>
                     <p className="text-muted-foreground">
@@ -152,7 +152,7 @@ export function SessionNotesContent({ appointment }: SessionNotesContentProps) {
           {published.transcriptExcerpt ? (
             <div className="space-y-1.5">
               <SectionLabel>Transcript excerpt</SectionLabel>
-              <p className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm leading-relaxed text-muted-foreground">
                 {published.transcriptExcerpt}
               </p>
             </div>
@@ -167,7 +167,7 @@ export function SessionNotesContent({ appointment }: SessionNotesContentProps) {
             {appointment.progress.metrics.map((metric) => (
               <div
                 key={metric.key}
-                className="rounded-lg border border-border/50 px-3 py-2"
+                className="rounded-lg border border-border px-3 py-2"
               >
                 <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                   {metric.label}

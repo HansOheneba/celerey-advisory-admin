@@ -16,7 +16,7 @@ export function ghanaRegionColorForShare(sharePct: number): string {
 }
 
 export const GHANA_MAP_THEME = {
-  defaultColor: "#e8edf4",
+  defaultColor: "#eef2f7",
   selectedColor: "#151339",
   hoverColor: "#4a6585",
 } as const;

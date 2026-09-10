@@ -21,7 +21,7 @@ type NeedsAttentionSectionProps = {
 
 const PRIORITY_CLASS: Record<AttentionRow["priority"], string> = {
   High: "text-destructive",
-  Medium: "text-amber-700",
+  Medium: "text-warning",
   Low: "text-muted-foreground",
 };
 

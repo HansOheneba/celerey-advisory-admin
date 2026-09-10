@@ -79,7 +79,7 @@ export function ComplianceQueue({
             {pending.map((recommendation) => (
               <div
                 key={recommendation.id}
-                className="space-y-2 rounded-lg border border-border/50 bg-card p-3"
+                className="space-y-2 rounded-lg border border-border bg-card p-3"
               >
                 <ListRow
                   leading={<IconTile icon={Clock} variant="warning" size="sm" />}

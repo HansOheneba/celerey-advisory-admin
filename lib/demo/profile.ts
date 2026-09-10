@@ -77,9 +77,7 @@ export function syncClientDerived(record: DemoClientRecord) {
   const totals = applyClientAssetTotals(record);
 
   record.idleCashPct =
-    totals.totalCovered > 0
-      ? Math.round((cash / totals.totalCovered) * 1000) / 10
-      : 0;
+    totals.aua > 0 ? Math.round((cash / totals.aua) * 1000) / 10 : 0;
   record.client.goalsCount = record.detail.goals.length;
 
   const goals = record.detail.goals;
@@ -135,8 +133,7 @@ export function syncClientDerived(record: DemoClientRecord) {
 
   const series = record.detail.portfolioPerformance;
   if (series.length > 0) {
-    const performanceValue =
-      totals.aum > 0 ? totals.aum : totals.totalCovered;
+    const performanceValue = totals.aum > 0 ? totals.aum : totals.aua;
     series[series.length - 1] = {
       ...series[series.length - 1],
       value: performanceValue,

@@ -77,7 +77,7 @@ export function GlobalResidencyMap({ spread }: GlobalResidencyMapProps) {
   return (
     <SectionPanel
       title="Global client residency"
-      description={`${clientCount} clients · ${formatCompactCurrency(spread.totalCovered)} covered · ${spread.countryCount} countries`}
+      description={`${clientCount} clients · ${formatCompactCurrency(spread.totalAua)} AUA · ${spread.countryCount} countries`}
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
         <div
@@ -173,7 +173,7 @@ export function GlobalResidencyMap({ spread }: GlobalResidencyMapProps) {
                     </p>
                   </div>
                   <p className="shrink-0 font-semibold tabular-nums tracking-tight">
-                    {formatCompactCurrency(entry.totalCovered)}
+                    {formatCompactCurrency(entry.aua)}
                   </p>
                 </div>
 

@@ -26,7 +26,6 @@ export type BookSegmentRow = {
   label: string;
   aua: number;
   aum: number;
-  totalCovered: number;
   clientCount: number;
   sharePct: number;
 };
@@ -182,8 +181,8 @@ export function computeBookComposition(
     }
   }
 
-  const totalCovered = records.reduce(
-    (total, record) => total + record.client.aua + record.client.aum,
+  const totalAua = records.reduce(
+    (total, record) => total + record.client.aua,
     0,
   );
 
@@ -193,14 +192,11 @@ export function computeBookComposition(
       label: CLIENT_SEGMENT_LABELS[segment],
       aua: stats.aua,
       aum: stats.aum,
-      totalCovered: stats.aua + stats.aum,
       clientCount: stats.clientCount,
       sharePct:
-        totalCovered > 0
-          ? Math.round(((stats.aua + stats.aum) / totalCovered) * 100)
-          : 0,
+        totalAua > 0 ? Math.round((stats.aua / totalAua) * 100) : 0,
     }))
-    .sort((a, b) => b.totalCovered - a.totalCovered);
+    .sort((a, b) => b.aua - a.aua);
 }
 
 function formatTimeLabel(iso: string): string {

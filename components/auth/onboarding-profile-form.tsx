@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { completeAdvisorOnboardingAction } from "@/app/actions/onboarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,9 @@ import {
 import { ADVISOR_COUNTRIES, ADVISOR_TIMEZONES } from "@/lib/settings/options";
 
 const darkInput =
-  "h-11 border-white/20 bg-white/5 text-white placeholder:text-white/40";
+  "h-10 border-white/20 bg-white/5 text-white placeholder:text-white/40";
 const darkPrimaryButton =
-  "h-11 w-full bg-white text-primary hover:bg-white/90";
+  "h-10 w-full bg-white text-primary hover:bg-white/90";
 const darkSelectTrigger =
   "h-11 w-full border-white/20 bg-white/5 text-white";
 
@@ -158,8 +159,14 @@ export function OnboardingProfileForm({
         </p>
       ) : null}
 
-      <Button type="submit" className={darkPrimaryButton} disabled={pending}>
-        {pending ? "Saving..." : "Finish setup"}
+      <Button
+        type="submit"
+        className={darkPrimaryButton}
+        disabled={pending}
+        aria-busy={pending}
+      >
+        {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
+        Finish setup
       </Button>
     </form>
   );

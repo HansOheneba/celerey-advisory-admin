@@ -5,7 +5,7 @@ import { requireCapability } from "@/lib/dal";
 import { getScopedClientRecords } from "@/lib/demo/repositories";
 
 export const metadata: Metadata = {
-  title: "Copilot",
+  title: "Celerey Copilot",
 };
 
 const SCOPE_LABELS = {

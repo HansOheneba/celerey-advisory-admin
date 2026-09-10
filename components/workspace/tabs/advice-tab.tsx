@@ -209,7 +209,7 @@ export function AdviceTab({
             recommendations.map((recommendation) => (
               <div
                 key={recommendation.id}
-                className="space-y-2 rounded-lg border border-border/50 p-3"
+                className="space-y-2 rounded-lg border border-border p-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium">

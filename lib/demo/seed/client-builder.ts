@@ -4,6 +4,7 @@ import {
   computeAssetTotalsFromPools,
   type AssetRelationship,
 } from "@/lib/clients/asset-relationship";
+import { reviewFrequencyForSegment } from "@/lib/clients/contact-tracking";
 import { applyAssetMandate, type AssetMandate } from "@/lib/demo/seed/asset-mandate";
 import type {
   Client,
@@ -272,10 +273,11 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
   const monthlyIncome = sum(resolved.income.map((row) => row.amount));
   const monthlyExpenses = sum(resolved.expenses.map((row) => row.amount));
   const monthlySurplus = monthlyIncome - monthlyExpenses;
-  const totalCovered = assetTotals.totalCovered;
+  const reviewFrequencyDays = reviewFrequencyForSegment(spec.segment);
+  const lastContactAt = daysFromNow(-spec.lastContactDaysAgo);
   const idleCashPct =
-    totalCovered > 0
-      ? Math.round((cashBalance / totalCovered) * 1000) / 10
+    assetTotals.aua > 0
+      ? Math.round((cashBalance / assetTotals.aua) * 1000) / 10
       : 0;
   const joinedAt = daysFromNow(-spec.joinedDaysAgo);
   const retirementAge = spec.retirementAge ?? 65;
@@ -300,7 +302,9 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     advisorId: spec.advisorId,
     advisorName: spec.advisorName,
     location: spec.location,
-    lastContactAt: daysFromNow(-spec.lastContactDaysAgo),
+    lastContactAt,
+    lastContactSource: "seed",
+    reviewFrequencyDays,
     nextReviewAt: daysFromNow(spec.nextReviewInDays),
     joinedAt,
     goalsCount: spec.goals.length,
@@ -484,7 +488,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       currency: spec.currency,
     },
     portfolioPerformance: buildPerformance(
-      assetTotals.aum > 0 ? assetTotals.aum : totalCovered,
+      assetTotals.aum > 0 ? assetTotals.aum : assetTotals.aua,
       spec.performanceYtdPct,
     ),
     allocation: buildAllocation(resolved.holdings, cashBalance),

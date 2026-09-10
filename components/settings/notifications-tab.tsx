@@ -72,7 +72,7 @@ function NotificationRow({
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border border-border/50 px-3 py-3">
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-border px-3 py-3">
       <span>
         <span className="block text-sm font-medium">{label}</span>
         <span className="mt-0.5 block text-xs text-muted-foreground">

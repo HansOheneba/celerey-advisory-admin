@@ -41,18 +41,17 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     params.sortBy === "name" ||
     params.sortBy === "aua" ||
     params.sortBy === "aum" ||
-    params.sortBy === "covered" ||
     params.sortBy === "lastContactAt" ||
     params.sortBy === "nextReviewAt" ||
     params.sortBy === "joinedAt"
       ? params.sortBy
-      : "covered";
+      : "aua";
   const sortDir =
     params.sortDir === "asc"
       ? "asc"
       : params.sortDir === "desc"
         ? "desc"
-        : sortBy === "joinedAt" || sortBy === "covered"
+        : sortBy === "joinedAt" || sortBy === "aua" || sortBy === "aum"
           ? "desc"
           : "asc";
   const page = Number(params.page ?? "1") || 1;
@@ -88,13 +87,17 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         <MetricCard
           label="Assets Under Advice"
           value={formatCompactCurrency(metrics.totalAua)}
-          hint="Advised outside managed portfolios"
+          hint="Total advised book (includes managed)"
           variant="info"
         />
         <MetricCard
           label="Assets Under Management"
           value={formatCompactCurrency(metrics.totalAum)}
-          hint={`${formatCompactCurrency(metrics.totalCovered)} total covered`}
+          hint={
+            metrics.totalAua > 0
+              ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA`
+              : "Managed subset of AUA"
+          }
           variant="brand"
         />
         <MetricCard
