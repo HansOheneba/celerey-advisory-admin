@@ -20,7 +20,9 @@ const GHANA_MAP_HEIGHT = "clamp(480px, 58vh, 620px)";
 
 const GhanaClickableMap = dynamic(
   () =>
-    import("@kbqtech/ghana-clickable-map").then((mod) => mod.GhanaClickableMap),
+    import("@/components/maps/ghana-clickable-map").then(
+      (mod) => mod.GhanaClickableMap,
+    ),
   {
     ssr: false,
     loading: () => (
