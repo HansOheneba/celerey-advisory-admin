@@ -25,6 +25,8 @@ export type BookSegmentRow = {
   segment: ClientSegment;
   label: string;
   aua: number;
+  aum: number;
+  totalCovered: number;
   clientCount: number;
   sharePct: number;
 };
@@ -110,8 +112,29 @@ export function alertActionLabel(alert: DemoAlert): string {
   }
 }
 
-export function buildAttentionRows(alerts: DemoAlert[]): AttentionRow[] {
-  return [...alerts]
+export function buildMeetingNotesAttentionRows(
+  appointments: Appointment[],
+): AttentionRow[] {
+  return appointments
+    .filter((appointment) => appointment.status === "pending_review")
+    .map((appointment) => ({
+      id: `notes-${appointment.id}`,
+      priority: "Medium" as AttentionPriority,
+      label: appointment.clientName,
+      reason: `Meeting notes to review · ${appointment.title}`,
+      due: "Awaiting publish",
+      href: `/sessions/review/${appointment.id}`,
+      action: "Review",
+    }));
+}
+
+export function buildAttentionRows(
+  alerts: DemoAlert[],
+  appointments: Appointment[] = [],
+): AttentionRow[] {
+  const noteRows = buildMeetingNotesAttentionRows(appointments);
+
+  const alertRows = [...alerts]
     .sort((a, b) => {
       const priorityDelta =
         SEVERITY_ORDER[SEVERITY_PRIORITY[a.severity]] -
@@ -132,6 +155,8 @@ export function buildAttentionRows(alerts: DemoAlert[]): AttentionRow[] {
         : "/clients",
       action: alertActionLabel(alert),
     }));
+
+  return [...noteRows, ...alertRows];
 }
 
 export function computeBookComposition(
@@ -139,24 +164,26 @@ export function computeBookComposition(
 ): BookSegmentRow[] {
   const bySegment = new Map<
     ClientSegment,
-    { aua: number; clientCount: number }
+    { aua: number; aum: number; clientCount: number }
   >();
 
   for (const record of records) {
     const existing = bySegment.get(record.segment);
     if (existing) {
       existing.aua += record.client.aua;
+      existing.aum += record.client.aum;
       existing.clientCount += 1;
     } else {
       bySegment.set(record.segment, {
         aua: record.client.aua,
+        aum: record.client.aum,
         clientCount: 1,
       });
     }
   }
 
-  const totalAua = records.reduce(
-    (total, record) => total + record.client.aua,
+  const totalCovered = records.reduce(
+    (total, record) => total + record.client.aua + record.client.aum,
     0,
   );
 
@@ -165,11 +192,15 @@ export function computeBookComposition(
       segment,
       label: CLIENT_SEGMENT_LABELS[segment],
       aua: stats.aua,
+      aum: stats.aum,
+      totalCovered: stats.aua + stats.aum,
       clientCount: stats.clientCount,
       sharePct:
-        totalAua > 0 ? Math.round((stats.aua / totalAua) * 100) : 0,
+        totalCovered > 0
+          ? Math.round(((stats.aua + stats.aum) / totalCovered) * 100)
+          : 0,
     }))
-    .sort((a, b) => b.aua - a.aua);
+    .sort((a, b) => b.totalCovered - a.totalCovered);
 }
 
 function formatTimeLabel(iso: string): string {
@@ -213,7 +244,10 @@ export function buildUpcomingItems(
   for (const appointment of appointments) {
     if (
       appointment.status !== "upcoming" &&
-      appointment.status !== "requested"
+      appointment.status !== "scheduled" &&
+      appointment.status !== "requested" &&
+      appointment.status !== "proposed" &&
+      appointment.status !== "counter_proposed"
     ) {
       continue;
     }

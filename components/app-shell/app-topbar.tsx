@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 
+import { dashboardContentFrameClass } from "@/components/app-shell/dashboard-content-frame";
 import { NotificationCenter } from "@/components/app-shell/notification-center";
 import { RoleSwitcher } from "@/components/app-shell/role-switcher";
 import { UserMenu } from "@/components/app-shell/user-menu";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -64,7 +66,13 @@ export function AppTopbar({ session, alerts }: AppTopbarProps) {
   const { capabilities } = session;
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-card/95 px-4 shadow-[0_1px_0_0_var(--surface-brand)] backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-20 shrink-0 border-b border-border/60 bg-card/95 shadow-[0_1px_0_0_var(--surface-brand)] backdrop-blur">
+      <div
+        className={cn(
+          dashboardContentFrameClass,
+          "flex h-14 items-center gap-3",
+        )}
+      >
       <SidebarTrigger className="-ml-1" />
       <Separator
         orientation="vertical"
@@ -125,6 +133,7 @@ export function AppTopbar({ session, alerts }: AppTopbarProps) {
           email={session.email}
           roleLabel={capabilities.label}
         />
+      </div>
       </div>
     </header>
   );

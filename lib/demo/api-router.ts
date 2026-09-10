@@ -220,6 +220,13 @@ function sortClients(
     switch (sortBy) {
       case "aua":
         return (a.client.aua - b.client.aua) * direction;
+      case "aum":
+        return (a.client.aum - b.client.aum) * direction;
+      case "covered":
+        return (
+          (a.client.aua + a.client.aum - (b.client.aua + b.client.aum)) *
+          direction
+        );
       case "lastContactAt":
         return (
           (Date.parse(a.client.lastContactAt) -
@@ -422,6 +429,7 @@ const HANDLERS: Record<string, Handler> = {
             ? "free_trial"
             : "not_onboarded",
         aua: 0,
+        aum: 0,
         currency: currency as Client["currency"],
         advisorId,
         advisorName: advisor?.name ?? ctx.user.name,
@@ -1220,10 +1228,14 @@ const HANDLERS: Record<string, Handler> = {
         throw new DemoApiError("Appointment not found.", 404);
       }
 
-      appointment.status = "upcoming";
+      appointment.status = "scheduled";
       if (scheduledAt) {
         appointment.scheduledAt = scheduledAt;
       }
+      appointment.calendarSynced = true;
+      appointment.meetingUrl =
+        appointment.meetingUrl ?? "https://meet.google.com/demo-celerey-session";
+      appointment.meetingProvider = appointment.meetingProvider ?? "google_meet";
 
       return appointment;
     });
@@ -1232,6 +1244,7 @@ const HANDLERS: Record<string, Handler> = {
   "admin.appointments.update-status": async (ctx) => {
     const appointmentId = bodyString(ctx, "appointmentId");
     const status = bodyString(ctx, "status");
+    const scheduledAt = bodyString(ctx, "scheduledAt");
 
     return mutateDemoDb((db) => {
       const appointment = db.appointments.find(
@@ -1244,6 +1257,76 @@ const HANDLERS: Record<string, Handler> = {
 
       appointment.status =
         status as DemoDatabase["appointments"][number]["status"];
+
+      if (scheduledAt) {
+        appointment.scheduledAt = scheduledAt;
+      }
+
+      if (status === "counter_proposed") {
+        appointment.proposedBy = "advisor";
+      }
+
+      return appointment;
+    });
+  },
+
+  "admin.appointments.publish-notes": async (ctx) => {
+    const appointmentId = bodyString(ctx, "appointmentId");
+
+    return mutateDemoDb((db) => {
+      const appointment = db.appointments.find(
+        (candidate) => candidate.id === appointmentId,
+      );
+
+      if (!appointment) {
+        throw new DemoApiError("Appointment not found.", 404);
+      }
+
+      const draft = appointment.aiNotesDraft;
+      if (!draft) {
+        throw new DemoApiError("No AI notes draft to publish.", 400);
+      }
+
+      const discussionPoints = Array.isArray(ctx.body.discussionPoints)
+        ? (ctx.body.discussionPoints as string[])
+            .map((item) => String(item).trim())
+            .filter(Boolean)
+        : draft.discussionPoints;
+
+      const actionItemsRaw = Array.isArray(ctx.body.actionItems)
+        ? (ctx.body.actionItems as Array<Record<string, unknown>>)
+        : [];
+
+      const actionItems = actionItemsRaw
+        .map((item) => ({
+          title: String(item.title ?? "").trim(),
+          owner: String(item.owner ?? "").trim(),
+          dueAt:
+            typeof item.dueAt === "string" && item.dueAt
+              ? item.dueAt
+              : null,
+        }))
+        .filter((item) => item.title);
+
+      appointment.aiNotesPublished = {
+        ...draft,
+        summary: bodyString(ctx, "summary") || draft.summary,
+        discussionPoints,
+        actionItems:
+          actionItems.length > 0 ? actionItems : draft.actionItems,
+      };
+      appointment.status = "published";
+      appointment.notesVisibility = "published";
+      appointment.publishedAt = new Date().toISOString();
+      appointment.reviewedAt = new Date().toISOString();
+      appointment.transcriptStatus = "ready";
+
+      recordAudit(db, ctx.user, "meeting_notes.published", {
+        type: "client",
+        id: appointment.clientId,
+        label: appointment.title,
+      });
+
       return appointment;
     });
   },

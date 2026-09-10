@@ -17,9 +17,9 @@ import { cn } from "@/lib/utils";
 import { OPPORTUNITY_LABELS, type IntelligenceCard } from "@/lib/demo/types";
 
 const NARRATIVE_MODES: Array<{ mode: CopilotMode; label: string }> = [
-  { mode: "client_brief", label: "Relationship brief" },
+  { mode: "client_brief", label: "Brief" },
   { mode: "meeting_prep", label: "Meeting prep" },
-  { mode: "portfolio_review", label: "Portfolio commentary" },
+  { mode: "portfolio_review", label: "Portfolio note" },
 ];
 
 type IntelligenceTabProps = {
@@ -61,24 +61,18 @@ export function IntelligenceTab({
               ) : null}
             </div>
             <h3 className="mt-2 text-sm font-semibold">{card.what}</h3>
-            <div className="mt-3 space-y-2">
-              <div>
-                <p className={dashboardTheme.statLabel}>Why it matters</p>
-                <p className="text-sm leading-relaxed">{card.why}</p>
-              </div>
-              <div>
-                <p className={dashboardTheme.statLabel}>What to do</p>
-                <p className="text-sm leading-relaxed">{card.action}</p>
-              </div>
-            </div>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {card.why}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed">{card.action}</p>
           </SectionPanel>
         ))}
       </div>
 
       {canUseCopilot ? (
         <SectionPanel
-          title="Copilot narrative"
-          description="Uses this client's portal data only. Verify before client use."
+          title="Copilot"
+          description="Drafts from this client's portal data. Check before you send anything."
           variant="ai"
         >
           <div className="mb-3 flex items-start gap-3">
@@ -100,21 +94,24 @@ export function IntelligenceTab({
             </div>
 
             {isPending ? (
-              <p className="text-sm text-muted-foreground">
-                Fetching data…
-              </p>
+              <p className="text-sm text-muted-foreground">Working…</p>
             ) : narrative ? (
               <div className="space-y-2">
                 {offline ? (
                   <Badge variant="outline">Offline draft</Badge>
                 ) : null}
-                <div className={cn(dashboardTheme.calloutAi, "whitespace-pre-wrap text-sm leading-relaxed")}>
+                <div
+                  className={cn(
+                    dashboardTheme.calloutAi,
+                    "whitespace-pre-wrap text-sm leading-relaxed",
+                  )}
+                >
                   {narrative}
                 </div>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Choose an output above to generate it.
+                Pick an output above.
               </p>
             )}
           </div>

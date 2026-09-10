@@ -91,6 +91,7 @@ export function normalizeClient(row: ApiClientRow): Client {
     riskLevel: asRiskLevel(row.riskLevel ?? row.risk_level),
     subscription: asSubscription(row.subscription),
     aua: toNumber(row.aua),
+    aum: toNumber(row.aum),
     currency: asCurrency(row.currency),
     advisorId: String(row.advisorId ?? row.advisor_id ?? ""),
     advisorName: String(row.advisorName ?? row.advisor_name ?? ""),

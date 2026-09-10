@@ -1,5 +1,9 @@
-import { daysFromNow } from "@/lib/demo/seed/client-builder";
+import {
+  daysFromNow,
+  daysFromNowAtTime,
+} from "@/lib/demo/seed/client-builder";
 import { seedClients } from "@/lib/demo/seed/clients";
+import { timezoneForResidentCountry } from "@/lib/demo/seed/residency-locations";
 import { DEMO_USERS, type DemoUser } from "@/lib/demo/seed/users";
 import type {
   DemoAlert,
@@ -11,6 +15,8 @@ import type {
 } from "@/lib/demo/types";
 import type { AuditLogEntry } from "@/lib/settings/audit";
 import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
+import { demoMeetingNotes } from "@/lib/demo/seed/meeting-notes";
+import { demoSessionLog } from "@/lib/demo/seed/session-logs";
 import type { ClientAvailability } from "@/lib/availability/types";
 import { DEFAULT_CLIENT_AVAILABILITY } from "@/lib/availability/types";
 import type { ClientDocument } from "@/lib/documents/types";
@@ -22,7 +28,8 @@ import type { Advisor } from "@/types/advisor";
 import type { ClientActivity } from "@/types/client";
 import type { AppRole, IdentityRole } from "@/lib/auth/roles";
 
-export const DEMO_DB_VERSION = 1;
+/** Bump when seed shape changes (e.g. AUA/AUM split on client records). */
+export const DEMO_DB_VERSION = 7;
 
 const APP_ROLE_BY_DEMO_ROLE: Record<DemoUser["demoRole"], AppRole> = {
   relationship_manager: "advisor",
@@ -316,19 +323,51 @@ function buildAppointments(clients: DemoClientRecord[]): Appointment[] {
     type: Appointment["type"];
     title: string;
     inDays: number;
+    atHour?: number;
+    atMinute?: number;
     status: Appointment["status"];
     createdBy: Appointment["createdBy"];
     withLog?: boolean;
+    publishedNotes?: boolean;
+    proposed?: boolean;
   }> = [
-    { clientId: "osei-bonsu", type: "annual_review", title: "Annual review", inDays: 21, status: "upcoming", createdBy: "advisor" },
-    { clientId: "quaye", type: "portfolio_update", title: "Deployment planning call", inDays: 2, status: "upcoming", createdBy: "advisor" },
-    { clientId: "darko", type: "review", title: "Rebalance discussion", inDays: 4, status: "upcoming", createdBy: "advisor" },
-    { clientId: "mensah-kofi", type: "portfolio_update", title: "Maturity reinvestment call", inDays: 3, status: "upcoming", createdBy: "advisor" },
-    { clientId: "owusu-ansah", type: "review", title: "Liquidity options review", inDays: 6, status: "requested", createdBy: "client" },
-    { clientId: "tetteh", type: "goal_check_in", title: "Held-away consolidation", inDays: 9, status: "requested", createdBy: "client" },
-    { clientId: "agyapong", type: "onboarding", title: "Onboarding completion call", inDays: 5, status: "upcoming", createdBy: "advisor" },
+    { clientId: "osei-bonsu", type: "annual_review", title: "Annual review", inDays: 21, atHour: 10, status: "upcoming", createdBy: "advisor" },
+    { clientId: "quaye", type: "portfolio_update", title: "Deployment planning call", inDays: 2, atHour: 10, status: "upcoming", createdBy: "advisor" },
+    { clientId: "darko", type: "review", title: "Rebalance discussion", inDays: 4, atHour: 14, status: "upcoming", createdBy: "advisor" },
+    { clientId: "mensah-kofi", type: "portfolio_update", title: "Maturity reinvestment call", inDays: 3, atHour: 11, status: "upcoming", createdBy: "advisor" },
+    { clientId: "owusu-ansah", type: "review", title: "Liquidity options review", inDays: 6, atHour: 15, status: "requested", createdBy: "client" },
+    { clientId: "tetteh", type: "goal_check_in", title: "Held-away consolidation", inDays: 9, atHour: 11, status: "requested", createdBy: "client" },
+    { clientId: "agyapong", type: "onboarding", title: "Onboarding completion call", inDays: 5, atHour: 9, atMinute: 30, status: "upcoming", createdBy: "advisor" },
+    { clientId: "alhassan-tamale", type: "portfolio_update", title: "T-bill ladder review", inDays: 7, atHour: 10, atMinute: 30, status: "proposed", createdBy: "client" },
+    { clientId: "darko", type: "review", title: "Cash deployment review", inDays: -3, status: "pending_review", createdBy: "advisor" },
     { clientId: "osei-bonsu", type: "quarterly_check_in", title: "Q3 review", inDays: -9, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "osei-bonsu", type: "goal_check_in", title: "Education goal check-in", inDays: -45, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "osei-bonsu", type: "annual_review", title: "2025 annual review", inDays: -120, status: "published", createdBy: "advisor", withLog: true, publishedNotes: true },
     { clientId: "sarpong", type: "quarterly_check_in", title: "Q3 check-in", inDays: -22, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "sarpong", type: "review", title: "Equity sleeve rebalance", inDays: -58, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "quaye", type: "portfolio_update", title: "Sale proceeds deployment", inDays: -14, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "quaye", type: "quarterly_check_in", title: "Q2 check-in", inDays: -88, status: "published", createdBy: "advisor", withLog: true, publishedNotes: true },
+    { clientId: "mensah-kofi", type: "portfolio_update", title: "Note maturity reinvestment", inDays: -18, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "darko", type: "review", title: "Technology overweight review", inDays: -35, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "asare", type: "annual_review", title: "Overdue annual review", inDays: -28, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "adjei", type: "review", title: "Growth sleeve commentary", inDays: -42, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "nkrumah", type: "review", title: "Structured note escalation", inDays: -11, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "owusu-ansah", type: "review", title: "Lombard facility walkthrough", inDays: -31, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "tetteh", type: "goal_check_in", title: "Retirement projection review", inDays: -67, status: "completed", createdBy: "client", withLog: true },
+    { clientId: "agyapong", type: "onboarding", title: "Welcome & mandate call", inDays: -12, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "boadu", type: "review", title: "Re-engagement call", inDays: -75, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "alhassan-tamale", type: "portfolio_update", title: "Northern region cash ladder", inDays: -26, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "mensah-sunyani", type: "quarterly_check_in", title: "Q3 portfolio review", inDays: -19, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "aidoo-takoradi", type: "portfolio_update", title: "Export proceeds allocation", inDays: -33, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "ampofo-accra", type: "goal_check_in", title: "Property purchase timeline", inDays: -48, status: "published", createdBy: "advisor", withLog: true, publishedNotes: true },
+    { clientId: "adutwum-kumasi", type: "annual_review", title: "Mid-year plan review", inDays: -55, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "nortey-tema", type: "review", title: "Logistics sector exposure", inDays: -40, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "awuah-wa", type: "quarterly_check_in", title: "Q3 check-in", inDays: -24, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "annan", type: "review", title: "Held-away consolidation", inDays: -16, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "yeboah", type: "annual_review", title: "Cross-border tax planning", inDays: -72, status: "published", createdBy: "advisor", withLog: true, publishedNotes: true },
+    { clientId: "amoah", type: "quarterly_check_in", title: "Q3 check-in", inDays: -29, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "frimpong", type: "portfolio_update", title: "Conservative sleeve refresh", inDays: -37, status: "completed", createdBy: "advisor", withLog: true },
+    { clientId: "appiah-r", type: "review", title: "Cash drag review", inDays: -21, status: "completed", createdBy: "advisor", withLog: true },
   ];
 
   return specs.flatMap((spec, index) => {
@@ -337,39 +376,83 @@ function buildAppointments(clients: DemoClientRecord[]): Appointment[] {
 
     const { client } = record;
 
+    const scheduleAt = (days: number) =>
+      daysFromNowAtTime(days, spec.atHour ?? 10, spec.atMinute ?? 0);
+
+    const scheduledAt =
+      spec.status === "requested" || spec.status === "proposed"
+        ? spec.inDays >= 0
+          ? scheduleAt(spec.inDays)
+          : null
+        : scheduleAt(spec.inDays);
+
+    const clientName = `${client.firstName} ${client.lastName}`;
+    const meetingNotesInput = {
+      clientName,
+      advisorName: client.advisorName,
+      title: spec.title,
+    };
+
+    const aiDraft =
+      spec.status === "pending_review"
+        ? demoMeetingNotes(meetingNotesInput)
+        : null;
+
+    const aiPublished =
+      spec.publishedNotes || spec.status === "published"
+        ? demoMeetingNotes(meetingNotesInput)
+        : null;
+
+    const sessionLog = spec.withLog
+      ? demoSessionLog({
+          title: spec.title,
+          type: spec.type,
+          clientName,
+          advisorName: client.advisorName,
+        })
+      : null;
+
     return [
       {
         id: `appt-${index}`,
         clientId: client.id,
-        clientName: `${client.firstName} ${client.lastName}`,
+        clientName,
         advisorId: client.advisorId,
         advisorName: client.advisorName,
         planYear: String(new Date().getFullYear()),
         type: spec.type,
         title: spec.title,
-        scheduledAt: spec.status === "requested" ? null : daysFromNow(spec.inDays),
+        scheduledAt,
         durationMinutes: 45,
         status: spec.status,
         createdBy: spec.createdBy,
-        log: spec.withLog
-          ? {
-              title: `${spec.title} summary`,
-              tags: ["portfolio", "goals"],
-              advisorAssessment:
-                "Relationship is healthy. Allocation drift and cash weighting are the two open items.",
-              discussionPoints: [
-                "Reviewed year to date performance and attribution",
-                "Discussed cash weighting against the mandate",
-                "Confirmed goal funding status",
-              ],
-              recommendations: [
-                { title: "Deploy excess cash in stages" },
-                { title: "Increase education goal contribution" },
-              ],
-              sessionNotes:
-                "Client engaged and receptive. Follow up with modelled options before the next meeting.",
-            }
-          : null,
+        proposedBy: spec.status === "proposed" ? spec.createdBy : undefined,
+        meetingProvider:
+          spec.status === "proposed" ||
+          spec.status === "pending_review" ||
+          spec.status === "published"
+            ? "google_meet"
+            : null,
+        meetingUrl:
+          spec.status === "pending_review" || spec.status === "published"
+            ? "https://meet.google.com/demo-celerey-session"
+            : null,
+        calendarSynced:
+          spec.status === "pending_review" || spec.status === "published",
+        transcriptStatus:
+          spec.status === "pending_review" || spec.status === "published"
+            ? "ready"
+            : "pending",
+        notesVisibility: spec.publishedNotes
+          ? "published"
+          : spec.status === "pending_review"
+            ? "draft"
+            : "none",
+        aiNotesDraft: aiDraft,
+        aiNotesPublished: aiPublished,
+        publishedAt: aiPublished ? daysFromNow(spec.inDays + 1) : null,
+        reviewedAt: aiPublished ? daysFromNow(spec.inDays + 1) : null,
+        log: sessionLog,
         progress: null,
         actionIds: [],
         documentIds: [],
@@ -735,10 +818,9 @@ function buildAvailability(
   for (const record of clients) {
     availability[record.client.id] = {
       ...DEFAULT_CLIENT_AVAILABILITY,
-      timezone:
-        record.detail.user.resident_country === "United Kingdom"
-          ? "Europe/London"
-          : "Africa/Accra",
+      timezone: timezoneForResidentCountry(
+        record.detail.user.resident_country ?? "Ghana",
+      ),
     };
   }
 

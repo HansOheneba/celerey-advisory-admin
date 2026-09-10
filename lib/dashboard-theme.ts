@@ -1,15 +1,14 @@
 export const dashboardTheme = {
   /** Page sections stack with space-y-6; metric grids use gap-4 (see StatGrid). */
-  page: "w-full px-4 py-5 sm:px-6 sm:py-6 space-y-6 celerey-stagger",
-  pageContainer:
-    "w-full max-w-[1400px] mx-auto px-4 py-5 sm:px-6 sm:py-6 space-y-6 celerey-stagger",
+  page: "w-full min-w-0 space-y-6 lg:space-y-8 celerey-stagger",
+  pageContainer: "w-full min-w-0 space-y-6 lg:space-y-8 celerey-stagger",
   pageContainerNarrow:
-    "w-full max-w-[1100px] mx-auto px-4 py-5 sm:px-6 sm:py-6 space-y-6 celerey-stagger",
+    "mx-auto w-full min-w-0 max-w-3xl space-y-6 lg:space-y-8 celerey-stagger",
   surface: "dashboard-surface",
   sectionLabel:
     "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground",
   pageTitle: "text-xl font-semibold tracking-tight sm:text-2xl",
-  pageDescription: "text-sm text-muted-foreground max-w-2xl leading-relaxed",
+  pageDescription: "text-sm text-muted-foreground max-w-3xl leading-relaxed",
   sectionTitle: "text-base font-semibold tracking-tight",
   card: "bg-card border border-border/50 shadow-none transition-colors hover:border-border/80",
   kpiCard: "bg-card border border-border/50 shadow-none",

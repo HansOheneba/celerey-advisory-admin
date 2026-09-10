@@ -65,10 +65,12 @@ export function NeedsAttentionSection({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[88px]">Priority</TableHead>
-                <TableHead>Client / item</TableHead>
-                <TableHead className="hidden md:table-cell">Reason</TableHead>
-                <TableHead className="w-[120px]">Due</TableHead>
-                <TableHead className="w-[88px] text-right">Action</TableHead>
+                <TableHead className="min-w-[160px]">Client / item</TableHead>
+                <TableHead className="hidden min-w-0 sm:table-cell">
+                  Reason
+                </TableHead>
+                <TableHead className="w-[120px] whitespace-nowrap">Due</TableHead>
+                <TableHead className="w-[96px] text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,7 +85,7 @@ export function NeedsAttentionSection({
                     {row.priority}
                   </TableCell>
                   <TableCell className="font-medium">{row.label}</TableCell>
-                  <TableCell className="hidden max-w-[280px] truncate text-muted-foreground md:table-cell">
+                  <TableCell className="hidden min-w-0 truncate text-muted-foreground sm:table-cell">
                     {row.reason}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{row.due}</TableCell>

@@ -10,7 +10,6 @@ import { PlanTab } from "@/components/workspace/tabs/plan-tab";
 import { PortfolioTab } from "@/components/workspace/tabs/portfolio-tab";
 import { ServiceTab } from "@/components/workspace/tabs/service-tab";
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
-import { WorkspaceRail } from "@/components/workspace/workspace-rail";
 import {
   WorkspaceTabs,
   type WorkspaceTabDefinition,
@@ -19,11 +18,7 @@ import { DEFAULT_CLIENT_AVAILABILITY } from "@/lib/availability/types";
 import { hasCapability } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { requireSession } from "@/lib/dal";
-import {
-  intelligenceCards,
-  nextBestActions,
-  suitabilityChecks,
-} from "@/lib/demo/insights";
+import { intelligenceCards, suitabilityChecks } from "@/lib/demo/insights";
 import {
   getClientAppointments,
   getClientDocuments,
@@ -100,7 +95,6 @@ export default async function ClientWorkspacePage({
     canEditProfile || hasCapability(capabilities, "execute_trade");
 
   const cards = intelligenceCards(record);
-  const actions = nextBestActions(record);
   const checks = suitabilityChecks(record);
   const activity = db.activity.filter((entry) => entry.clientId === id);
   const auditLogs = db.auditLogs.filter(
@@ -113,11 +107,13 @@ export default async function ClientWorkspacePage({
     {
       value: "overview",
       label: "Overview",
-      content: <OverviewTab record={record} activity={activity} />,
+      content: (
+        <OverviewTab record={record} activity={activity} tasks={tasks} />
+      ),
     },
     {
       value: "intelligence",
-      label: "Client insights",
+      label: "Insights",
       content: (
         <IntelligenceTab
           clientId={id}
@@ -179,7 +175,7 @@ export default async function ClientWorkspacePage({
       },
       {
         value: "service",
-        label: "Service & docs",
+        label: "Service",
         content: (
           <ServiceTab
             clientId={id}
@@ -220,10 +216,7 @@ export default async function ClientWorkspacePage({
         canGenerateReport={canGenerateReport}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <WorkspaceTabs tabs={tabs} defaultValue="overview" />
-        <WorkspaceRail actions={actions} checks={checks} />
-      </div>
+      <WorkspaceTabs tabs={tabs} defaultValue="overview" />
     </div>
   );
 }

@@ -74,8 +74,7 @@ export function PortfolioTab({
           <CardHeader>
             <CardTitle>Allocation</CardTitle>
             <CardDescription>
-              Cash is {idleCashPct.toFixed(1)}% against a {targetCashPct}%
-              mandate target.
+              {idleCashPct.toFixed(1)}% cash vs {targetCashPct}% target.
             </CardDescription>
           </CardHeader>
           <CardContent>

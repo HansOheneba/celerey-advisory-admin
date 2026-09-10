@@ -33,7 +33,7 @@ export type ClientListParams = {
   status?: string;
   riskLevel?: string;
   subscription?: string;
-  sortBy?: ApiClientSort | "joinedAt";
+  sortBy?: ApiClientSort | "joinedAt" | "covered" | "aum";
   sortDir?: "asc" | "desc";
   page?: number;
   pageSize?: number;
@@ -79,6 +79,36 @@ function sortByJoinedAt(items: Client[], sortDir: "asc" | "desc") {
   });
 }
 
+function sortClientsLocally(
+  items: Client[],
+  sortBy: "joinedAt" | "covered" | "aum",
+  sortDir: "asc" | "desc",
+) {
+  return [...items].sort((a, b) => {
+    let delta = 0;
+
+    switch (sortBy) {
+      case "covered":
+        delta = a.aua + a.aum - (b.aua + b.aum);
+        break;
+      case "aum":
+        delta = a.aum - b.aum;
+        break;
+      default:
+        delta =
+          (Number.isFinite(Date.parse(a.joinedAt))
+            ? Date.parse(a.joinedAt)
+            : 0) -
+          (Number.isFinite(Date.parse(b.joinedAt))
+            ? Date.parse(b.joinedAt)
+            : 0);
+        break;
+    }
+
+    return sortDir === "desc" ? -delta : delta;
+  });
+}
+
 export async function listClients(
   params: ClientListParams = {},
 ): Promise<ClientListResult> {
@@ -96,7 +126,8 @@ export async function listClients(
     ownBookOnly = false,
   } = params;
 
-  const sortLocallyByJoinedAt = sortBy === "joinedAt";
+  const sortLocally =
+    sortBy === "joinedAt" || sortBy === "covered" || sortBy === "aum";
   const listQuery = {
     query,
     status,
@@ -108,9 +139,9 @@ export async function listClients(
   const result = await findClientsApi(session.accessToken, {
     ...listQuery,
     sortBy: isApiClientSort(sortBy) ? sortBy : "name",
-    sortDir: sortLocallyByJoinedAt ? "asc" : sortDir,
-    page: sortLocallyByJoinedAt ? 1 : page,
-    pageSize: sortLocallyByJoinedAt ? 100 : pageSize,
+    sortDir: sortLocally ? "asc" : sortDir,
+    page: sortLocally ? 1 : page,
+    pageSize: sortLocally ? 100 : pageSize,
   });
 
   if (!result.ok) {
@@ -123,7 +154,7 @@ export async function listClients(
     ownBookOnly,
   );
 
-  if (!sortLocallyByJoinedAt) {
+  if (!sortLocally) {
     return {
       ...result.data,
       items,
@@ -158,7 +189,10 @@ export async function listClients(
     }
   }
 
-  const sorted = sortByJoinedAt(items, sortDir);
+  const sorted =
+    sortBy === "joinedAt"
+      ? sortByJoinedAt(items, sortDir)
+      : sortClientsLocally(items, sortBy, sortDir);
   const total = sorted.length;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const start = (page - 1) * pageSize;

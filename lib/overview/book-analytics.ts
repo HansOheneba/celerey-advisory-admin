@@ -3,6 +3,12 @@ import {
   countryIso3,
   resolveCoordinates,
 } from "@/lib/geo/country-registry";
+import {
+  ghanaRegionLabel,
+  ghanaRegions,
+  resolveGhanaRegionCode,
+} from "@/lib/geo/ghana-regions";
+import type { GhanaRegionCode } from "@/lib/maps/ghana-map-types";
 import type { DemoClientRecord } from "@/lib/demo/types";
 
 export type AgeBucket = {
@@ -11,6 +17,8 @@ export type AgeBucket = {
   max: number;
   count: number;
   aua: number;
+  aum: number;
+  totalCovered: number;
 };
 
 export type AgeAnalytics = {
@@ -53,12 +61,16 @@ export type GeographicSpread = {
 
 export type ResidencySpread = {
   totalAua: number;
+  totalAum: number;
+  totalCovered: number;
   countryCount: number;
   countries: Array<{
     country: string;
     iso3: string | null;
     clientCount: number;
     aua: number;
+    aum: number;
+    totalCovered: number;
     sharePct: number;
   }>;
 };
@@ -118,6 +130,8 @@ export function computeAgeAnalytics(records: DemoClientRecord[]): AgeAnalytics {
     ...bucket,
     count: 0,
     aua: 0,
+    aum: 0,
+    totalCovered: 0,
   }));
 
   for (const record of records) {
@@ -133,6 +147,8 @@ export function computeAgeAnalytics(records: DemoClientRecord[]): AgeAnalytics {
       buckets[buckets.length - 1];
     bucket.count += 1;
     bucket.aua += record.client.aua;
+    bucket.aum += record.client.aum;
+    bucket.totalCovered += record.client.aua + record.client.aum;
   }
 
   return {
@@ -153,7 +169,7 @@ export function computeResidencySpread(
 ): ResidencySpread {
   const byCountry = new Map<
     string,
-    { clientCount: number; aua: number }
+    { clientCount: number; aua: number; aum: number }
   >();
 
   for (const record of records) {
@@ -166,10 +182,12 @@ export function computeResidencySpread(
     if (existing) {
       existing.clientCount += 1;
       existing.aua += record.client.aua;
+      existing.aum += record.client.aum;
     } else {
       byCountry.set(country, {
         clientCount: 1,
         aua: record.client.aua,
+        aum: record.client.aum,
       });
     }
   }
@@ -178,6 +196,11 @@ export function computeResidencySpread(
     (total, entry) => total + entry.aua,
     0,
   );
+  const totalAum = [...byCountry.values()].reduce(
+    (total, entry) => total + entry.aum,
+    0,
+  );
+  const totalCovered = totalAua + totalAum;
 
   const countries = [...byCountry.entries()]
     .map(([country, stats]) => ({
@@ -185,13 +208,19 @@ export function computeResidencySpread(
       iso3: countryIso3(country),
       clientCount: stats.clientCount,
       aua: stats.aua,
+      aum: stats.aum,
+      totalCovered: stats.aua + stats.aum,
       sharePct:
-        totalAua > 0 ? Math.round((stats.aua / totalAua) * 100) : 0,
+        totalCovered > 0
+          ? Math.round(((stats.aua + stats.aum) / totalCovered) * 100)
+          : 0,
     }))
-    .sort((a, b) => b.aua - a.aua);
+    .sort((a, b) => b.totalCovered - a.totalCovered);
 
   return {
     totalAua,
+    totalAum,
+    totalCovered,
     countryCount: countries.length,
     countries,
   };
@@ -297,6 +326,131 @@ export function computeGeographicSpread(
     propertyCount: markers.length,
     countryCount: countries.length,
     countries,
+    markers,
+  };
+}
+
+export type GhanaClientMarker = {
+  id: string;
+  clientName: string;
+  city: string;
+  regionCode: GhanaRegionCode;
+  aua: number;
+  aum: number;
+  totalCovered: number;
+  coordinates: [number, number];
+};
+
+export type GhanaRegionSpread = {
+  code: GhanaRegionCode;
+  label: string;
+  clientCount: number;
+  aua: number;
+  aum: number;
+  totalCovered: number;
+  sharePct: number;
+  centroid: [number, number];
+};
+
+export type GhanaRegionalSpread = {
+  totalClients: number;
+  totalAua: number;
+  totalAum: number;
+  totalCovered: number;
+  regions: GhanaRegionSpread[];
+  markers: GhanaClientMarker[];
+};
+
+function isGhanaResident(record: DemoClientRecord): boolean {
+  const country =
+    record.detail.user.resident_country?.trim() ||
+    record.client.location.split(",").pop()?.trim() ||
+    "";
+  return country === "Ghana" || record.client.location.includes("Ghana");
+}
+
+export function computeGhanaRegionalSpread(
+  records: DemoClientRecord[],
+): GhanaRegionalSpread {
+  const regionMeta = new Map(
+    ghanaRegions().map((region) => [region.code, region]),
+  );
+  const byRegion = new Map<
+    GhanaRegionCode,
+    { clientCount: number; aua: number; aum: number }
+  >();
+  const markers: GhanaClientMarker[] = [];
+
+  for (const region of ghanaRegions()) {
+    byRegion.set(region.code, { clientCount: 0, aua: 0, aum: 0 });
+  }
+
+  for (const record of records) {
+    if (!isGhanaResident(record)) {
+      continue;
+    }
+
+    const regionCode =
+      resolveGhanaRegionCode({
+        regionCode: record.detail.user.resident_state,
+        city: record.detail.user.city ?? record.client.location.split(",")[0],
+      }) ?? "AA";
+
+    const meta = regionMeta.get(regionCode);
+    if (!meta) {
+      continue;
+    }
+
+    const stats = byRegion.get(regionCode);
+    if (stats) {
+      stats.clientCount += 1;
+      stats.aua += record.client.aua;
+      stats.aum += record.client.aum;
+    }
+
+    markers.push({
+      id: record.client.id,
+      clientName: `${record.client.firstName} ${record.client.lastName}`,
+      city: record.detail.user.city ?? "",
+      regionCode,
+      aua: record.client.aua,
+      aum: record.client.aum,
+      totalCovered: record.client.aua + record.client.aum,
+      coordinates: meta.centroid,
+    });
+  }
+
+  const totalAua = markers.reduce((total, marker) => total + marker.aua, 0);
+  const totalAum = markers.reduce((total, marker) => total + marker.aum, 0);
+  const totalCovered = totalAua + totalAum;
+
+  const regions: GhanaRegionSpread[] = [...byRegion.entries()]
+    .map(([code, stats]) => {
+      const meta = regionMeta.get(code);
+      const regionTotalCovered = stats.aua + stats.aum;
+      return {
+        code,
+        label: meta?.label ?? ghanaRegionLabel(code),
+        clientCount: stats.clientCount,
+        aua: stats.aua,
+        aum: stats.aum,
+        totalCovered: regionTotalCovered,
+        sharePct:
+          totalCovered > 0
+            ? Math.round((regionTotalCovered / totalCovered) * 100)
+            : 0,
+        centroid: meta?.centroid ?? [-1.02, 7.95],
+      };
+    })
+    .filter((region) => region.clientCount > 0)
+    .sort((a, b) => b.totalCovered - a.totalCovered);
+
+  return {
+    totalClients: markers.length,
+    totalAua,
+    totalAum,
+    totalCovered,
+    regions,
     markers,
   };
 }

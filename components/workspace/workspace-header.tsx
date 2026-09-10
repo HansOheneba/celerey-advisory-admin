@@ -7,6 +7,8 @@ import { GenerateReportButton } from "@/components/reports/generate-report-butto
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
+import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import { formatCompactCurrency, formatDate, getInitials } from "@/lib/format";
 import { CLIENT_SEGMENT_LABELS, type DemoClientRecord } from "@/lib/demo/types";
 
@@ -34,6 +36,13 @@ export function WorkspaceHeader({
 }: WorkspaceHeaderProps) {
   const { client } = record;
   const name = `${client.firstName} ${client.lastName}`;
+  const reviewDays = Math.round(
+    (Date.parse(client.nextReviewAt) - Date.now()) / (24 * 60 * 60 * 1000),
+  );
+  const reviewLabel =
+    reviewDays < 0
+      ? `${Math.abs(reviewDays)}d overdue`
+      : formatDate(client.nextReviewAt);
 
   return (
     <div className="space-y-4 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
@@ -55,10 +64,11 @@ export function WorkspaceHeader({
               <StatusBadge status={client.status} />
               <RiskBadge riskLevel={client.riskLevel} />
               <SubscriptionBadge subscription={client.subscription} />
+              <AssetRelationshipBadge aua={client.aua} aum={client.aum} />
             </div>
             <p className="text-sm text-muted-foreground">
-              {client.location} · Client since {formatDate(client.joinedAt)} ·
-              Managed by {client.advisorName}
+              {client.location} · Since {formatDate(client.joinedAt)} ·{" "}
+              {client.advisorName}
             </p>
           </div>
         </div>
@@ -88,22 +98,22 @@ export function WorkspaceHeader({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 border-t border-border/50 pt-3 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="AUA" value={formatCompactCurrency(client.aua)} />
+      <div className="grid grid-cols-2 gap-3 border-t border-border/50 pt-3 sm:grid-cols-4">
         <Stat
-          label="Performance TTM"
+          label="Total covered"
+          value={formatCompactCurrency(
+            totalAssetsCovered(client.aua, client.aum),
+          )}
+        />
+        <Stat
+          label="TTM performance"
           value={`${record.performanceYtdPct >= 0 ? "+" : ""}${record.performanceYtdPct.toFixed(1)}%`}
         />
         <Stat
-          label="Cash weighting"
+          label="Cash vs target"
           value={`${record.idleCashPct.toFixed(1)}% / ${record.targetCashPct}%`}
         />
-        <Stat
-          label="Model drift"
-          value={`${record.portfolioDriftPct.toFixed(1)} pts`}
-        />
-        <Stat label="Last contact" value={formatDate(client.lastContactAt)} />
-        <Stat label="Next review" value={formatDate(client.nextReviewAt)} />
+        <Stat label="Next review" value={reviewLabel} />
       </div>
     </div>
   );

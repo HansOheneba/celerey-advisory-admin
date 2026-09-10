@@ -1,24 +1,30 @@
 import Link from "next/link";
 import {
   AlertCircle,
+  Calendar,
   DollarSign,
   TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
 
+import { AgeDistributionPanel } from "@/components/insights/age-distribution-panel";
 import { BookCompositionPanel } from "@/components/overview/book-composition-panel";
-import { GeographicSpreadCompact } from "@/components/overview/geographic-spread-compact";
+import { GhanaRegionalMap } from "@/components/overview/ghana-regional-map";
 import { NeedsAttentionSection } from "@/components/overview/needs-attention-section";
 import { RecentActivitySection } from "@/components/overview/recent-activity-section";
 import { UpcomingSection } from "@/components/overview/upcoming-section";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
+import { StatGrid } from "@/components/shared/stat-grid";
 import { Button } from "@/components/ui/button";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { formatCompactCurrency } from "@/lib/format";
 import { type BookMetrics } from "@/lib/demo/insights";
-import { computeGeographicSpread } from "@/lib/overview/book-analytics";
+import {
+  computeAgeAnalytics,
+  computeGhanaRegionalSpread,
+} from "@/lib/overview/book-analytics";
 import {
   buildAttentionRows,
   buildUpcomingItems,
@@ -53,9 +59,10 @@ export function OverviewView({
   tasks,
 }: OverviewViewProps) {
   const firstName = advisorName.split(" ")[0];
-  const attentionRows = buildAttentionRows(alerts);
+  const attentionRows = buildAttentionRows(alerts, appointments);
   const bookComposition = computeBookComposition(records);
-  const geographicSpread = computeGeographicSpread(records);
+  const ghanaSpread = computeGhanaRegionalSpread(records);
+  const ageAnalytics = computeAgeAnalytics(records);
   const upcoming = buildUpcomingItems(appointments, tasks);
 
   return (
@@ -74,25 +81,34 @@ export function OverviewView({
 
       <NeedsAttentionSection
         rows={attentionRows}
-        totalCount={alerts.length}
+        totalCount={attentionRows.length}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <StatGrid columns={6}>
         <MetricCard
-          label="Total AUA"
+          label="Assets Under Advice"
           value={formatCompactCurrency(metrics.totalAua)}
-          delta={{
-            value: `${metrics.aumGrowthPct >= 0 ? "+" : ""}${metrics.aumGrowthPct}%`,
-            positive: metrics.aumGrowthPct >= 0,
-          }}
-          hint="trailing 12 months"
+          hint="Advised but held outside managed portfolios"
           icon={DollarSign}
+          variant="info"
         />
         <MetricCard
-          label="Revenue QTD"
-          value={formatCompactCurrency(metrics.revenueQtd)}
-          hint={`${metrics.clientCount} relationships`}
-          icon={TrendingUp}
+          label="Assets Under Management"
+          value={formatCompactCurrency(metrics.totalAum)}
+          delta={{
+            value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
+            positive: metrics.weightedPerformancePct >= 0,
+          }}
+          hint={`${formatCompactCurrency(metrics.totalCovered)} total covered · ${metrics.clientsWithBoth} AUA + AUM`}
+          icon={Wallet}
+          variant="brand"
+        />
+        <MetricCard
+          label="Advisory sessions"
+          value={`${metrics.advisorySessions.used} / ${metrics.advisorySessions.included}`}
+          hint={`${metrics.advisorySessions.remaining} remaining this year`}
+          icon={Calendar}
+          variant="info"
         />
         <MetricCard
           label="Net flows QTD"
@@ -122,14 +138,25 @@ export function OverviewView({
           icon={AlertCircle}
           variant={metrics.reviewsOverdue > 0 ? "warning" : "default"}
         />
+      </StatGrid>
+
+      <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
+        <div className="min-w-0 lg:col-span-3">
+          <BookCompositionPanel segments={bookComposition} />
+        </div>
+        <div className="min-w-0 lg:col-span-2">
+          <UpcomingSection items={upcoming} />
+        </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <BookCompositionPanel segments={bookComposition} />
-        <UpcomingSection items={upcoming} />
+      <div className="grid gap-4 xl:grid-cols-5 xl:items-start xl:gap-6">
+        <div className="min-w-0 xl:col-span-3">
+          <GhanaRegionalMap spread={ghanaSpread} />
+        </div>
+        <div className="min-w-0 xl:col-span-2">
+          <AgeDistributionPanel analytics={ageAnalytics} />
+        </div>
       </div>
-
-      <GeographicSpreadCompact spread={geographicSpread} />
 
       <RecentActivitySection activity={activity} />
     </div>

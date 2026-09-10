@@ -15,6 +15,11 @@ import {
   Search,
 } from "lucide-react";
 import type { Client } from "@/types/client";
+import {
+  AssetAmountCell,
+  AssetRelationshipBadge,
+} from "@/components/clients/asset-relationship-badge";
+import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import { SubscriptionBadge } from "@/components/clients/subscription-badge";
 import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -121,7 +126,7 @@ export function ClientsTable({
 
     updateParams({
       sortBy: column,
-      sortDir: column === "joinedAt" ? "desc" : "asc",
+      sortDir: column === "joinedAt" || column === "covered" ? "desc" : "asc",
       page: "1",
     });
   }
@@ -224,13 +229,33 @@ export function ClientsTable({
                 <TableHead className="hidden lg:table-cell">Advisor</TableHead>
               ) : null}
               <TableHead className="hidden xl:table-cell">Risk</TableHead>
-              <TableHead>
+              <TableHead className="hidden lg:table-cell">
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 font-medium"
                   onClick={() => toggleSort("aua")}
                 >
                   AUA
+                  <ArrowDownUp className="size-3.5 text-muted-foreground" />
+                </button>
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 font-medium"
+                  onClick={() => toggleSort("aum")}
+                >
+                  AUM
+                  <ArrowDownUp className="size-3.5 text-muted-foreground" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 font-medium"
+                  onClick={() => toggleSort("covered")}
+                >
+                  Covered
                   <ArrowDownUp className="size-3.5 text-muted-foreground" />
                 </button>
               </TableHead>
@@ -264,7 +289,7 @@ export function ClientsTable({
               <TableRow>
                 <TableCell
                   colSpan={
-                    7 +
+                    9 +
                     (canManageSubscriptions ? 1 : 0) +
                     (showAdvisorColumn ? 1 : 0) +
                     1
@@ -305,8 +330,13 @@ export function ClientsTable({
                         <p className="truncate text-xs text-muted-foreground">
                           {client.email}
                         </p>
-                        <div className="mt-1 flex gap-1 md:hidden">
+                        <div className="mt-1 flex flex-wrap gap-1 md:hidden">
                           <StatusBadge status={client.status} />
+                          <AssetRelationshipBadge
+                            aua={client.aua}
+                            aum={client.aum}
+                            compact
+                          />
                         </div>
                       </div>
                     </Link>
@@ -330,8 +360,25 @@ export function ClientsTable({
                   <TableCell className="hidden xl:table-cell">
                     <RiskBadge riskLevel={client.riskLevel} />
                   </TableCell>
+                  <TableCell className="hidden font-medium lg:table-cell">
+                    <AssetAmountCell
+                      value={client.aua}
+                      currency={client.currency}
+                      format={formatCurrency}
+                    />
+                  </TableCell>
+                  <TableCell className="hidden font-medium lg:table-cell">
+                    <AssetAmountCell
+                      value={client.aum}
+                      currency={client.currency}
+                      format={formatCurrency}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
-                    {formatCurrency(client.aua, client.currency)}
+                    {formatCurrency(
+                      totalAssetsCovered(client.aua, client.aum),
+                      client.currency,
+                    )}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground xl:table-cell">
                     {formatDate(client.lastContactAt)}

@@ -74,7 +74,7 @@ export function AdvisorClientsTable({ items }: AdvisorClientsTableProps) {
                 <RiskBadge riskLevel={client.riskLevel} />
               </TableCell>
               <TableCell className="font-medium tabular-nums">
-                {formatCurrency(client.aua, client.currency)}
+                {formatCurrency(client.aua + client.aum, client.currency)}
               </TableCell>
               <TableCell className="hidden text-muted-foreground xl:table-cell">
                 {formatDate(client.nextReviewAt)}

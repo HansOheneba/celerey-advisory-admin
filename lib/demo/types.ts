@@ -99,15 +99,6 @@ export type IntelligenceCard = {
   opportunityKind?: OpportunityKind;
 };
 
-export type NextBestAction = {
-  id: string;
-  title: string;
-  detail: string;
-  priority: number;
-  /** Which workspace tab or tool resolves this action. */
-  target?: string;
-};
-
 export type SuitabilityVerdict = "suitable" | "blocked" | "review";
 
 export type SuitabilityCheck = {

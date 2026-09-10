@@ -1,4 +1,5 @@
 import type { ClientSubscription, RiskLevel } from "@/types/client";
+import type { AssetRelationship } from "@/lib/clients/asset-relationship";
 
 export type ClientDetailUser = {
   user_id: string;
@@ -103,6 +104,7 @@ export type ClientDetailState = {
     quantity?: number;
     cost_basis?: number;
     current_value?: number;
+    relationship?: AssetRelationship;
     [key: string]: unknown;
   }>;
   accounts: Array<{
@@ -113,6 +115,7 @@ export type ClientDetailState = {
     balance: number;
     currency: string;
     updatedAt: string;
+    relationship?: AssetRelationship;
   }>;
   propertyAssets: Array<{
     property_id: string;

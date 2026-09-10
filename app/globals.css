@@ -87,6 +87,7 @@
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --dashboard-surface: #f9f9fb;
+  --dashboard-max-width: 1536px;
   --surface-muted: #f3f5f8;
   --surface-brand: color-mix(in oklch, var(--primary) 9%, white);
   --surface-success: color-mix(in oklch, #10b981 9%, white);
@@ -179,3 +180,4 @@
     animation: none;
   }
 }
+

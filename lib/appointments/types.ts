@@ -8,9 +8,43 @@ export type AppointmentType =
 
 export type AppointmentStatus =
   | "requested"
+  | "proposed"
+  | "counter_proposed"
+  | "accepted"
+  | "declined"
   | "upcoming"
+  | "scheduled"
+  | "in_progress"
+  | "processing_notes"
+  | "pending_review"
+  | "published"
   | "completed"
   | "cancelled";
+
+export type MeetingProvider = "google_meet" | "teams" | "zoom";
+
+export type NotesVisibility = "none" | "draft" | "published";
+
+export type TranscriptStatus =
+  | "pending"
+  | "processing"
+  | "ready"
+  | "failed";
+
+export type MeetingActionItem = {
+  title: string;
+  owner: string;
+  dueAt: string | null;
+};
+
+export type MeetingAiNotes = {
+  summary: string;
+  discussionPoints: string[];
+  actionItems: MeetingActionItem[];
+  participants: string[];
+  transcriptExcerpt: string;
+  fullTranscript: string;
+};
 
 export type SessionActionCategory = "financial" | "documents" | "other";
 
@@ -67,6 +101,18 @@ export type Appointment = {
   durationMinutes: number;
   status: AppointmentStatus;
   createdBy: "advisor" | "client";
+  proposedBy?: "advisor" | "client";
+  proposedSlots?: AppointmentSlot[];
+  meetingProvider?: MeetingProvider | null;
+  meetingUrl?: string | null;
+  calendarSynced?: boolean;
+  transcriptStatus?: TranscriptStatus;
+  notesVisibility?: NotesVisibility;
+  aiNotesDraft?: MeetingAiNotes | null;
+  aiNotesPublished?: MeetingAiNotes | null;
+  publishedAt?: string | null;
+  publishedByAdvisorId?: string | null;
+  reviewedAt?: string | null;
   log: SessionLog | null;
   progress: ProgressSnapshot | null;
   actionIds: string[];
@@ -98,3 +144,22 @@ export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
   goal_check_in: "Goal check-in",
   portfolio_update: "Portfolio update",
 };
+
+export const MEETING_PROVIDER_LABELS: Record<MeetingProvider, string> = {
+  google_meet: "Google Meet",
+  teams: "Microsoft Teams",
+  zoom: "Zoom",
+};
+
+export const NEGOTIATION_STATUSES: AppointmentStatus[] = [
+  "requested",
+  "proposed",
+  "counter_proposed",
+];
+
+export const SCHEDULED_STATUSES: AppointmentStatus[] = [
+  "upcoming",
+  "scheduled",
+  "accepted",
+  "in_progress",
+];

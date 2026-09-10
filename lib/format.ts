@@ -1,21 +1,35 @@
+function coerceFiniteNumber(value: number): number | null {
+  return Number.isFinite(value) ? value : null;
+}
+
 export function formatCurrency(
   value: number,
   currency: "USD" | "GHS" | "GBP" = "USD",
 ) {
+  const amount = coerceFiniteNumber(value);
+  if (amount === null) {
+    return "—";
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(amount);
 }
 
 export function formatCompactCurrency(value: number) {
+  const amount = coerceFiniteNumber(value);
+  if (amount === null) {
+    return "—";
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(value);
+  }).format(amount);
 }
 
 export function formatDate(value: string) {

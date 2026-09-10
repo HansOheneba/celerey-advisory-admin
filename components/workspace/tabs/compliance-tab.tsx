@@ -61,9 +61,7 @@ export function ComplianceTab({
         <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Compliance checks</CardTitle>
-            <CardDescription>
-              KYC, AML and suitability status for this relationship.
-            </CardDescription>
+            <CardDescription>KYC, AML, and suitability.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {compliance.map((entry) => {
@@ -159,9 +157,7 @@ export function ComplianceTab({
       <Card className="shadow-none">
         <CardHeader>
           <CardTitle>Audit trail</CardTitle>
-          <CardDescription>
-            Every action recorded against this client.
-          </CardDescription>
+          <CardDescription>Actions on this client record.</CardDescription>
         </CardHeader>
         <CardContent>
           {auditLogs.length === 0 ? (

@@ -1,82 +1,23 @@
 import {
+  defaultAssetMandate,
+  type AssetMandate,
+} from "@/lib/demo/seed/asset-mandate";
+import {
   buildClientRecord,
   type ClientSpec,
-  type HoldingSpec,
-  type MoneySpec,
 } from "@/lib/demo/seed/client-builder";
+import {
+  AGGRESSIVE_SLEEVES,
+  BALANCED_SLEEVES,
+  expensesFor,
+  GROWTH_SLEEVES,
+  holdingsFrom,
+  INCOME_SLEEVES,
+  incomeFor,
+} from "@/lib/demo/seed/portfolio-helpers";
+import { REGIONAL_CLIENT_SPECS } from "@/lib/demo/seed/regional-clients";
+import { resolveFillerResidency } from "@/lib/demo/seed/residency-locations";
 import type { DemoClientRecord } from "@/lib/demo/types";
-
-type Sleeve = {
-  name: string;
-  symbol?: string;
-  assetType: string;
-  weight: number;
-  /** Unrealised gain against cost basis, percent. */
-  gainPct: number;
-};
-
-/** Split a portfolio value across sleeves so holdings always reconcile to AUA. */
-function holdingsFrom(total: number, sleeves: Sleeve[]): HoldingSpec[] {
-  return sleeves.map((sleeve) => {
-    const value = Math.round(total * sleeve.weight);
-    return {
-      name: sleeve.name,
-      symbol: sleeve.symbol,
-      assetType: sleeve.assetType,
-      value,
-      costBasis: Math.round(value / (1 + sleeve.gainPct / 100)),
-    };
-  });
-}
-
-const GROWTH_SLEEVES: Sleeve[] = [
-  { name: "Global Equity Core", symbol: "GEC", assetType: "Equities", weight: 0.38, gainPct: 22 },
-  { name: "Emerging Markets Fund", symbol: "EMF", assetType: "Equities", weight: 0.14, gainPct: 11 },
-  { name: "Investment Grade Credit", symbol: "IGC", assetType: "Fixed income", weight: 0.2, gainPct: 5 },
-  { name: "Private Markets Access", assetType: "Private markets", weight: 0.16, gainPct: 34 },
-  { name: "Gold & Commodities", symbol: "GLD", assetType: "Alternatives", weight: 0.12, gainPct: 14 },
-];
-
-const BALANCED_SLEEVES: Sleeve[] = [
-  { name: "Global Equity Core", symbol: "GEC", assetType: "Equities", weight: 0.3, gainPct: 18 },
-  { name: "Sovereign Bond Ladder", symbol: "SBL", assetType: "Fixed income", weight: 0.32, gainPct: 4 },
-  { name: "Investment Grade Credit", symbol: "IGC", assetType: "Fixed income", weight: 0.16, gainPct: 6 },
-  { name: "Diversified Property Fund", assetType: "Real estate", weight: 0.12, gainPct: 9 },
-  { name: "Absolute Return Fund", assetType: "Alternatives", weight: 0.1, gainPct: 7 },
-];
-
-const INCOME_SLEEVES: Sleeve[] = [
-  { name: "Sovereign Bond Ladder", symbol: "SBL", assetType: "Fixed income", weight: 0.4, gainPct: 3 },
-  { name: "Investment Grade Credit", symbol: "IGC", assetType: "Fixed income", weight: 0.26, gainPct: 5 },
-  { name: "Dividend Equity Income", symbol: "DEI", assetType: "Equities", weight: 0.2, gainPct: 12 },
-  { name: "Diversified Property Fund", assetType: "Real estate", weight: 0.14, gainPct: 8 },
-];
-
-const AGGRESSIVE_SLEEVES: Sleeve[] = [
-  { name: "Global Equity Core", symbol: "GEC", assetType: "Equities", weight: 0.34, gainPct: 27 },
-  { name: "Technology Growth Fund", symbol: "TGF", assetType: "Equities", weight: 0.22, gainPct: 41 },
-  { name: "Private Markets Access", assetType: "Private markets", weight: 0.24, gainPct: 38 },
-  { name: "Digital Asset Sleeve", assetType: "Alternatives", weight: 0.1, gainPct: 55 },
-  { name: "Investment Grade Credit", symbol: "IGC", assetType: "Fixed income", weight: 0.1, gainPct: 4 },
-];
-
-function incomeFor(monthly: number): MoneySpec[] {
-  return [
-    { name: "Employment income", amount: Math.round(monthly * 0.6) },
-    { name: "Portfolio distributions", amount: Math.round(monthly * 0.27) },
-    { name: "Rental income", amount: Math.round(monthly * 0.13) },
-  ];
-}
-
-function expensesFor(monthly: number): MoneySpec[] {
-  return [
-    { name: "Household", amount: Math.round(monthly * 0.34), essential: true },
-    { name: "Education", amount: Math.round(monthly * 0.18), essential: true },
-    { name: "Travel & lifestyle", amount: Math.round(monthly * 0.24) },
-    { name: "Insurance & health", amount: Math.round(monthly * 0.12), essential: true },
-    { name: "Philanthropy", amount: Math.round(monthly * 0.12) },
-  ];
-}
 
 const SPECS: ClientSpec[] = [
   {
@@ -107,7 +48,17 @@ const SPECS: ClientSpec[] = [
     bio: "Second-generation industrialist consolidating cross-border wealth ahead of a partial business exit.",
     notes:
       "Cash weighting has drifted well above mandate after the Q2 dividend. Education goal for 2027 is behind plan.",
-    holdings: holdingsFrom(36_256_000, GROWTH_SLEEVES),
+    holdings: [
+      ...holdingsFrom(36_256_000, GROWTH_SLEEVES),
+      {
+        name: "Fidelity US Equity Sleeve",
+        symbol: "FUSE",
+        assetType: "Equities",
+        value: 2_400_000,
+        costBasis: 1_950_000,
+        relationship: "aua" as const,
+      },
+    ],
     accounts: [
       { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 3_244_000 },
       { name: "USD Call Deposit", institution: "Celerey Bank", type: "deposit", balance: 1_700_000 },
@@ -135,6 +86,7 @@ const SPECS: ClientSpec[] = [
       { name: "Kojo Osei-Bonsu", relationship: "son", ageYears: 14 },
     ],
     targetCashPct: 4,
+    assetMandate: "mixed",
     heldAwayUsd: 10_150_000,
     portfolioDriftPct: 5.4,
     revenueQtdUsd: 286_000,
@@ -195,6 +147,7 @@ const SPECS: ClientSpec[] = [
     expenses: expensesFor(41_000),
     dependents: [{ name: "Afia Darko", relationship: "daughter", ageYears: 12 }],
     targetCashPct: 5,
+    assetMandate: "mixed",
     heldAwayUsd: 1_200_000,
     portfolioDriftPct: 11.6,
     revenueQtdUsd: 104_000,
@@ -325,9 +278,10 @@ const SPECS: ClientSpec[] = [
     currency: "USD",
     advisorId: "rm-akua",
     advisorName: "Akua Boateng",
-    location: "Accra, Ghana",
-    city: "Accra",
+    location: "Ho, Ghana",
+    city: "Ho",
     country: "Ghana",
+    regionCode: "TV",
     residency: "GH resident",
     occupation: "Partner, corporate law",
     maritalStatus: "married",
@@ -690,9 +644,10 @@ const SPECS: ClientSpec[] = [
     currency: "USD",
     advisorId: "rm-akua",
     advisorName: "Akua Boateng",
-    location: "Accra, Ghana",
-    city: "Accra",
+    location: "Obuasi, Ghana",
+    city: "Obuasi",
     country: "Ghana",
+    regionCode: "AH",
     residency: "GH resident",
     occupation: "Mining executive",
     maritalStatus: "married",
@@ -732,6 +687,243 @@ const SPECS: ClientSpec[] = [
       maturesInDays: 26,
     },
   },
+  {
+    id: "mensah-advised",
+    firstName: "Kwame",
+    lastName: "Mensah",
+    email: "kwame.mensah@example.com",
+    phone: "+233 24 555 0192",
+    status: "active",
+    riskLevel: "moderate",
+    subscription: "celerey_core",
+    segment: "hnw",
+    currency: "USD",
+    advisorId: "rm-akua",
+    advisorName: "Akua Boateng",
+    location: "Accra, Ghana",
+    city: "Accra",
+    country: "Ghana",
+    regionCode: "AA",
+    residency: "GH resident",
+    occupation: "Tech founder",
+    maritalStatus: "married",
+    gender: "male",
+    age: 44,
+    citizenships: ["GH"],
+    joinedDaysAgo: 540,
+    lastContactDaysAgo: 6,
+    nextReviewInDays: 28,
+    assetMandate: "aua",
+    bio: "Advisory-only relationship. Portfolio held at external custodians with Celerey providing planning and allocation guidance.",
+    notes: "No Celerey-managed mandate. Quarterly rebalance guidance only.",
+    holdings: [
+      {
+        name: "Schwab Global Equity ETF",
+        symbol: "SCHW",
+        assetType: "Equities",
+        value: 520_000,
+        costBasis: 410_000,
+        relationship: "aua",
+      },
+      {
+        name: "Fidelity Bond Ladder",
+        symbol: "FID",
+        assetType: "Fixed income",
+        value: 280_000,
+        costBasis: 265_000,
+        relationship: "aua",
+      },
+    ],
+    accounts: [
+      {
+        name: "Brokerage Cash",
+        institution: "Charles Schwab",
+        type: "current",
+        balance: 45_000,
+      },
+      {
+        name: "ISA Cash",
+        institution: "Fidelity",
+        type: "deposit",
+        balance: 55_000,
+      },
+    ],
+    goals: [
+      {
+        title: "Business exit fund",
+        category: "Business",
+        target: 1_200_000,
+        current: 900_000,
+        monthly: 8_000,
+        years: 4,
+        priority: 1,
+      },
+    ],
+    properties: [],
+    liabilities: [],
+    insurance: [],
+    income: incomeFor(42_000),
+    expenses: expensesFor(24_000),
+    dependents: [],
+    targetCashPct: 8,
+    heldAwayUsd: 0,
+    portfolioDriftPct: 1.2,
+    revenueQtdUsd: 4_200,
+    netFlowQtdUsd: 60_000,
+    performanceYtdPct: 7.4,
+    maturingInvestment: null,
+  },
+  {
+    id: "boateng-advised",
+    firstName: "Ama",
+    lastName: "Boateng",
+    email: "ama.boateng.advised@example.com",
+    phone: "+44 7700 900451",
+    status: "active",
+    riskLevel: "conservative",
+    subscription: "celerey_core",
+    segment: "affluent",
+    currency: "USD",
+    advisorId: "rm-daniel",
+    advisorName: "Daniel Mensah",
+    location: "Manchester, UK",
+    city: "Manchester",
+    country: "United Kingdom",
+    residency: "UK resident",
+    occupation: "NHS consultant",
+    maritalStatus: "single",
+    gender: "female",
+    age: 39,
+    citizenships: ["GB", "GH"],
+    joinedDaysAgo: 320,
+    lastContactDaysAgo: 19,
+    nextReviewInDays: 45,
+    assetMandate: "aua",
+    bio: "Conservative advisory mandate over assets held entirely at external institutions.",
+    notes: "Pension consolidation review scheduled. No discretionary management mandate.",
+    holdings: [
+      {
+        name: "Vanguard LifeStrategy 60",
+        symbol: "VLS60",
+        assetType: "Equities",
+        value: 185_000,
+        costBasis: 160_000,
+        relationship: "aua",
+      },
+      {
+        name: "UK Gilts ETF",
+        symbol: "IGLT",
+        assetType: "Fixed income",
+        value: 95_000,
+        costBasis: 92_000,
+        relationship: "aua",
+      },
+    ],
+    accounts: [
+      {
+        name: "SIPP Cash",
+        institution: "Hargreaves Lansdown",
+        type: "deposit",
+        balance: 70_000,
+      },
+    ],
+    goals: [
+      {
+        title: "Retirement at 60",
+        category: "Retirement",
+        target: 800_000,
+        current: 350_000,
+        monthly: 2_500,
+        years: 21,
+        priority: 1,
+      },
+    ],
+    properties: [],
+    liabilities: [],
+    insurance: [],
+    income: incomeFor(18_000),
+    expenses: expensesFor(11_000),
+    dependents: [],
+    targetCashPct: 10,
+    heldAwayUsd: 0,
+    portfolioDriftPct: 0.6,
+    revenueQtdUsd: 1_800,
+    netFlowQtdUsd: 12_000,
+    performanceYtdPct: 4.2,
+    maturingInvestment: null,
+  },
+  {
+    id: "asante-advised",
+    firstName: "Kofi",
+    lastName: "Asante",
+    email: "kofi.asante.advised@example.com",
+    phone: "+233 20 441 8820",
+    status: "active",
+    riskLevel: "growth",
+    subscription: "free_trial",
+    segment: "emerging",
+    currency: "USD",
+    advisorId: "rm-akua",
+    advisorName: "Akua Boateng",
+    location: "Kumasi, Ghana",
+    city: "Kumasi",
+    country: "Ghana",
+    regionCode: "AH",
+    residency: "GH resident",
+    occupation: "Software engineer",
+    maritalStatus: "single",
+    gender: "male",
+    age: 31,
+    citizenships: ["GH"],
+    joinedDaysAgo: 90,
+    lastContactDaysAgo: 3,
+    nextReviewInDays: 14,
+    assetMandate: "aua",
+    bio: "Early-career advisory client building wealth through external brokerage accounts.",
+    notes: "Trial subscription. Considering managed portfolio migration.",
+    holdings: [
+      {
+        name: "US Tech ETF",
+        symbol: "QQQ",
+        assetType: "Equities",
+        value: 42_000,
+        costBasis: 35_000,
+        relationship: "aua",
+      },
+    ],
+    accounts: [
+      {
+        name: "Brokerage",
+        institution: "Interactive Brokers",
+        type: "current",
+        balance: 8_000,
+      },
+    ],
+    goals: [
+      {
+        title: "First home deposit",
+        category: "Property",
+        target: 120_000,
+        current: 50_000,
+        monthly: 1_200,
+        years: 5,
+        priority: 1,
+      },
+    ],
+    properties: [],
+    liabilities: [],
+    insurance: [],
+    income: incomeFor(9_500),
+    expenses: expensesFor(6_200),
+    dependents: [],
+    targetCashPct: 12,
+    heldAwayUsd: 0,
+    portfolioDriftPct: 0.4,
+    revenueQtdUsd: 450,
+    netFlowQtdUsd: 5_000,
+    performanceYtdPct: 11.2,
+    maturingInvestment: null,
+  },
 ];
 
 /**
@@ -759,27 +951,30 @@ type FillerSpec = {
 const FILLERS: FillerSpec[] = [
   { id: "amoah", firstName: "Gifty", lastName: "Amoah", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 5_400_000, cash: 240_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Accra", drift: 2.1, lastContactDaysAgo: 14, nextReviewInDays: 52 },
   { id: "frimpong", firstName: "Kwesi", lastName: "Frimpong", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 7_900_000, cash: 380_000, riskLevel: "conservative", status: "active", segment: "hnw", city: "Kumasi", drift: 10.4, lastContactDaysAgo: 8, nextReviewInDays: 30 },
-  { id: "ofori", firstName: "Adwoa", lastName: "Ofori", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 3_200_000, cash: 620_000, riskLevel: "growth", status: "active", segment: "affluent", city: "Accra", drift: 4.6, lastContactDaysAgo: 26, nextReviewInDays: 21 },
-  { id: "annan", firstName: "Kofi", lastName: "Annan", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 12_600_000, cash: 540_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Accra", drift: 3.2, lastContactDaysAgo: 5, nextReviewInDays: 63, heldAway: 1_800_000 },
-  { id: "danso", firstName: "Akosua", lastName: "Danso", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 2_100_000, cash: 480_000, riskLevel: "moderate", status: "onboarding", segment: "emerging", city: "Tema", drift: 1.1, lastContactDaysAgo: 7, nextReviewInDays: 18 },
-  { id: "appiah-r", firstName: "Richard", lastName: "Appiah", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 9_100_000, cash: 1_240_000, riskLevel: "growth", status: "active", segment: "hnw", city: "Accra", drift: 5.8, lastContactDaysAgo: 12, nextReviewInDays: 9 },
+  { id: "ofori", firstName: "Adwoa", lastName: "Ofori", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 3_200_000, cash: 620_000, riskLevel: "growth", status: "active", segment: "affluent", city: "Lagos", drift: 4.6, lastContactDaysAgo: 26, nextReviewInDays: 21 },
+  { id: "annan", firstName: "Kofi", lastName: "Annan", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 12_600_000, cash: 540_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Dubai", drift: 3.2, lastContactDaysAgo: 5, nextReviewInDays: 63, heldAway: 1_800_000 },
+  { id: "danso", firstName: "Akosua", lastName: "Danso", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 2_100_000, cash: 480_000, riskLevel: "moderate", status: "onboarding", segment: "emerging", city: "New York", drift: 1.1, lastContactDaysAgo: 7, nextReviewInDays: 18 },
+  { id: "appiah-r", firstName: "Richard", lastName: "Appiah", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 9_100_000, cash: 1_240_000, riskLevel: "growth", status: "active", segment: "hnw", city: "Toronto", drift: 5.8, lastContactDaysAgo: 12, nextReviewInDays: 9 },
   { id: "yeboah", firstName: "Comfort", lastName: "Yeboah", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 15_300_000, cash: 720_000, riskLevel: "growth", status: "active", segment: "uhnw", city: "London", drift: 4.1, lastContactDaysAgo: 18, nextReviewInDays: 37, heldAway: 3_200_000 },
-  { id: "bediako", firstName: "Emmanuel", lastName: "Bediako", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 4_600_000, cash: 150_000, riskLevel: "aggressive", status: "active", segment: "affluent", city: "Accra", drift: 6.9, lastContactDaysAgo: 33, nextReviewInDays: 25 },
-  { id: "acheampong", firstName: "Grace", lastName: "Acheampong", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 6_200_000, cash: 910_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Accra", drift: 2.7, lastContactDaysAgo: 21, nextReviewInDays: 4 },
-  { id: "wiredu", firstName: "Samuel", lastName: "Wiredu", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 2_800_000, cash: 90_000, riskLevel: "conservative", status: "inactive", segment: "emerging", city: "Cape Coast", drift: 1.9, lastContactDaysAgo: 142, nextReviewInDays: -60 },
-  { id: "obeng", firstName: "Patience", lastName: "Obeng", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 8_400_000, cash: 1_020_000, riskLevel: "growth", status: "active", segment: "hnw", city: "Accra", drift: 3.6, lastContactDaysAgo: 9, nextReviewInDays: 48 },
-  { id: "kyei", firstName: "Daniel", lastName: "Kyei", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 5_900_000, cash: 260_000, riskLevel: "moderate", status: "review", segment: "hnw", city: "Kumasi", drift: 4.9, lastContactDaysAgo: 44, nextReviewInDays: -3 },
-  { id: "addo", firstName: "Vida", lastName: "Addo", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 3_700_000, cash: 340_000, riskLevel: "moderate", status: "active", segment: "affluent", city: "Accra", drift: 2.4, lastContactDaysAgo: 16, nextReviewInDays: 55 },
+  { id: "bediako", firstName: "Emmanuel", lastName: "Bediako", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 4_600_000, cash: 150_000, riskLevel: "aggressive", status: "active", segment: "affluent", city: "Nairobi", drift: 6.9, lastContactDaysAgo: 33, nextReviewInDays: 25 },
+  { id: "acheampong", firstName: "Grace", lastName: "Acheampong", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 6_200_000, cash: 910_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Sekondi", drift: 2.7, lastContactDaysAgo: 21, nextReviewInDays: 4 },
+  { id: "wiredu", firstName: "Samuel", lastName: "Wiredu", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 2_800_000, cash: 90_000, riskLevel: "conservative", status: "inactive", segment: "emerging", city: "Johannesburg", drift: 1.9, lastContactDaysAgo: 142, nextReviewInDays: -60 },
+  { id: "obeng", firstName: "Patience", lastName: "Obeng", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 8_400_000, cash: 1_020_000, riskLevel: "growth", status: "active", segment: "hnw", city: "Tamale", drift: 3.6, lastContactDaysAgo: 9, nextReviewInDays: 48 },
+  { id: "kyei", firstName: "Daniel", lastName: "Kyei", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 5_900_000, cash: 260_000, riskLevel: "moderate", status: "review", segment: "hnw", city: "Geneva", drift: 4.9, lastContactDaysAgo: 44, nextReviewInDays: -3 },
+  { id: "addo", firstName: "Vida", lastName: "Addo", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 3_700_000, cash: 340_000, riskLevel: "moderate", status: "active", segment: "affluent", city: "Bolgatanga", drift: 2.4, lastContactDaysAgo: 16, nextReviewInDays: 55 },
   { id: "gyasi", firstName: "Isaac", lastName: "Gyasi", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 11_800_000, cash: 460_000, riskLevel: "growth", status: "active", segment: "hnw", city: "Accra", drift: 5.1, lastContactDaysAgo: 6, nextReviewInDays: 41, heldAway: 2_400_000 },
-  { id: "nyarko", firstName: "Elizabeth", lastName: "Nyarko", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 4_100_000, cash: 780_000, riskLevel: "conservative", status: "active", segment: "affluent", city: "Accra", drift: 1.6, lastContactDaysAgo: 29, nextReviewInDays: 33 },
+  { id: "nyarko", firstName: "Elizabeth", lastName: "Nyarko", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 4_100_000, cash: 780_000, riskLevel: "conservative", status: "active", segment: "affluent", city: "Damongo", drift: 1.6, lastContactDaysAgo: 29, nextReviewInDays: 33 },
   { id: "koomson", firstName: "Ebenezer", lastName: "Koomson", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 7_300_000, cash: 320_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Tema", drift: 3.9, lastContactDaysAgo: 13, nextReviewInDays: 58 },
-  { id: "amponsah", firstName: "Josephine", lastName: "Amponsah", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 2_400_000, cash: 130_000, riskLevel: "growth", status: "onboarding", segment: "emerging", city: "Accra", drift: 0.8, lastContactDaysAgo: 4, nextReviewInDays: 20 },
-  { id: "baidoo", firstName: "Michael", lastName: "Baidoo", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 6_700_000, cash: 940_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Accra", drift: 2.8, lastContactDaysAgo: 24, nextReviewInDays: 12 },
+  { id: "amponsah", firstName: "Josephine", lastName: "Amponsah", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 2_400_000, cash: 130_000, riskLevel: "growth", status: "onboarding", segment: "emerging", city: "Nalerigu", drift: 0.8, lastContactDaysAgo: 4, nextReviewInDays: 20 },
+  { id: "baidoo", firstName: "Michael", lastName: "Baidoo", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 6_700_000, cash: 940_000, riskLevel: "moderate", status: "active", segment: "hnw", city: "Dambai", drift: 2.8, lastContactDaysAgo: 24, nextReviewInDays: 12 },
   { id: "essien", firstName: "Rita", lastName: "Essien", advisorId: "rm-akua", advisorName: "Akua Boateng", portfolio: 9_800_000, cash: 410_000, riskLevel: "growth", status: "active", segment: "hnw", city: "London", drift: 4.3, lastContactDaysAgo: 17, nextReviewInDays: 29, heldAway: 1_100_000 },
-  { id: "arthur", firstName: "Prince", lastName: "Arthur", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 3_400_000, cash: 200_000, riskLevel: "aggressive", status: "active", segment: "affluent", city: "Accra", drift: 7.4, lastContactDaysAgo: 38, nextReviewInDays: 16 },
+  { id: "arthur", firstName: "Prince", lastName: "Arthur", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 3_400_000, cash: 200_000, riskLevel: "aggressive", status: "active", segment: "affluent", city: "Winneba", drift: 7.4, lastContactDaysAgo: 38, nextReviewInDays: 16 },
 ];
 
-const SLEEVES_BY_RISK: Record<ClientSpec["riskLevel"], Sleeve[]> = {
+const SLEEVES_BY_RISK: Record<
+  ClientSpec["riskLevel"],
+  typeof GROWTH_SLEEVES
+> = {
   conservative: INCOME_SLEEVES,
   moderate: BALANCED_SLEEVES,
   growth: GROWTH_SLEEVES,
@@ -789,29 +984,31 @@ const SLEEVES_BY_RISK: Record<ClientSpec["riskLevel"], Sleeve[]> = {
 function fillerToSpec(filler: FillerSpec): ClientSpec {
   const monthlyIncome = Math.round(filler.portfolio * 0.0062);
   const monthlyExpenses = Math.round(monthlyIncome * 0.52);
+  const residency = resolveFillerResidency(filler.city);
 
   return {
     id: filler.id,
     firstName: filler.firstName,
     lastName: filler.lastName,
     email: `${filler.firstName.toLowerCase()}.${filler.lastName.toLowerCase()}@example.com`,
-    phone: "+233 30 200 0000",
+    phone: residency.phone,
     status: filler.status,
     riskLevel: filler.riskLevel,
     subscription: filler.status === "onboarding" ? "free_trial" : "celerey_core",
     segment: filler.segment,
-    currency: "USD",
+    currency: residency.currency,
     advisorId: filler.advisorId,
     advisorName: filler.advisorName,
-    location: `${filler.city}, ${filler.city === "London" ? "UK" : "Ghana"}`,
-    city: filler.city,
-    country: filler.city === "London" ? "United Kingdom" : "Ghana",
-    residency: filler.city === "London" ? "UK resident" : "GH resident",
+    location: residency.location,
+    city: residency.city,
+    country: residency.country,
+    regionCode: residency.regionCode,
+    residency: residency.residency,
     occupation: "Private client",
     maritalStatus: "married",
     gender: "female",
     age: 48,
-    citizenships: ["GH"],
+    citizenships: residency.citizenships,
     joinedDaysAgo: 600 + Math.round(filler.portfolio / 20_000),
     lastContactDaysAgo: filler.lastContactDaysAgo,
     nextReviewInDays: filler.nextReviewInDays,
@@ -853,6 +1050,42 @@ function fillerToSpec(filler: FillerSpec): ClientSpec {
   };
 }
 
+function inferMainSpecMandate(spec: ClientSpec): AssetMandate {
+  if (spec.assetMandate) {
+    return spec.assetMandate;
+  }
+
+  if (spec.id.endsWith("-advised")) {
+    return "aua";
+  }
+
+  if ((spec.heldAwayUsd ?? 0) > 0) {
+    return "mixed";
+  }
+
+  if (spec.holdings.some((holding) => holding.relationship === "aua")) {
+    return "mixed";
+  }
+
+  return "aum";
+}
+
+function withAssetMandate(spec: ClientSpec, index: number): ClientSpec {
+  const assetMandate =
+    spec.assetMandate ??
+    (index < SPECS.length
+      ? inferMainSpecMandate(spec)
+      : defaultAssetMandate(spec, index));
+
+  return { ...spec, assetMandate };
+}
+
 export function seedClients(): DemoClientRecord[] {
-  return [...SPECS, ...FILLERS.map(fillerToSpec)].map(buildClientRecord);
+  const specs = [
+    ...SPECS,
+    ...REGIONAL_CLIENT_SPECS,
+    ...FILLERS.map(fillerToSpec),
+  ].map(withAssetMandate);
+
+  return specs.map(buildClientRecord);
 }

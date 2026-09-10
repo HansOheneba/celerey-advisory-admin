@@ -16,8 +16,10 @@ export type Client = {
   status: ClientStatus;
   riskLevel: RiskLevel;
   subscription: ClientSubscription;
-  /** Assets under advisement */
+  /** Assets advised on but not managed by Celerey */
   aua: number;
+  /** Assets under Celerey management mandate */
+  aum: number;
   currency: "USD" | "GHS" | "GBP";
   advisorId: string;
   advisorName: string;

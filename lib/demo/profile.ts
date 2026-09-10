@@ -2,6 +2,7 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
+import { applyClientAssetTotals } from "@/lib/clients/asset-relationship";
 import { can } from "@/lib/auth/capabilities";
 import { requireSession } from "@/lib/dal";
 import { getClientRecord } from "@/lib/demo/repositories";
@@ -67,20 +68,18 @@ function buildAllocation(record: DemoClientRecord) {
     }));
 }
 
-/** Recompute AUA, allocation, goals meta and cash-flow after a profile write. */
+/** Recompute AUA, AUM, allocation, goals meta and cash-flow after a profile write. */
 export function syncClientDerived(record: DemoClientRecord) {
-  const holdingsTotal = record.detail.holdings.reduce(
-    (total, holding) => total + (holding.current_value ?? 0),
-    0,
-  );
   const cash = record.detail.accounts.reduce(
     (total, account) => total + account.balance,
     0,
   );
-  const aua = round(holdingsTotal + cash);
+  const totals = applyClientAssetTotals(record);
 
-  record.client.aua = aua;
-  record.idleCashPct = aua > 0 ? Math.round((cash / aua) * 1000) / 10 : 0;
+  record.idleCashPct =
+    totals.totalCovered > 0
+      ? Math.round((cash / totals.totalCovered) * 1000) / 10
+      : 0;
   record.client.goalsCount = record.detail.goals.length;
 
   const goals = record.detail.goals;
@@ -136,9 +135,11 @@ export function syncClientDerived(record: DemoClientRecord) {
 
   const series = record.detail.portfolioPerformance;
   if (series.length > 0) {
+    const performanceValue =
+      totals.aum > 0 ? totals.aum : totals.totalCovered;
     series[series.length - 1] = {
       ...series[series.length - 1],
-      value: aua,
+      value: performanceValue,
     };
   }
 

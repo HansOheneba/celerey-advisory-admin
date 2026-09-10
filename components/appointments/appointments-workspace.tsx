@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { CalendarDays, List } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { NotebookText } from "lucide-react";
 import { toast } from "sonner";
 import {
   confirmAppointmentAction,
@@ -9,30 +10,23 @@ import {
   logAppointmentAction,
   updateAppointmentStatusAction,
 } from "@/app/actions/appointments";
-import { AppointmentRequestCard } from "@/components/appointments/appointment-request-card";
-import {
-  AppointmentDayTimeline,
-  AppointmentListRow,
-  AppointmentWeekCalendar,
-  groupAppointmentsByDay,
-} from "@/components/appointments/appointment-schedule-views";
+import { AppointmentDetailSheet } from "@/components/appointments/appointment-detail-sheet";
 import { AppointmentSummaryStrip } from "@/components/appointments/appointment-summary-strip";
+import { CounterProposeDialog } from "@/components/appointments/counter-propose-dialog";
+import { GoogleWeekCalendar } from "@/components/appointments/google-week-calendar";
 import { LogSessionDialog } from "@/components/appointments/log-session-dialog";
+import { MeetingNegotiationCard } from "@/components/appointments/meeting-negotiation-card";
 import { ScheduleAppointmentDialog } from "@/components/appointments/schedule-appointment-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   computeScheduleStats,
-  formatDayLabel,
   formatHeaderDate,
   formatShortDate,
   formatTimeLabel,
-  formatTodayHeading,
   getInitialWeekStart,
   getNextScheduledAppointment,
   getWeekStart,
   partitionSchedule,
-  type ScheduleView,
 } from "@/lib/appointments/display";
 import type {
   Appointment,
@@ -48,39 +42,6 @@ type AppointmentsWorkspaceProps = {
   initialAppointments: Appointment[];
 };
 
-function ScheduleViewToggle({
-  value,
-  onChange,
-}: {
-  value: ScheduleView;
-  onChange: (value: ScheduleView) => void;
-}) {
-  return (
-    <div className="inline-flex h-9 items-center gap-1 rounded-lg bg-muted p-1">
-      <Button
-        type="button"
-        size="sm"
-        variant={value === "calendar" ? "secondary" : "ghost"}
-        className={cn(value === "calendar" && "shadow-sm")}
-        onClick={() => onChange("calendar")}
-      >
-        <CalendarDays />
-        Calendar
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={value === "list" ? "secondary" : "ghost"}
-        className={cn(value === "list" && "shadow-sm")}
-        onClick={() => onChange("list")}
-      >
-        <List />
-        List
-      </Button>
-    </div>
-  );
-}
-
 export function AppointmentsWorkspace({
   clients,
   initialAppointments,
@@ -88,22 +49,24 @@ export function AppointmentsWorkspace({
   const [appointments, setAppointments] = useState(initialAppointments);
   const [pending, startTransition] = useTransition();
   const [logging, setLogging] = useState<Appointment | null>(null);
-  const [view, setView] = useState<ScheduleView>("calendar");
+  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [countering, setCountering] = useState<Appointment | null>(null);
   const [weekStart, setWeekStart] = useState(() =>
     getInitialWeekStart(initialAppointments),
   );
+
+  useEffect(() => {
+    setAppointments(initialAppointments);
+    setWeekStart(getInitialWeekStart(initialAppointments));
+  }, [initialAppointments]);
 
   const stats = useMemo(
     () => computeScheduleStats(appointments),
     [appointments],
   );
-  const { today, upcoming, requested, calendarItems } = useMemo(
+  const { requested, calendarItems } = useMemo(
     () => partitionSchedule(appointments),
     [appointments],
-  );
-  const upcomingGroups = useMemo(
-    () => groupAppointmentsByDay(upcoming),
-    [upcoming],
   );
   const nextAppointment = useMemo(
     () => getNextScheduledAppointment(appointments),
@@ -111,8 +74,6 @@ export function AppointmentsWorkspace({
   );
 
   const todayDate = new Date();
-  const hasSchedule =
-    requested.length > 0 || today.length > 0 || upcoming.length > 0;
 
   function handleSchedule(input: {
     clientId: string;
@@ -137,7 +98,6 @@ export function AppointmentsWorkspace({
       );
       if (result.appointment.scheduledAt) {
         setWeekStart(getWeekStart(new Date(result.appointment.scheduledAt)));
-        setView("calendar");
       }
       toast.success("Appointment scheduled");
     });
@@ -157,11 +117,12 @@ export function AppointmentsWorkspace({
       setAppointments((current) =>
         current.map((item) => (item.id === id ? result.appointment : item)),
       );
+      setSelected(null);
       toast.success("Appointment cancelled");
     });
   }
 
-  function confirmRequest(id: string) {
+  function acceptNegotiation(id: string) {
     startTransition(async () => {
       const result = await confirmAppointmentAction({ appointmentId: id });
       if (!result.ok) {
@@ -169,27 +130,42 @@ export function AppointmentsWorkspace({
         return;
       }
 
-      const previous = appointments.find((item) => item.id === id);
-      const confirmed = {
-        ...result.appointment,
-        scheduledAt:
-          result.appointment.scheduledAt ?? previous?.scheduledAt ?? null,
-        status:
-          result.appointment.status === "requested"
-            ? "upcoming"
-            : result.appointment.status,
-      };
-
       setAppointments((current) =>
-        current.map((item) => (item.id === id ? confirmed : item)),
+        current.map((item) =>
+          item.id === id ? result.appointment : item,
+        ),
       );
 
-      if (confirmed.scheduledAt) {
-        setWeekStart(getWeekStart(new Date(confirmed.scheduledAt)));
-        setView("calendar");
+      if (result.appointment.scheduledAt) {
+        setWeekStart(getWeekStart(new Date(result.appointment.scheduledAt)));
       }
 
-      toast.success("Session confirmed");
+      toast.success("Meeting accepted · added to calendar");
+    });
+  }
+
+  function counterPropose(input: {
+    appointmentId: string;
+    scheduledAt: string;
+  }) {
+    startTransition(async () => {
+      const result = await updateAppointmentStatusAction({
+        appointmentId: input.appointmentId,
+        status: "counter_proposed",
+        scheduledAt: input.scheduledAt,
+      });
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
+
+      setAppointments((current) =>
+        current.map((item) =>
+          item.id === input.appointmentId ? result.appointment : item,
+        ),
+      );
+      setCountering(null);
+      toast.success("Counter-proposal sent");
     });
   }
 
@@ -207,59 +183,74 @@ export function AppointmentsWorkspace({
         ),
       );
       setLogging(null);
-      toast.success("Session logged");
+      setSelected(null);
+      toast.success("Session logged · view in Sessions");
     });
   }
 
   return (
     <div className={dashboardTheme.page}>
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <p className={dashboardTheme.sectionLabel}>Schedule</p>
-          <h2 className={dashboardTheme.pageTitle}>Appointments</h2>
-          <p className={dashboardTheme.pageDescription}>
-            Manage your client sessions and upcoming advisory meetings.
-          </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">Today</span>
-            <span className="mx-2 text-border">·</span>
-            <span className="font-semibold text-foreground">
-              {formatHeaderDate(todayDate)}
-            </span>
-            <span className="mx-2 text-border">·</span>
-            <span className="font-semibold text-foreground">
-              {stats.requests}
-            </span>{" "}
-            request{stats.requests === 1 ? "" : "s"}
-            <span className="mx-2 text-border">·</span>
-            <span className="font-semibold text-foreground">
-              {today.length + upcoming.length}
-            </span>{" "}
-            upcoming
+      <section className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <div className="space-y-1">
+            <h2 className={dashboardTheme.pageTitle}>Appointments</h2>
+            <p className={dashboardTheme.pageDescription}>
+              Schedule and manage client meetings. Session logs and notes live
+              under Sessions.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-stretch gap-3 border-t border-border/50 pt-3">
+            <div className="min-w-[5.5rem] space-y-0.5 border-r border-border/50 pr-3">
+              <p className={dashboardTheme.sectionLabel}>Today</p>
+              <p className="text-sm font-semibold text-foreground">
+                {formatHeaderDate(todayDate)}
+              </p>
+            </div>
+            <div
+              className={cn(
+                "min-w-[5.5rem] space-y-0.5 border-r border-border/50 pr-3",
+                stats.requests > 0 && "text-foreground",
+              )}
+            >
+              <p className={dashboardTheme.sectionLabel}>Requests</p>
+              <p className="text-sm font-semibold tabular-nums">
+                {stats.requests}{" "}
+                <span className="font-normal text-muted-foreground">
+                  awaiting
+                </span>
+              </p>
+            </div>
             {nextAppointment?.scheduledAt ? (
-              <>
-                <span className="mx-2 text-border">·</span>
-                <span className="font-medium text-foreground">Next:</span>{" "}
-                <span className="font-semibold text-foreground">
-                  {nextAppointment.clientName}
-                </span>
-                <span className="mx-2 text-border">·</span>
-                <span className="font-semibold text-foreground">
-                  {formatShortDate(nextAppointment.scheduledAt)} at{" "}
-                  {formatTimeLabel(nextAppointment.scheduledAt)}
-                </span>
-              </>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className={dashboardTheme.sectionLabel}>Next appointment</p>
+                <p className="text-sm leading-snug">
+                  <span className="font-semibold text-foreground">
+                    {nextAppointment.clientName}
+                  </span>
+                  <span className="mx-1.5 text-border">·</span>
+                  <span className="text-muted-foreground">
+                    {formatShortDate(nextAppointment.scheduledAt)} at{" "}
+                    {formatTimeLabel(nextAppointment.scheduledAt)}
+                  </span>
+                </p>
+              </div>
             ) : null}
-          </p>
+          </div>
         </div>
-        <ScheduleAppointmentDialog
-          clients={clients}
-          onSchedule={handleSchedule}
-          pending={pending}
-        />
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" render={<Link href="/sessions" />}>
+            <NotebookText />
+            View sessions
+          </Button>
+          <ScheduleAppointmentDialog
+            clients={clients}
+            onSchedule={handleSchedule}
+            pending={pending}
+          />
+        </div>
       </section>
 
-      <AppointmentSummaryStrip stats={stats} />
+      <AppointmentSummaryStrip stats={stats} sessionsHref="/sessions" />
 
       {requested.length > 0 ? (
         <section className="space-y-3">
@@ -267,130 +258,60 @@ export function AppointmentsWorkspace({
             <div>
               <p className={dashboardTheme.sectionLabel}>Action required</p>
               <h3 className="text-base font-semibold tracking-tight">
-                Session requests
+                Meeting negotiations
               </h3>
             </div>
-            <span className="text-xs font-medium text-muted-foreground tabular-nums">
+            <span className="text-sm font-medium tabular-nums text-muted-foreground">
               {requested.length}
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {requested.map((appointment) => (
-              <AppointmentRequestCard
+              <MeetingNegotiationCard
                 key={appointment.id}
                 appointment={appointment}
                 pending={pending}
-                onConfirm={confirmRequest}
+                onAccept={acceptNegotiation}
                 onDecline={(id) => setStatus(id, "cancelled")}
+                onCounter={setCountering}
               />
             ))}
           </div>
         </section>
       ) : null}
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className={dashboardTheme.sectionLabel}>Your week</p>
-            <h3 className="text-base font-semibold tracking-tight">
-              {view === "calendar" ? "Calendar" : "Today"}
-            </h3>
-          </div>
-          <ScheduleViewToggle value={view} onChange={setView} />
-        </div>
+      <GoogleWeekCalendar
+        appointments={calendarItems}
+        weekStart={weekStart}
+        onWeekChange={setWeekStart}
+        onSelect={setSelected}
+      />
 
-        {view === "calendar" ? (
-          <AppointmentWeekCalendar
-            appointments={calendarItems}
-            weekStart={weekStart}
-            onWeekChange={setWeekStart}
-          />
-        ) : (
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <div>
-                <p className={dashboardTheme.sectionLabel}>Today</p>
-                <h4 className="text-sm font-semibold tracking-tight uppercase">
-                  {formatTodayHeading(todayDate)}
-                </h4>
-              </div>
-              <AppointmentDayTimeline
-                appointments={today}
-                pending={pending}
-                onLog={setLogging}
-                onCancel={(id) => setStatus(id, "cancelled")}
-              />
-            </div>
-
-            {upcomingGroups.length > 0 ? (
-              <div className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3">
-                  <div>
-                    <p className={dashboardTheme.sectionLabel}>Coming up</p>
-                    <h4 className="text-sm font-semibold tracking-tight">
-                      Upcoming
-                    </h4>
-                  </div>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {upcoming.length} session
-                    {upcoming.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {upcomingGroups.map(({ date, items }) => (
-                    <Card key={date.toISOString()} className={dashboardTheme.card}>
-                      <CardContent className="p-0">
-                        <div className="border-b border-border/50 px-4 py-3">
-                          <p className="text-sm font-semibold">
-                            {formatDayLabel(date.toISOString())}
-                          </p>
-                        </div>
-                        <div className="divide-y divide-border/50">
-                          {items.map((appointment) => (
-                            <AppointmentListRow
-                              key={appointment.id}
-                              appointment={appointment}
-                              pending={pending}
-                              onLog={setLogging}
-                              onCancel={(id) => setStatus(id, "cancelled")}
-                            />
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {!hasSchedule ? (
-              <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-                <div className="mb-4 flex size-12 items-center justify-center rounded-full border border-border/60 bg-muted/40">
-                  <CalendarDays className="size-5 text-muted-foreground" />
-                </div>
-                <p className="text-base font-medium">Your schedule is clear</p>
-                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                  No upcoming appointments. Schedule a session or wait for a
-                  client request.
-                </p>
-                <div className="mt-6">
-                  <ScheduleAppointmentDialog
-                    clients={clients}
-                    onSchedule={handleSchedule}
-                    pending={pending}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-      </section>
+      <AppointmentDetailSheet
+        appointment={selected}
+        open={selected !== null}
+        pending={pending}
+        onClose={() => setSelected(null)}
+        onCancel={(id) => setStatus(id, "cancelled")}
+        onLog={(appointment) => {
+          setSelected(null);
+          setLogging(appointment);
+        }}
+      />
 
       <LogSessionDialog
         appointment={logging}
         pending={pending}
         onClose={() => setLogging(null)}
         onSubmit={handleLog}
+      />
+
+      <CounterProposeDialog
+        appointment={countering}
+        open={countering !== null}
+        pending={pending}
+        onClose={() => setCountering(null)}
+        onSubmit={counterPropose}
       />
     </div>
   );

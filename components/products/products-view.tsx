@@ -14,7 +14,6 @@ import {
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
-import { IconTile } from "@/components/shared/icon-tile";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionPanel } from "@/components/shared/section-panel";
 import { StatGrid, StatItem } from "@/components/shared/stat-grid";
@@ -51,10 +50,10 @@ const RISK_ORDER: Record<DemoProduct["riskBand"], number> = {
 };
 
 const RISK_BADGE_STYLES: Record<DemoProduct["riskBand"], string> = {
-  conservative: "border-blue-500/20 bg-blue-500/10 text-blue-700",
-  moderate: "border-primary/20 bg-primary/10 text-primary",
-  growth: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700",
-  aggressive: "border-amber-500/20 bg-amber-500/10 text-amber-700",
+  conservative: "border-border/60 bg-muted/40 text-muted-foreground",
+  moderate: "border-border/60 bg-muted/40 text-foreground",
+  growth: "border-border/60 bg-muted/40 text-foreground",
+  aggressive: "border-border/60 bg-muted/40 text-foreground font-medium",
 };
 
 const CATEGORY_ICONS: Record<ProductCategory, LucideIcon> = {
@@ -109,7 +108,12 @@ export function ProductsView({ products }: ProductsViewProps) {
         icon={Layers}
       />
 
-      <div className={cn(dashboardTheme.filterBar, "flex flex-wrap gap-2")}>
+      <div
+        className={cn(
+          dashboardTheme.elevatedSection,
+          "flex flex-wrap gap-2",
+        )}
+      >
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -174,7 +178,6 @@ export function ProductsView({ products }: ProductsViewProps) {
               key={categoryKey}
               title={PRODUCT_CATEGORY_LABELS[categoryKey]}
               description={`${group.length} product${group.length === 1 ? "" : "s"}`}
-              variant="muted"
             >
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {group.map((product) => (
@@ -213,7 +216,9 @@ function ProductCard({ product }: { product: DemoProduct }) {
     <Card className={dashboardTheme.card}>
       <CardHeader>
         <div className="flex items-start gap-3">
-          <IconTile icon={CategoryIcon} variant="brand" />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
+            <CategoryIcon className="size-[18px]" aria-hidden />
+          </div>
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">

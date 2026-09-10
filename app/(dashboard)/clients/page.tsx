@@ -40,17 +40,19 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const sortBy =
     params.sortBy === "name" ||
     params.sortBy === "aua" ||
+    params.sortBy === "aum" ||
+    params.sortBy === "covered" ||
     params.sortBy === "lastContactAt" ||
     params.sortBy === "nextReviewAt" ||
     params.sortBy === "joinedAt"
       ? params.sortBy
-      : "joinedAt";
+      : "covered";
   const sortDir =
     params.sortDir === "asc"
       ? "asc"
       : params.sortDir === "desc"
         ? "desc"
-        : sortBy === "joinedAt"
+        : sortBy === "joinedAt" || sortBy === "covered"
           ? "desc"
           : "asc";
   const page = Number(params.page ?? "1") || 1;
@@ -82,11 +84,18 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         actions={canCreate ? <AddClientButton /> : null}
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          label="Total AUA"
+          label="Assets Under Advice"
           value={formatCompactCurrency(metrics.totalAua)}
-          hint={`${metrics.clientCount} relationships`}
+          hint="Advised outside managed portfolios"
+          variant="info"
+        />
+        <MetricCard
+          label="Assets Under Management"
+          value={formatCompactCurrency(metrics.totalAum)}
+          hint={`${formatCompactCurrency(metrics.totalCovered)} total covered`}
+          variant="brand"
         />
         <MetricCard
           label="Active clients"

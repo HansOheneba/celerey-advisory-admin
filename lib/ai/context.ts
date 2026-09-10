@@ -6,7 +6,6 @@ import {
   excessCash,
   holdingsValue,
   intelligenceCards,
-  nextBestActions,
   suitabilityChecks,
   type BookMetrics,
 } from "@/lib/demo/insights";
@@ -58,7 +57,6 @@ export function buildClientContext(record: DemoClientRecord): string {
   const cash = cashBalance(record);
   const cards = intelligenceCards(record);
   const checks = suitabilityChecks(record);
-  const actions = nextBestActions(record);
 
   const sections: string[] = [
     "# Client",
@@ -159,9 +157,6 @@ export function buildClientContext(record: DemoClientRecord): string {
     "",
     "# Suitability verdicts",
     ...checks.map((check) => `- ${check.action}: ${check.verdict} — ${check.reason}`),
-    "",
-    "# Suggested priorities",
-    ...actions.map((action) => `- ${action.title}: ${action.detail}`),
   );
 
   return sections.join("\n");
@@ -233,16 +228,13 @@ export function buildBookContext(
 export function fallbackClientBrief(record: DemoClientRecord): string {
   const { client } = record;
   const cards = intelligenceCards(record);
-  const actions = nextBestActions(record);
   const name = `${client.firstName} ${client.lastName}`;
 
   const paragraphs = [
     `${name} holds ${formatCompactCurrency(client.aua)} under advisement on a ${client.riskLevel} mandate, returning ${record.performanceYtdPct.toFixed(1)}% over the last twelve months. Cash sits at ${record.idleCashPct.toFixed(1)}% against a ${record.targetCashPct}% target and the portfolio is ${record.portfolioDriftPct.toFixed(1)} percentage points from the model allocation.`,
     "What has changed:",
     ...cards.map((card) => `• ${card.what} — ${card.why}`),
-    "What to do next:",
-    ...actions.map((action) => `• ${action.title} — ${action.detail}`),
-    `The next review is scheduled for ${formatDate(client.nextReviewAt)}. Any product recommendation must clear the suitability checks shown alongside this brief.`,
+    `The next review is scheduled for ${formatDate(client.nextReviewAt)}. Open assigned tasks are tracked in the client workspace. Any product recommendation must clear the suitability checks shown alongside this brief.`,
   ];
 
   return paragraphs.join("\n\n");

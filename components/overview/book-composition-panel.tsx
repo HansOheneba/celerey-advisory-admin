@@ -15,7 +15,9 @@ export function BookCompositionPanel({ segments }: BookCompositionPanelProps) {
     <section className={cn(dashboardTheme.elevatedSection, "space-y-4")}>
       <div className="space-y-1">
         <h2 className={dashboardTheme.sectionTitle}>Book composition</h2>
-        <p className="text-sm text-muted-foreground">AUA by client segment.</p>
+        <p className="text-sm text-muted-foreground">
+          Assets covered by client segment (AUA and AUM).
+        </p>
       </div>
 
       {segments.length === 0 ? (
@@ -35,8 +37,12 @@ export function BookCompositionPanel({ segments }: BookCompositionPanelProps) {
                     ({segment.clientCount})
                   </span>
                 </span>
-                <span className="shrink-0 tabular-nums text-muted-foreground">
-                  {segment.sharePct}% · {formatCompactCurrency(segment.aua)}
+                <span className="shrink-0 text-right tabular-nums text-muted-foreground">
+                  {segment.sharePct}% · {formatCompactCurrency(segment.totalCovered)}
+                  <span className="block text-[10px]">
+                    AUA {formatCompactCurrency(segment.aua)} · AUM{" "}
+                    {formatCompactCurrency(segment.aum)}
+                  </span>
                 </span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">

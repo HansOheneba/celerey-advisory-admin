@@ -3,6 +3,8 @@ export type CountryGeo = {
   iso3: string;
   iso2: string;
   label: string;
+  /** Name on the world-atlas 110m `countries` layer (when it differs from label). */
+  atlasName?: string;
   centroid: [number, number];
   flag: string;
 };
@@ -26,6 +28,7 @@ const REGISTRY: Record<string, CountryGeo> = {
     iso3: "USA",
     iso2: "US",
     label: "United States",
+    atlasName: "United States of America",
     centroid: [-98, 39],
     flag: "🇺🇸",
   },
@@ -57,6 +60,27 @@ const REGISTRY: Record<string, CountryGeo> = {
     centroid: [8.23, 46.82],
     flag: "🇨🇭",
   },
+  Kenya: {
+    iso3: "KEN",
+    iso2: "KE",
+    label: "Kenya",
+    centroid: [37.91, 0.02],
+    flag: "🇰🇪",
+  },
+  "South Africa": {
+    iso3: "ZAF",
+    iso2: "ZA",
+    label: "South Africa",
+    centroid: [25.08, -29.0],
+    flag: "🇿🇦",
+  },
+  Canada: {
+    iso3: "CAN",
+    iso2: "CA",
+    label: "Canada",
+    centroid: [-106.0, 56.0],
+    flag: "🇨🇦",
+  },
 };
 
 /** City-level coordinates for property markers. Falls back to country centroid. */
@@ -69,6 +93,9 @@ const CITY_COORDS: Record<string, [number, number]> = {
   Lagos: [3.3792, 6.5244],
   "New York": [-74.006, 40.7128],
   Geneva: [6.1432, 46.2044],
+  Nairobi: [36.8219, -1.2921],
+  Johannesburg: [28.0473, -26.2041],
+  Toronto: [-79.3832, 43.6532],
 };
 
 export function resolveCountryGeo(country: string): CountryGeo | null {
@@ -89,6 +116,16 @@ export function resolveCoordinates(
 
 export function countryIso3(country: string): string | null {
   return resolveCountryGeo(country)?.iso3 ?? null;
+}
+
+/** Property `name` on world-atlas countries-110m geographies. */
+export function countryAtlasName(country: string): string | null {
+  const geo = resolveCountryGeo(country);
+  if (!geo) {
+    return null;
+  }
+
+  return geo.atlasName ?? geo.label;
 }
 
 export function countryFlag(country: string): string {

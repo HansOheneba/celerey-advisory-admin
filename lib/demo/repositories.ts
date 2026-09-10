@@ -5,6 +5,7 @@ import { cache } from "react";
 import { requireSession, type AdvisorSession } from "@/lib/dal";
 import { scopedClients } from "@/lib/demo/api-router";
 import {
+  aggregateAdvisorySessions,
   bookMetrics,
   deriveAlerts,
   deriveOpportunities,
@@ -86,7 +87,12 @@ export async function getBookMetrics(): Promise<BookMetrics> {
       request.status !== "resolved" && visibleIds.has(request.clientId),
   ).length;
 
-  return bookMetrics(records, escalations);
+  const advisorySessions = aggregateAdvisorySessions(
+    db.entitlements,
+    visibleIds,
+  );
+
+  return bookMetrics(records, escalations, advisorySessions);
 }
 
 export async function getRecommendations(options?: {

@@ -4,7 +4,6 @@ import type {
   DemoClientRecord,
   DemoOpportunity,
   IntelligenceCard,
-  NextBestAction,
   SuitabilityCheck,
 } from "@/lib/demo/types";
 
@@ -39,7 +38,11 @@ export function cashBalance(record: DemoClientRecord): number {
 }
 
 export function excessCash(record: DemoClientRecord): number {
-  const target = (record.client.aua * record.targetCashPct) / 100;
+  const managedBook =
+    record.client.aum > 0
+      ? record.client.aum
+      : record.client.aua + record.client.aum;
+  const target = (managedBook * record.targetCashPct) / 100;
   return Math.max(0, Math.round(cashBalance(record) - target));
 }
 
@@ -322,9 +325,9 @@ export function intelligenceCards(
       Math.round((record.idleCashPct - record.targetCashPct) * 4) / 100;
     cards.push({
       id: "intel-cash",
-      what: "Cash drag rising",
-      why: `${record.idleCashPct.toFixed(1)}% idle against a ${record.targetCashPct}% target — costing roughly ${drag.toFixed(2)}% a year in foregone return.`,
-      action: "Model a staged deployment and discuss at the next review.",
+      what: "Too much cash",
+      why: `${record.idleCashPct.toFixed(1)}% in cash vs a ${record.targetCashPct}% target. Roughly ${drag.toFixed(2)}% a year left on the table.`,
+      action: "Sketch a staged deployment for the next review.",
       severity: "warning",
       opportunityKind: "cash_deployment",
     });
@@ -336,7 +339,7 @@ export function intelligenceCards(
       id: "intel-goal",
       what: `${gap.title} gap`,
       why: `Only ${gap.fundedPct}% funded with ${gap.yearsRemaining} year${gap.yearsRemaining === 1 ? "" : "s"} to run — a ${formatCompactCurrency(gap.shortfall)} shortfall.`,
-      action: "Propose a contribution top-up plan.",
+      action: "Propose a top-up schedule.",
       severity: gap.yearsRemaining <= 2 ? "critical" : "warning",
     });
   }
@@ -344,9 +347,9 @@ export function intelligenceCards(
   if (record.heldAwayUsd >= 500_000) {
     cards.push({
       id: "intel-heldaway",
-      what: "Held-away assets detected",
-      why: `${formatCompactCurrency(record.heldAwayUsd)} of pension and investment assets sit outside the bank.`,
-      action: "Open a relationship-deepening conversation on consolidation.",
+      what: "Assets outside the bank",
+      why: `${formatCompactCurrency(record.heldAwayUsd)} in pension and investments held elsewhere.`,
+      action: "Ask if they want to consolidate.",
       severity: "info",
       opportunityKind: "held_away",
     });
@@ -355,9 +358,9 @@ export function intelligenceCards(
   if (record.portfolioDriftPct >= 5) {
     cards.push({
       id: "intel-drift",
-      what: "Allocation drifted from model",
-      why: `Portfolio is ${record.portfolioDriftPct.toFixed(1)} points from the ${record.client.riskLevel} model, ${record.portfolioDriftPct >= RISK_BREACH_THRESHOLD_PCT ? "breaching" : "approaching"} the mandate limit.`,
-      action: "Prepare a rebalance with a documented suitability rationale.",
+      what: "Off model",
+      why: `${record.portfolioDriftPct.toFixed(1)} points from the ${record.client.riskLevel} target${record.portfolioDriftPct >= RISK_BREACH_THRESHOLD_PCT ? ", past the mandate limit" : ""}.`,
+      action: "Draft a rebalance and note why it fits.",
       severity:
         record.portfolioDriftPct >= RISK_BREACH_THRESHOLD_PCT
           ? "critical"
@@ -373,7 +376,7 @@ export function intelligenceCards(
         id: "intel-maturity",
         what: "Maturity approaching",
         why: `${record.maturingInvestment.name} worth ${formatCompactCurrency(record.maturingInvestment.valueUsd)} matures in ${days} day${days === 1 ? "" : "s"}.`,
-        action: "Present reinvestment options before the proceeds sit in cash.",
+        action: "Send reinvestment options before proceeds hit cash.",
         severity: days <= 7 ? "warning" : "info",
         opportunityKind: "maturing",
       });
@@ -384,9 +387,9 @@ export function intelligenceCards(
   if (concentration && concentration.pct >= 32) {
     cards.push({
       id: "intel-concentration",
-      what: "Single-position concentration",
-      why: `${concentration.name} represents ${concentration.pct}% of invested assets.`,
-      action: "Review diversification and agree a trim schedule.",
+      what: "One name is heavy",
+      why: `${concentration.name} is ${concentration.pct}% of invested assets.`,
+      action: "Agree a trim schedule.",
       severity: "warning",
     });
   }
@@ -394,9 +397,9 @@ export function intelligenceCards(
   if (record.lastEngagementDays > DORMANT_DAYS) {
     cards.push({
       id: "intel-engagement",
-      what: "Engagement has lapsed",
-      why: `No meaningful contact in ${record.lastEngagementDays} days while peers average under 30.`,
-      action: "Schedule a re-engagement call and refresh the plan.",
+      what: "No contact lately",
+      why: `${record.lastEngagementDays} days since a real conversation.`,
+      action: "Book a catch-up and refresh the plan.",
       severity: "critical",
     });
   }
@@ -404,9 +407,9 @@ export function intelligenceCards(
   if (cards.length === 0) {
     cards.push({
       id: "intel-healthy",
-      what: "Relationship on plan",
-      why: `Allocation, cash weighting and goal funding are all within tolerance for a ${record.client.riskLevel} mandate.`,
-      action: "Use the review to explore held-away assets and protection gaps.",
+      what: "On track",
+      why: `Allocation, cash, and goals look fine for a ${record.client.riskLevel} mandate.`,
+      action: "At review, ask about external assets and insurance gaps.",
       severity: "info",
     });
   }
@@ -414,78 +417,8 @@ export function intelligenceCards(
   return cards;
 }
 
-export function nextBestActions(record: DemoClientRecord): NextBestAction[] {
-  const actions: NextBestAction[] = [];
-  const deployable = excessCash(record);
-
-  if (deployable >= 250_000) {
-    actions.push({
-      id: "nba-deploy",
-      title: "Deploy idle cash",
-      detail: `${formatCompactCurrency(deployable)} above mandate target.`,
-      priority: 1,
-      target: "portfolio",
-    });
-  }
-
-  if (record.portfolioDriftPct >= 5) {
-    actions.push({
-      id: "nba-rebalance",
-      title: "Rebalance to model",
-      detail: `${record.portfolioDriftPct.toFixed(1)} points of drift to correct.`,
-      priority: record.portfolioDriftPct >= RISK_BREACH_THRESHOLD_PCT ? 1 : 3,
-      target: "portfolio",
-    });
-  }
-
-  if (propertyValue(record) >= 1_500_000 || holdingsValue(record) >= 15_000_000) {
-    actions.push({
-      id: "nba-lombard",
-      title: "Present Lombard facility",
-      detail: "Releases liquidity without selling assets.",
-      priority: 2,
-      target: "advice",
-    });
-  }
-
-  const gap = worstGoalGap(record);
-  if (gap) {
-    actions.push({
-      id: "nba-goal",
-      title: `Top up ${gap.title.toLowerCase()}`,
-      detail: `${formatCompactCurrency(gap.shortfall)} shortfall to close.`,
-      priority: 2,
-      target: "goals",
-    });
-  }
-
-  if (record.heldAwayUsd >= 500_000) {
-    actions.push({
-      id: "nba-heldaway",
-      title: "Discuss held-away consolidation",
-      detail: `${formatCompactCurrency(record.heldAwayUsd)} outside the bank.`,
-      priority: 3,
-      target: "advice",
-    });
-  }
-
-  const reviewDays = daysUntil(record.client.nextReviewAt);
-  actions.push({
-    id: "nba-review",
-    title: reviewDays < 0 ? "Book overdue review" : "Book annual review",
-    detail:
-      reviewDays < 0
-        ? `${Math.abs(reviewDays)} days past due.`
-        : `Due in ${reviewDays} days.`,
-    priority: reviewDays < 0 ? 1 : 4,
-    target: "meetings",
-  });
-
-  return actions.sort((a, b) => a.priority - b.priority).slice(0, 5);
-}
-
 /**
- * Suitability gate shown on the workspace right rail. Nothing can be actioned
+ * Suitability gate on Advice and Compliance tabs. Nothing can be actioned
  * without passing these checks, mirroring the Compliance control in the spec.
  */
 export function suitabilityChecks(
@@ -544,8 +477,17 @@ export function suitabilityChecks(
   ];
 }
 
+export type AdvisorySessionMetrics = {
+  used: number;
+  included: number;
+  remaining: number;
+};
+
 export type BookMetrics = {
   totalAua: number;
+  totalAum: number;
+  totalCovered: number;
+  clientsWithBoth: number;
   aumGrowthPct: number;
   revenueQtd: number;
   netFlowQtd: number;
@@ -561,31 +503,77 @@ export type BookMetrics = {
   idleCashClients: number;
   escalations: number;
   weightedPerformancePct: number;
+  advisorySessions: AdvisorySessionMetrics;
 };
+
+export function aggregateAdvisorySessions(
+  entitlements: Record<
+    string,
+    { used: number; included: number; remaining: number }
+  >,
+  clientIds: Set<string>,
+): AdvisorySessionMetrics {
+  let used = 0;
+  let included = 0;
+
+  for (const [clientId, entitlement] of Object.entries(entitlements)) {
+    if (!clientIds.has(clientId)) {
+      continue;
+    }
+    used += entitlement.used;
+    included += entitlement.included;
+  }
+
+  return {
+    used,
+    included,
+    remaining: Math.max(included - used, 0),
+  };
+}
 
 export function bookMetrics(
   records: DemoClientRecord[],
   escalations: number,
+  advisorySessions: AdvisorySessionMetrics = { used: 0, included: 0, remaining: 0 },
 ): BookMetrics {
   const totalAua = records.reduce(
     (total, record) => total + record.client.aua,
     0,
   );
+  const totalAum = records.reduce(
+    (total, record) => total + record.client.aum,
+    0,
+  );
+  const totalCovered = totalAua + totalAum;
+  const clientsWithBoth = records.filter(
+    (record) => record.client.aua > 0 && record.client.aum > 0,
+  ).length;
   const idleCashRecords = records.filter(
     (record) =>
       record.idleCashPct > record.targetCashPct + IDLE_CASH_THRESHOLD_PCT,
   );
   const weightedPerformance =
-    totalAua > 0
+    totalAum > 0
       ? records.reduce(
           (total, record) =>
-            total + record.performanceYtdPct * record.client.aua,
+            total + record.performanceYtdPct * record.client.aum,
           0,
-        ) / totalAua
-      : 0;
+        ) / totalAum
+      : totalCovered > 0
+        ? records.reduce(
+            (total, record) =>
+              total +
+              record.performanceYtdPct *
+                (record.client.aua + record.client.aum),
+            0,
+          ) / totalCovered
+        : 0;
 
   return {
     totalAua,
+    totalAum,
+    totalCovered,
+    clientsWithBoth,
     aumGrowthPct: Math.round(weightedPerformance * 10) / 10,
     revenueQtd: records.reduce(
       (total, record) => total + record.revenueQtdUsd,
@@ -623,6 +611,7 @@ export function bookMetrics(
     idleCashClients: idleCashRecords.length,
     escalations,
     weightedPerformancePct: Math.round(weightedPerformance * 10) / 10,
+    advisorySessions,
   };
 }
 

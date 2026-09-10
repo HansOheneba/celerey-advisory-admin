@@ -41,6 +41,7 @@ import {
 import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
 import type { ClientAvailability } from "@/lib/availability/types";
 import type { ClientDocument } from "@/lib/documents/types";
+import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import type { Client } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
 import { cn } from "@/lib/utils";
@@ -196,8 +197,8 @@ export function ClientDetailView({
     (sum, item) => sum + (Number(item.balance) || 0),
     0,
   );
-  const aua = holdingsValue + accountsValue + propertyValue;
-  const netWorth = aua - liabilityValue;
+  const totalCovered = totalAssetsCovered(client.aua, client.aum);
+  const netWorth = holdingsValue + accountsValue + propertyValue - liabilityValue;
 
   const profileFields = [
     ["Occupation", titleCase(state.user.occupation)],
@@ -237,7 +238,9 @@ export function ClientDetailView({
   const showFreshness = state.freshness.length > 0;
 
   const kpis = [
-    { label: "AUA", value: formatCompactCurrency(aua) },
+    { label: "Covered", value: formatCompactCurrency(totalCovered) },
+    { label: "AUA", value: formatCompactCurrency(client.aua) },
+    { label: "AUM", value: formatCompactCurrency(client.aum) },
     { label: "Net", value: formatCompactCurrency(netWorth) },
     {
       label: "Surplus / mo",
@@ -347,11 +350,7 @@ export function ClientDetailView({
       </section>
 
       {availability ? (
-        <ClientAvailabilityCard
-          clientId={client.id}
-          initial={availability}
-          canEdit={canEditAvailability}
-        />
+        <ClientAvailabilityCard availability={availability} />
       ) : null}
 
       <ClientDocumentsCard

@@ -125,9 +125,9 @@ export function AdviceTab({
           <CardHeader>
             <CardTitle>Propose a recommendation</CardTitle>
             <CardDescription>
-              Proposals go to the compliance queue before anything is executed.
+              Goes to compliance before execution.
               {blockedActions.length > 0
-                ? ` Suitability currently blocks: ${blockedActions.join(", ")}.`
+                ? ` Blocked: ${blockedActions.join(", ")}.`
                 : ""}
             </CardDescription>
           </CardHeader>
@@ -163,7 +163,7 @@ export function AdviceTab({
                 <SelectTrigger id="recommendation-product">
                   <SelectValue placeholder="No specific product" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent align="start">
                   <SelectItem value="none">No specific product</SelectItem>
                   {products
                     .filter((product) => product.available)
@@ -182,7 +182,7 @@ export function AdviceTab({
                 id="recommendation-rationale"
                 value={rationale}
                 onChange={(event) => setRationale(event.target.value)}
-                placeholder="Why this is suitable for the client's mandate and objectives."
+                placeholder="Why this fits the mandate."
                 rows={3}
               />
             </div>
@@ -204,9 +204,7 @@ export function AdviceTab({
         </CardHeader>
         <CardContent className="space-y-3">
           {recommendations.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No recommendations on file. Propose one from the Advice workflow.
-            </p>
+            <p className="text-sm text-muted-foreground">None yet.</p>
           ) : (
             recommendations.map((recommendation) => (
               <div

@@ -2,14 +2,19 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Bot,
+  DollarSign,
   FileText,
   Scale,
   ShieldAlert,
   Sparkles,
+  Wallet,
 } from "lucide-react";
 
+import { AgeDistributionPanel } from "@/components/insights/age-distribution-panel";
+import { AuaAumPanel } from "@/components/insights/aua-aum-panel";
 import { BookTrendChart } from "@/components/insights/book-trend-chart";
 import { ComplianceQueue } from "@/components/insights/compliance-queue";
+import { GlobalResidencyMap } from "@/components/insights/global-residency-map";
 import { EmptyState } from "@/components/shared/empty-state";
 import { IconTile } from "@/components/shared/icon-tile";
 import { ListRow } from "@/components/shared/list-row";
@@ -36,7 +41,13 @@ import {
 import type { CapabilitySet } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import type { BookMetrics } from "@/lib/demo/insights";
+import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
+import { totalAssetsCovered } from "@/lib/clients/asset-relationship";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
+import {
+  computeAgeAnalytics,
+  computeResidencySpread,
+} from "@/lib/overview/book-analytics";
 import type {
   DemoClientRecord,
   DemoRecommendation,
@@ -48,6 +59,8 @@ type SegmentRow = {
   label: string;
   clients: number;
   aua: number;
+  aum: number;
+  totalCovered: number;
   revenue: number;
   performancePct: number;
 };
@@ -67,26 +80,32 @@ function buildSegmentRows(records: DemoClientRecord[]): SegmentRow[] {
   return [...bySegment.entries()]
     .map(([segment, group]) => {
       const aua = group.reduce((total, item) => total + item.client.aua, 0);
+      const aum = group.reduce((total, item) => total + item.client.aum, 0);
+      const totalCovered = aua + aum;
 
       return {
         label: segment.toUpperCase(),
         clients: group.length,
         aua,
+        aum,
+        totalCovered,
         revenue: group.reduce(
           (total, item) => total + item.revenueQtdUsd,
           0,
         ),
         performancePct:
-          aua > 0
+          totalCovered > 0
             ? group.reduce(
                 (total, item) =>
-                  total + item.performanceYtdPct * item.client.aua,
+                  total +
+                  item.performanceYtdPct *
+                    (item.client.aua + item.client.aum),
                 0,
-              ) / aua
+              ) / totalCovered
             : 0,
       };
     })
-    .sort((a, b) => b.aua - a.aua);
+    .sort((a, b) => b.totalCovered - a.totalCovered);
 }
 
 type InsightsViewProps = {
@@ -107,6 +126,8 @@ export function InsightsView({
   aiSessions,
 }: InsightsViewProps) {
   const segments = buildSegmentRows(records);
+  const ageAnalytics = computeAgeAnalytics(records);
+  const residencySpread = computeResidencySpread(records);
   const pending = recommendations.filter(
     (recommendation) =>
       recommendation.status === "pending_compliance" ||
@@ -114,7 +135,11 @@ export function InsightsView({
   );
 
   const topClients = [...records]
-    .sort((a, b) => b.client.aua - a.client.aua)
+    .sort(
+      (a, b) =>
+        totalAssetsCovered(b.client.aua, b.client.aum) -
+        totalAssetsCovered(a.client.aua, a.client.aum),
+    )
     .slice(0, 10);
 
   return (
@@ -173,18 +198,54 @@ export function InsightsView({
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <MetricCard
+              label="Assets under advice"
+              value={formatCompactCurrency(metrics.totalAua)}
+              hint={`${metrics.clientsWithBoth > 0 ? `${metrics.clientsWithBoth} clients with both · ` : ""}advised outside managed portfolios`}
+              icon={DollarSign}
+            />
+            <MetricCard
+              label="Assets under management"
+              value={formatCompactCurrency(metrics.totalAum)}
+              delta={{
+                value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
+                positive: metrics.weightedPerformancePct >= 0,
+              }}
+              hint={`${formatCompactCurrency(metrics.totalCovered)} total covered`}
+              icon={Wallet}
+            />
+            <MetricCard
+              label="Net flows QTD"
+              value={formatCompactCurrency(metrics.netFlowQtd)}
+              delta={{
+                value: metrics.netFlowQtd >= 0 ? "Inflow" : "Outflow",
+                positive: metrics.netFlowQtd >= 0,
+              }}
+              hint={`${formatCompactCurrency(metrics.revenueQtd)} revenue QTD`}
+            />
+          </div>
+
+          <AuaAumPanel
+            totalAua={metrics.totalAua}
+            totalAum={metrics.totalAum}
+            records={records}
+          />
+
           <SectionPanel
-            title="AUA trend"
-            description="Trailing six-month movement across the book."
-            variant="brand"
+            title="Assets covered trend"
+            description="Trailing six-month AUA and AUM movement."
           >
             <BookTrendChart
               currentAua={metrics.totalAua}
-              growthPct={metrics.aumGrowthPct}
+              currentAum={metrics.totalAum}
+              growthPct={metrics.weightedPerformancePct}
             />
           </SectionPanel>
 
           <div className="grid gap-4 lg:grid-cols-2">
+            <AgeDistributionPanel analytics={ageAnalytics} />
+
             <SectionPanel
               title="By segment"
               description="Assets and revenue by segment."
@@ -197,6 +258,7 @@ export function InsightsView({
                       <TableHead>Segment</TableHead>
                       <TableHead className="text-right">Clients</TableHead>
                       <TableHead className="text-right">AUA</TableHead>
+                      <TableHead className="text-right">AUM</TableHead>
                       <TableHead className="text-right">Revenue QTD</TableHead>
                       <TableHead className="text-right">TTM</TableHead>
                     </TableRow>
@@ -212,6 +274,9 @@ export function InsightsView({
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCompactCurrency(segment.aua)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCompactCurrency(segment.aum)}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCompactCurrency(segment.revenue)}
@@ -285,6 +350,8 @@ export function InsightsView({
             </SectionPanel>
           </div>
 
+          <GlobalResidencyMap spread={residencySpread} />
+
           <SectionPanel title="Largest relationships" variant="muted">
             <div className={dashboardTheme.tableShell}>
               <Table>
@@ -293,6 +360,8 @@ export function InsightsView({
                     <TableHead>Client</TableHead>
                     <TableHead>Relationship manager</TableHead>
                     <TableHead className="text-right">AUA</TableHead>
+                    <TableHead className="text-right">AUM</TableHead>
+                    <TableHead className="text-right">Covered</TableHead>
                     <TableHead className="text-right">TTM</TableHead>
                     <TableHead className="text-right">Revenue QTD</TableHead>
                     <TableHead className="text-right">Next review</TableHead>
@@ -302,18 +371,36 @@ export function InsightsView({
                   {topClients.map((record) => (
                     <TableRow key={record.client.id}>
                       <TableCell>
-                        <Link
-                          href={`/clients/${record.client.id}`}
-                          className="font-medium hover:underline"
-                        >
-                          {record.client.firstName} {record.client.lastName}
-                        </Link>
+                        <div className="space-y-1">
+                          <Link
+                            href={`/clients/${record.client.id}`}
+                            className="font-medium hover:underline"
+                          >
+                            {record.client.firstName} {record.client.lastName}
+                          </Link>
+                          <AssetRelationshipBadge
+                            aua={record.client.aua}
+                            aum={record.client.aum}
+                            compact
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {record.client.advisorName}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCompactCurrency(record.client.aua)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCompactCurrency(record.client.aum)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCompactCurrency(
+                          totalAssetsCovered(
+                            record.client.aua,
+                            record.client.aum,
+                          ),
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {record.performanceYtdPct >= 0 ? "+" : ""}

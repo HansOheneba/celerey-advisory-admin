@@ -102,8 +102,8 @@ export function CommsTab({
         <CardHeader>
           <CardTitle>Conversation with {clientName}</CardTitle>
           <CardDescription>
-            {messages.length} message{messages.length === 1 ? "" : "s"}. Internal
-            notes are never visible to the client.
+            {messages.length} message{messages.length === 1 ? "" : "s"}. Notes
+            stay internal.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -182,7 +182,7 @@ export function CommsTab({
       <Card size="sm" className="shadow-none">
         <CardHeader>
           <CardTitle>Templates</CardTitle>
-          <CardDescription>Drop in and edit before sending.</CardDescription>
+          <CardDescription>Edit before sending.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {TEMPLATES.map((template) => (

@@ -21,7 +21,9 @@ export const COUNTRY_STATES: Record<
   GH: [
     { value: "AA", label: "Greater Accra" },
     { value: "AH", label: "Ashanti" },
-    { value: "BA", label: "Brong-Ahafo" },
+    { value: "BO", label: "Bono" },
+    { value: "BE", label: "Bono East" },
+    { value: "AF", label: "Ahafo" },
     { value: "CP", label: "Central" },
     { value: "EP", label: "Eastern" },
     { value: "NP", label: "Northern" },
@@ -29,6 +31,10 @@ export const COUNTRY_STATES: Record<
     { value: "UW", label: "Upper West" },
     { value: "TV", label: "Volta" },
     { value: "WP", label: "Western" },
+    { value: "WN", label: "Western North" },
+    { value: "OT", label: "Oti" },
+    { value: "SV", label: "Savannah" },
+    { value: "NE", label: "North East" },
   ],
   US: [
     { value: "CA", label: "California" },

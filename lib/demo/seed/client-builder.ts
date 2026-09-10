@@ -1,3 +1,10 @@
+import {
+  classifyAccountRelationship,
+  classifyHoldingRelationship,
+  computeAssetTotalsFromPools,
+  type AssetRelationship,
+} from "@/lib/clients/asset-relationship";
+import { applyAssetMandate, type AssetMandate } from "@/lib/demo/seed/asset-mandate";
 import type {
   Client,
   ClientStatus,
@@ -14,6 +21,18 @@ export function daysFromNow(days: number): string {
   return new Date(Date.now() + days * DAY_MS).toISOString();
 }
 
+/** Same as daysFromNow but pins a local wall-clock time (for calendar-visible slots). */
+export function daysFromNowAtTime(
+  days: number,
+  hour: number,
+  minute = 0,
+): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
+}
+
 export function monthLabel(monthsAgo: number): string {
   const date = new Date();
   date.setMonth(date.getMonth() - monthsAgo);
@@ -27,6 +46,7 @@ export type HoldingSpec = {
   value: number;
   costBasis: number;
   quantity?: number;
+  relationship?: AssetRelationship;
 };
 
 export type GoalSpec = {
@@ -45,6 +65,7 @@ export type AccountSpec = {
   institution: string;
   type: string;
   balance: number;
+  relationship?: AssetRelationship;
 };
 
 export type PropertySpec = {
@@ -98,6 +119,8 @@ export type ClientSpec = {
   location: string;
   city: string;
   country: string;
+  /** Ghana region code from COUNTRY_STATES.GH (e.g. AA, AH). */
+  regionCode?: string;
   residency: string;
   occupation: string;
   maritalStatus: string;
@@ -134,6 +157,8 @@ export type ClientSpec = {
   } | null;
   effectiveTaxRatePct?: number;
   marginalTaxRatePct?: number;
+  /** How assets split between AUA and AUM in the demo book. */
+  assetMandate?: AssetMandate;
 };
 
 function sum(values: number[]): number {
@@ -224,13 +249,34 @@ function buildCashFlowHistory(income: number, expenses: number) {
 }
 
 export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
-  const holdingsValue = sum(spec.holdings.map((holding) => holding.value));
-  const cashBalance = sum(spec.accounts.map((account) => account.balance));
-  const aua = round(holdingsValue + cashBalance);
-  const monthlyIncome = sum(spec.income.map((row) => row.amount));
-  const monthlyExpenses = sum(spec.expenses.map((row) => row.amount));
+  const resolved = applyAssetMandate(spec);
+  const holdingsValue = sum(resolved.holdings.map((holding) => holding.value));
+  const cashBalance = sum(resolved.accounts.map((account) => account.balance));
+  const heldAwayUsd = resolved.heldAwayUsd ?? 0;
+
+  const assetPools = [
+    ...resolved.holdings.map((holding) => ({
+      value: holding.value,
+      relationship: classifyHoldingRelationship(holding.relationship),
+    })),
+    ...resolved.accounts.map((account) => ({
+      value: account.balance,
+      relationship: classifyAccountRelationship(
+        account.institution,
+        account.relationship,
+      ),
+    })),
+  ];
+  const assetTotals = computeAssetTotalsFromPools(assetPools, heldAwayUsd);
+
+  const monthlyIncome = sum(resolved.income.map((row) => row.amount));
+  const monthlyExpenses = sum(resolved.expenses.map((row) => row.amount));
   const monthlySurplus = monthlyIncome - monthlyExpenses;
-  const idleCashPct = aua > 0 ? Math.round((cashBalance / aua) * 1000) / 10 : 0;
+  const totalCovered = assetTotals.totalCovered;
+  const idleCashPct =
+    totalCovered > 0
+      ? Math.round((cashBalance / totalCovered) * 1000) / 10
+      : 0;
   const joinedAt = daysFromNow(-spec.joinedDaysAgo);
   const retirementAge = spec.retirementAge ?? 65;
   const emergencyTargetMonths = spec.emergencyTargetMonths ?? 6;
@@ -248,7 +294,8 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     status: spec.status,
     riskLevel: spec.riskLevel,
     subscription: spec.subscription,
-    aua,
+    aua: assetTotals.aua,
+    aum: assetTotals.aum,
     currency: spec.currency,
     advisorId: spec.advisorId,
     advisorName: spec.advisorName,
@@ -272,7 +319,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       display_name: `${spec.firstName} ${spec.lastName}`,
       phone_number: spec.phone,
       resident_country: spec.country,
-      resident_state: null,
+      resident_state: spec.regionCode ?? null,
       city: spec.city,
       date_of_birth: `${birthYear}-04-12`,
       currency: spec.currency,
@@ -349,7 +396,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       activeGoals: spec.goals.filter((goal) => goal.status !== "completed")
         .length,
     },
-    holdings: spec.holdings.map((holding, index) => ({
+    holdings: resolved.holdings.map((holding, index) => ({
       holding_id: `${spec.id}-holding-${index}`,
       name: holding.name,
       symbol: holding.symbol,
@@ -357,8 +404,9 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       quantity: holding.quantity ?? undefined,
       cost_basis: holding.costBasis,
       current_value: holding.value,
+      relationship: classifyHoldingRelationship(holding.relationship),
     })),
-    accounts: spec.accounts.map((account, index) => ({
+    accounts: resolved.accounts.map((account, index) => ({
       id: `${spec.id}-account-${index}`,
       name: account.name,
       institution: account.institution,
@@ -366,6 +414,10 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       balance: account.balance,
       currency: spec.currency,
       updatedAt: daysFromNow(-2),
+      relationship: classifyAccountRelationship(
+        account.institution,
+        account.relationship,
+      ),
     })),
     propertyAssets: (spec.properties ?? []).map((property, index) => ({
       property_id: `${spec.id}-property-${index}`,
@@ -411,7 +463,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     emergencyFund: {
       targetMonths: emergencyTargetMonths,
       currentCashBalance: cashBalance,
-      storageLocation: spec.accounts[0]?.institution ?? "Cash account",
+      storageLocation: resolved.accounts[0]?.institution ?? "Cash account",
       computed: {
         monthsCovered:
           monthlyExpenses > 0
@@ -431,8 +483,11 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
           : 0,
       currency: spec.currency,
     },
-    portfolioPerformance: buildPerformance(aua, spec.performanceYtdPct),
-    allocation: buildAllocation(spec.holdings, cashBalance),
+    portfolioPerformance: buildPerformance(
+      assetTotals.aum > 0 ? assetTotals.aum : totalCovered,
+      spec.performanceYtdPct,
+    ),
+    allocation: buildAllocation(resolved.holdings, cashBalance),
     taxProfile: {
       effectiveTaxRatePct: spec.effectiveTaxRatePct ?? 24,
       marginalTaxRatePct: spec.marginalTaxRatePct ?? 40,
@@ -470,7 +525,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     segment: spec.segment,
     idleCashPct,
     targetCashPct: spec.targetCashPct,
-    heldAwayUsd: spec.heldAwayUsd ?? 0,
+    heldAwayUsd,
     portfolioDriftPct: spec.portfolioDriftPct,
     revenueQtdUsd: spec.revenueQtdUsd,
     netFlowQtdUsd: spec.netFlowQtdUsd,

@@ -8,6 +8,7 @@ import {
   findAppointmentsApi,
   getAdvisoryEntitlementApi,
   logAppointmentApi,
+  publishAppointmentNotesApi,
   updateAdvisoryEntitlementApi,
   updateAppointmentStatusApi,
 } from "@/lib/api/appointments";
@@ -19,6 +20,7 @@ import type {
   AppointmentSlot,
   AppointmentStatus,
   AppointmentType,
+  MeetingActionItem,
   SessionLogInput,
 } from "@/lib/appointments/types";
 
@@ -91,6 +93,27 @@ export async function confirmAppointmentAction(input: {
   return { ok: true, appointment: result.data };
 }
 
+export async function publishAppointmentNotesAction(input: {
+  appointmentId: string;
+  summary: string;
+  discussionPoints: string[];
+  actionItems: MeetingActionItem[];
+}): Promise<
+  { ok: true; appointment: Appointment } | { ok: false; message: string }
+> {
+  const session = await requireSession();
+  const result = await publishAppointmentNotesApi(session.accessToken, input);
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  revalidateAppointmentPaths(result.data.clientId);
+  revalidatePath("/sessions");
+
+  return { ok: true, appointment: result.data };
+}
+
 export async function logAppointmentAction(
   input: SessionLogInput,
 ): Promise<
@@ -110,7 +133,8 @@ export async function logAppointmentAction(
 
 export async function updateAppointmentStatusAction(input: {
   appointmentId: string;
-  status: "cancelled";
+  status: AppointmentStatus;
+  scheduledAt?: string;
 }): Promise<
   { ok: true; appointment: Appointment } | { ok: false; message: string }
 > {

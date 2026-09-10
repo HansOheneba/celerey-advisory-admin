@@ -1,3 +1,4 @@
+import { ClientSessionsSection } from "@/components/sessions/client-sessions-section";
 import { ClientAvailabilityCard } from "@/components/clients/client-availability-card";
 import { ClientDocumentsCard } from "@/components/clients/client-documents-card";
 import { ClientReportsPanel } from "@/components/reports/client-reports-panel";
@@ -9,8 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  isNegotiationStatus,
+  isScheduledStatus,
+} from "@/lib/appointments/display";
 import { APPOINTMENT_TYPE_LABELS } from "@/lib/appointments/types";
 import type { Appointment } from "@/lib/appointments/types";
+import { dashboardTheme } from "@/lib/dashboard-theme";
 import type { ClientAvailability } from "@/lib/availability/types";
 import type { ClientDocument } from "@/lib/documents/types";
 import { formatDate } from "@/lib/format";
@@ -49,9 +55,9 @@ export function ServiceTab({
   const openTasks = tasks.filter((task) => task.status === "open");
   const upcoming = appointments.filter(
     (appointment) =>
-      appointment.status === "upcoming" || appointment.status === "requested",
+      isScheduledStatus(appointment.status) ||
+      isNegotiationStatus(appointment.status),
   );
-
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
@@ -61,13 +67,13 @@ export function ServiceTab({
             <CardDescription>
               {serviceRequests.filter((request) => request.status !== "resolved")
                 .length}{" "}
-              open with this client.
+              open.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {serviceRequests.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No service requests open. Raise one from the client portal or log it here.
+                Nothing open.
               </p>
             ) : (
               serviceRequests.map((request) => (
@@ -103,10 +109,10 @@ export function ServiceTab({
 
         <Card className="shadow-none">
           <CardHeader>
-            <CardTitle>Open actions & meetings</CardTitle>
+            <CardTitle>Tasks and meetings</CardTitle>
             <CardDescription>
-              {openTasks.length} task{openTasks.length === 1 ? "" : "s"} and{" "}
-              {upcoming.length} scheduled meeting
+              {openTasks.length} open task{openTasks.length === 1 ? "" : "s"},{" "}
+              {upcoming.length} upcoming meeting
               {upcoming.length === 1 ? "" : "s"}.
             </CardDescription>
           </CardHeader>
@@ -159,6 +165,22 @@ export function ServiceTab({
         </Card>
       </div>
 
+      <Card className="shadow-none">
+        <CardHeader>
+          <p className={dashboardTheme.sectionLabel}>Compliance</p>
+          <CardTitle>Sessions</CardTitle>
+          <CardDescription>
+            Session logs and published meeting notes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ClientSessionsSection
+            clientId={clientId}
+            appointments={appointments}
+          />
+        </CardContent>
+      </Card>
+
       <ClientReportsPanel
         clientId={clientId}
         reports={reports}
@@ -171,11 +193,7 @@ export function ServiceTab({
         canEdit={canManageDocuments}
       />
 
-      <ClientAvailabilityCard
-        clientId={clientId}
-        initial={availability}
-        canEdit={canManageDocuments}
-      />
+      <ClientAvailabilityCard availability={availability} />
     </div>
   );
 }

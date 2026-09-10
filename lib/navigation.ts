@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ListChecks,
   MessageSquareText,
+  NotebookText,
   Package,
   Sparkles,
   UserRoundCog,
@@ -111,6 +112,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   assignments: "Assignments",
   messages: "Messages",
   appointments: "Appointments",
+  sessions: "Sessions",
   tasks: "Tasks",
   reports: "Reports",
   settings: "Settings",
@@ -151,6 +153,11 @@ export function sidebarNavFor(capabilities: CapabilitySet): SidebarNavGroup[] {
         href: "/appointments",
         label: "Appointments",
         icon: CalendarClock,
+      },
+      {
+        href: "/sessions",
+        label: "Sessions",
+        icon: NotebookText,
       },
       {
         href: "/tasks",

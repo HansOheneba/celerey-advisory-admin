@@ -48,7 +48,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
       >
         {detail.goals.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No goals on file. Add one to track funding progress.
+            No goals yet. Add one under Plan.
           </p>
         ) : (
           <div className={dashboardTheme.tableShell}>
@@ -236,7 +236,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
           {detail.liabilities.length === 0 &&
           detail.propertyAssets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No liabilities or property on file. Add records in the client profile editor.
+              No liabilities or property on file.
             </p>
           ) : (
             <div className="divide-y divide-border/50">

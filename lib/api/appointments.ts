@@ -7,9 +7,14 @@ import type {
   AppointmentSlot,
   AppointmentStatus,
   AppointmentType,
+  MeetingActionItem,
+  MeetingAiNotes,
+  MeetingProvider,
+  NotesVisibility,
   ProgressSnapshot,
   SessionLog,
   SessionLogInput,
+  TranscriptStatus,
 } from "@/lib/appointments/types";
 
 const APPOINTMENT_TYPES = new Set<AppointmentType>([
@@ -23,7 +28,16 @@ const APPOINTMENT_TYPES = new Set<AppointmentType>([
 
 const APPOINTMENT_STATUSES = new Set<AppointmentStatus>([
   "requested",
+  "proposed",
+  "counter_proposed",
+  "accepted",
+  "declined",
   "upcoming",
+  "scheduled",
+  "in_progress",
+  "processing_notes",
+  "pending_review",
+  "published",
   "completed",
   "cancelled",
 ]);
@@ -116,6 +130,63 @@ function normalizeStatus(value: string): AppointmentStatus {
     : "upcoming";
 }
 
+function normalizeMeetingAiNotes(value: unknown): MeetingAiNotes | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const row = value as Record<string, unknown>;
+  const actionItemsValue = row.actionItems ?? row.action_items;
+  const actionItemsRaw = Array.isArray(actionItemsValue)
+    ? actionItemsValue
+    : [];
+
+  return {
+    summary: asString(row.summary),
+    discussionPoints: asStringArray(row.discussionPoints ?? row.discussion_points),
+    actionItems: actionItemsRaw
+      .filter((item): item is Record<string, unknown> =>
+        Boolean(item && typeof item === "object"),
+      )
+      .map((item) => ({
+        title: asString(item.title),
+        owner: asString(item.owner),
+        dueAt: asString(item.dueAt ?? item.due_at) || null,
+      })),
+    participants: asStringArray(row.participants),
+    transcriptExcerpt: asString(
+      row.transcriptExcerpt ?? row.transcript_excerpt,
+    ),
+    fullTranscript: asString(row.fullTranscript ?? row.full_transcript),
+  };
+}
+
+function normalizeMeetingProvider(value: unknown): MeetingProvider | null {
+  if (value === "google_meet" || value === "teams" || value === "zoom") {
+    return value;
+  }
+  return null;
+}
+
+function normalizeNotesVisibility(value: unknown): NotesVisibility {
+  if (value === "draft" || value === "published") {
+    return value;
+  }
+  return "none";
+}
+
+function normalizeTranscriptStatus(value: unknown): TranscriptStatus {
+  if (
+    value === "pending" ||
+    value === "processing" ||
+    value === "ready" ||
+    value === "failed"
+  ) {
+    return value;
+  }
+  return "pending";
+}
+
 function normalizeAppointment(row: Record<string, unknown>): Appointment {
   const type = asString(row.type);
   const status = asString(row.status);
@@ -147,6 +218,45 @@ function normalizeAppointment(row: Record<string, unknown>): Appointment {
     durationMinutes: asNumber(row.durationMinutes ?? row.duration_minutes, 30),
     status: normalizeStatus(status),
     createdBy: createdBy === "client" ? "client" : "advisor",
+    proposedBy:
+      row.proposedBy === "client" || row.proposed_by === "client"
+        ? "client"
+        : row.proposedBy === "advisor" || row.proposed_by === "advisor"
+          ? "advisor"
+          : undefined,
+    proposedSlots: (() => {
+      const slotsValue = row.proposedSlots ?? row.proposed_slots;
+      if (!Array.isArray(slotsValue)) {
+        return undefined;
+      }
+      return slotsValue
+        .filter((item): item is Record<string, unknown> =>
+          Boolean(item && typeof item === "object"),
+        )
+        .map(normalizeSlot);
+    })(),
+    meetingProvider: normalizeMeetingProvider(
+      row.meetingProvider ?? row.meeting_provider,
+    ),
+    meetingUrl: asString(row.meetingUrl ?? row.meeting_url) || null,
+    calendarSynced: Boolean(row.calendarSynced ?? row.calendar_synced),
+    transcriptStatus: normalizeTranscriptStatus(
+      row.transcriptStatus ?? row.transcript_status,
+    ),
+    notesVisibility: normalizeNotesVisibility(
+      row.notesVisibility ?? row.notes_visibility,
+    ),
+    aiNotesDraft: normalizeMeetingAiNotes(
+      row.aiNotesDraft ?? row.ai_notes_draft,
+    ),
+    aiNotesPublished: normalizeMeetingAiNotes(
+      row.aiNotesPublished ?? row.ai_notes_published,
+    ),
+    publishedAt: asString(row.publishedAt ?? row.published_at) || null,
+    publishedByAdvisorId:
+      asString(row.publishedByAdvisorId ?? row.published_by_advisor_id) ||
+      null,
+    reviewedAt: asString(row.reviewedAt ?? row.reviewed_at) || null,
     log: normalizeLog(row.log),
     progress: normalizeProgress(row.progress),
     actionIds: asStringArray(actionIds),
@@ -277,6 +387,35 @@ export async function confirmAppointmentApi(
   };
 }
 
+export async function publishAppointmentNotesApi(
+  accessToken: string,
+  input: {
+    appointmentId: string;
+    summary: string;
+    discussionPoints: string[];
+    actionItems: MeetingActionItem[];
+  },
+) {
+  const result = await executeApi<Record<string, unknown>>(
+    "admin.appointments.publish-notes",
+    {
+      method: "POST",
+      accessToken,
+      body: input,
+    },
+  );
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true as const,
+    status: result.status,
+    data: normalizeAppointment(result.data),
+  };
+}
+
 export async function logAppointmentApi(
   accessToken: string,
   input: SessionLogInput,
@@ -305,7 +444,8 @@ export async function updateAppointmentStatusApi(
   accessToken: string,
   input: {
     appointmentId: string;
-    status: "cancelled";
+    status: AppointmentStatus;
+    scheduledAt?: string;
   },
 ) {
   const result = await executeApi<Record<string, unknown>>(
@@ -316,6 +456,7 @@ export async function updateAppointmentStatusApi(
       body: {
         appointmentId: input.appointmentId,
         status: input.status,
+        scheduledAt: input.scheduledAt,
       },
     },
   );
