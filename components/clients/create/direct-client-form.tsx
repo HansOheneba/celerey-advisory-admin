@@ -50,37 +50,7 @@ export function DirectClientForm({
     router.push("/clients");
   }, [router, state?.success]);
 
-  function validateCurrentStep(): boolean {
-    const form = formRef.current;
-    if (!form) {
-      return true;
-    }
-
-    const fieldsets = form.querySelectorAll("fieldset[data-wizard-step]");
-    const activeFieldset = fieldsets[currentStep] as HTMLFieldSetElement | undefined;
-
-    if (!activeFieldset) {
-      return true;
-    }
-
-    const fields = activeFieldset.querySelectorAll<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >("input, select, textarea");
-
-    for (const field of fields) {
-      if (!field.checkValidity()) {
-        field.reportValidity();
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   function handleNext() {
-    if (!validateCurrentStep()) {
-      return;
-    }
     setCurrentStep((step) => Math.min(step + 1, stepCount - 1));
   }
 
@@ -95,11 +65,7 @@ export function DirectClientForm({
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
         <CreateWizardNav
           currentStep={currentStep}
-          onStepClick={(stepIndex) => {
-            if (stepIndex < currentStep) {
-              setCurrentStep(stepIndex);
-            }
-          }}
+          onStepClick={setCurrentStep}
         />
 
         <div className="min-w-0 space-y-5">

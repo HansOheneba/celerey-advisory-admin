@@ -9,10 +9,7 @@ const TIER_LABELS: Record<string, string> = {
   control: "Control",
 };
 
-/**
- * Demo sign-in. Each role lands on the same portal with a different capability
- * set, which is the fastest way to show the privilege model working.
- */
+/** Demo sign-in. Each role gets a different capability set on the same portal. */
 export function DemoRolePicker() {
   return (
     <div className="space-y-2.5">

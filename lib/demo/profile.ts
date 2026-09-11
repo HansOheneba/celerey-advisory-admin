@@ -68,6 +68,15 @@ function buildAllocation(record: DemoClientRecord) {
     }));
 }
 
+/** Apply a profile mutation and recompute derived fields in one step. */
+export function mutateClientProfileRecord(
+  record: DemoClientRecord,
+  mutator: (record: DemoClientRecord) => void,
+) {
+  mutator(record);
+  syncClientDerived(record);
+}
+
 /** Recompute AUA, AUM, allocation, goals meta and cash-flow after a profile write. */
 export function syncClientDerived(record: DemoClientRecord) {
   const cash = record.detail.accounts.reduce(
@@ -123,12 +132,24 @@ export function syncClientDerived(record: DemoClientRecord) {
   const targetCash =
     monthlyExpenses * record.detail.emergencyFund.targetMonths;
 
+  const shortfall = Math.max(
+    0,
+    round(targetCash - record.detail.emergencyFund.currentCashBalance),
+  );
   record.detail.emergencyFund.computed = {
+    monthlyBaseline: monthlyExpenses,
+    targetAmount: round(targetCash),
+    runwayMonths: monthsCovered,
     monthsCovered,
-    gap: Math.max(
-      0,
-      round(targetCash - record.detail.emergencyFund.currentCashBalance),
-    ),
+    fundedPct:
+      targetCash > 0
+        ? Math.round(
+            (record.detail.emergencyFund.currentCashBalance / targetCash) *
+              100,
+          )
+        : 0,
+    shortfall,
+    gap: shortfall,
   };
 
   const series = record.detail.portfolioPerformance;

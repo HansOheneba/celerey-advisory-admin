@@ -39,6 +39,12 @@ type ServiceTabProps = {
   availability: ClientAvailability;
   canManageDocuments: boolean;
   canGenerateReport: boolean;
+  /** Advisory sub-tab: sessions + scheduling only */
+  sessionsOnly?: boolean;
+  /** Advisory sub-tab: tasks list only */
+  tasksOnly?: boolean;
+  /** Advisory sub-tab: documents only */
+  documentsOnly?: boolean;
 };
 
 export function ServiceTab({
@@ -51,6 +57,9 @@ export function ServiceTab({
   availability,
   canManageDocuments,
   canGenerateReport,
+  sessionsOnly = false,
+  tasksOnly = false,
+  documentsOnly = false,
 }: ServiceTabProps) {
   const openTasks = tasks.filter((task) => task.status === "open");
   const upcoming = appointments.filter(
@@ -58,6 +67,86 @@ export function ServiceTab({
       isScheduledStatus(appointment.status) ||
       isNegotiationStatus(appointment.status),
   );
+
+  if (documentsOnly) {
+    return (
+      <ClientDocumentsCard
+        clientId={clientId}
+        initialDocuments={documents}
+        canEdit={canManageDocuments}
+      />
+    );
+  }
+
+  if (tasksOnly) {
+    return (
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle>Tasks</CardTitle>
+          <CardDescription>
+            {openTasks.length} open task{openTasks.length === 1 ? "" : "s"}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {tasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No tasks on file.</p>
+          ) : (
+            tasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-start justify-between gap-3 border-b border-border pb-2 last:border-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{task.title}</p>
+                  {task.description ? (
+                    <p className="text-xs text-muted-foreground">
+                      {task.description}
+                    </p>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    {task.assignee} · {task.status}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {task.dueAt ? formatDate(task.dueAt) : "No date"}
+                </span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (sessionsOnly) {
+    return (
+      <div className="space-y-4">
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>Sessions</CardTitle>
+            <CardDescription>
+              {upcoming.length} upcoming · session logs and published notes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ClientSessionsSection
+              clientId={clientId}
+              appointments={appointments}
+            />
+          </CardContent>
+        </Card>
+
+        <ClientReportsPanel
+          clientId={clientId}
+          reports={reports}
+          canGenerate={canGenerateReport}
+        />
+
+        <ClientAvailabilityCard availability={availability} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">

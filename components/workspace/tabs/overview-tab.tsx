@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { InternalNotesPanel } from "@/components/workspace/internal-notes-panel";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListRow } from "@/components/shared/list-row";
 import { SectionPanel } from "@/components/shared/section-panel";
@@ -55,12 +56,16 @@ type OverviewTabProps = {
   record: DemoClientRecord;
   activity: ClientActivity[];
   tasks: Task[];
+  showInternalNotes?: boolean;
+  canEditInternalNotes?: boolean;
 };
 
 export function OverviewTab({
   record,
   activity,
   tasks,
+  showInternalNotes = false,
+  canEditInternalNotes = false,
 }: OverviewTabProps) {
   const { client, detail } = record;
   const cash = cashBalance(record);
@@ -82,6 +87,15 @@ export function OverviewTab({
 
   return (
     <div className="space-y-4">
+      {showInternalNotes ? (
+        <InternalNotesPanel
+          clientId={client.id}
+          notes={record.internalNotes}
+          canEdit={canEditInternalNotes}
+          variant="preview"
+        />
+      ) : null}
+
       <SectionPanel
         title="Open tasks"
         description="Assigned to you with a due date."
@@ -93,7 +107,7 @@ export function OverviewTab({
               size="sm"
               className="text-primary"
               render={
-                <Link href={`/clients/${record.client.id}?tab=service`} />
+                <Link href={`/clients/${record.client.id}?tab=advisory&advisory=tasks`} />
               }
             >
               View all {openTasks.length}

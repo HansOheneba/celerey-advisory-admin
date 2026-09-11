@@ -38,6 +38,7 @@ import { CHART_PALETTE, CHART_PRIMARY } from "@/lib/chart-colors";
 import {
   AddAccountDialog,
   AddHoldingDialog,
+  EditHoldingDialog,
 } from "@/components/clients/profile/profile-editors";
 import { RemoveProfileItemButton } from "@/components/clients/profile/remove-profile-item-button";
 
@@ -268,12 +269,23 @@ export function PortfolioTab({
                     </TableCell>
                     {canEdit ? (
                       <TableCell className="text-right">
-                        <RemoveProfileItemButton
-                          clientId={client.id}
-                          collection="holdings"
-                          itemId={holding.holding_id}
-                          label={holding.name}
-                        />
+                        <div className="flex items-center justify-end gap-1">
+                          <EditHoldingDialog
+                            clientId={client.id}
+                            holding={{
+                              holding_id: holding.holding_id,
+                              name: holding.name,
+                              current_value: holding.current_value,
+                              quantity: holding.quantity,
+                            }}
+                          />
+                          <RemoveProfileItemButton
+                            clientId={client.id}
+                            collection="holdings"
+                            itemId={holding.holding_id}
+                            label={holding.name}
+                          />
+                        </div>
                       </TableCell>
                     ) : null}
                   </TableRow>

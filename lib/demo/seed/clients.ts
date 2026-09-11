@@ -6,6 +6,8 @@ import {
   buildClientRecord,
   type ClientSpec,
 } from "@/lib/demo/seed/client-builder";
+import { enrichClientSpec } from "@/lib/demo/seed/enrich-client-spec";
+import { ADA_MENSAH_SPEC } from "@/lib/demo/seed/reference-persona";
 import {
   AGGRESSIVE_SLEEVES,
   BALANCED_SLEEVES,
@@ -20,6 +22,7 @@ import { resolveFillerResidency } from "@/lib/demo/seed/residency-locations";
 import type { DemoClientRecord } from "@/lib/demo/types";
 
 const SPECS: ClientSpec[] = [
+  ADA_MENSAH_SPEC,
   {
     id: "osei-bonsu",
     firstName: "Akosua",
@@ -971,6 +974,91 @@ const FILLERS: FillerSpec[] = [
   { id: "arthur", firstName: "Prince", lastName: "Arthur", advisorId: "rm-daniel", advisorName: "Daniel Mensah", portfolio: 3_400_000, cash: 200_000, riskLevel: "aggressive", status: "active", segment: "affluent", city: "Winneba", drift: 7.4, lastContactDaysAgo: 38, nextReviewInDays: 16 },
 ];
 
+/** Onboarding clients waiting in the Assignments inbox. */
+const UNASSIGNED_FILLERS: FillerSpec[] = [
+  {
+    id: "boateng-new",
+    firstName: "Yaw",
+    lastName: "Boateng",
+    advisorId: "",
+    advisorName: "Unassigned",
+    portfolio: 1_850_000,
+    cash: 420_000,
+    riskLevel: "moderate",
+    status: "onboarding",
+    segment: "affluent",
+    city: "Accra",
+    drift: 0.5,
+    lastContactDaysAgo: 2,
+    nextReviewInDays: 28,
+  },
+  {
+    id: "sowah-new",
+    firstName: "Abena",
+    lastName: "Sowah",
+    advisorId: "",
+    advisorName: "Unassigned",
+    portfolio: 4_200_000,
+    cash: 680_000,
+    riskLevel: "growth",
+    status: "onboarding",
+    segment: "hnw",
+    city: "Kumasi",
+    drift: 0.3,
+    lastContactDaysAgo: 1,
+    nextReviewInDays: 21,
+  },
+  {
+    id: "aidoo-new",
+    firstName: "Kwame",
+    lastName: "Aidoo",
+    advisorId: "",
+    advisorName: "Unassigned",
+    portfolio: 920_000,
+    cash: 180_000,
+    riskLevel: "conservative",
+    status: "onboarding",
+    segment: "emerging",
+    city: "Takoradi",
+    drift: 0.2,
+    lastContactDaysAgo: 4,
+    nextReviewInDays: 35,
+  },
+  {
+    id: "mensah-new",
+    firstName: "Ama",
+    lastName: "Mensah",
+    advisorId: "",
+    advisorName: "Unassigned",
+    portfolio: 6_800_000,
+    cash: 1_100_000,
+    riskLevel: "moderate",
+    status: "onboarding",
+    segment: "hnw",
+    city: "London",
+    drift: 0.6,
+    lastContactDaysAgo: 3,
+    nextReviewInDays: 14,
+    heldAway: 900_000,
+  },
+  {
+    id: "otoo-new",
+    firstName: "Kojo",
+    lastName: "Otoo",
+    advisorId: "",
+    advisorName: "Unassigned",
+    portfolio: 2_600_000,
+    cash: 310_000,
+    riskLevel: "growth",
+    status: "onboarding",
+    segment: "affluent",
+    city: "Cape Coast",
+    drift: 0.4,
+    lastContactDaysAgo: 5,
+    nextReviewInDays: 42,
+  },
+];
+
 const SLEEVES_BY_RISK: Record<
   ClientSpec["riskLevel"],
   typeof GROWTH_SLEEVES
@@ -1085,7 +1173,8 @@ export function seedClients(): DemoClientRecord[] {
     ...SPECS,
     ...REGIONAL_CLIENT_SPECS,
     ...FILLERS.map(fillerToSpec),
+    ...UNASSIGNED_FILLERS.map(fillerToSpec),
   ].map(withAssetMandate);
 
-  return specs.map(buildClientRecord);
+  return specs.map((spec) => buildClientRecord(enrichClientSpec(spec)));
 }

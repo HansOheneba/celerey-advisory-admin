@@ -9,6 +9,7 @@ export const PREFERRED_CONTACT_OPTIONS = [
 export const RISK_PROFILE_OPTIONS = [
   { value: "conservative", label: "Conservative" },
   { value: "moderate", label: "Moderate" },
+  { value: "growth", label: "Growth" },
   { value: "aggressive", label: "Aggressive" },
 ] as const;
 

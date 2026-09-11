@@ -7,7 +7,6 @@ import {
   createMessageThreadAction,
   sendMessageAction,
 } from "@/app/actions/messages";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,10 +53,12 @@ export function CommsTab({
   thread,
   canMessage,
 }: CommsTabProps) {
-  const [messages, setMessages] = useState(thread?.messages ?? []);
+  const visibleMessages = (thread?.messages ?? []).filter(
+    (message) => message.author !== "note",
+  );
+  const [messages, setMessages] = useState(visibleMessages);
   const [threadId, setThreadId] = useState(thread?.id ?? null);
   const [body, setBody] = useState("");
-  const [isNote, setIsNote] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function send() {
@@ -81,7 +82,7 @@ export function CommsTab({
 
       const result = await sendMessageAction({
         threadId: activeThreadId,
-        author: isNote ? "note" : "advisor",
+        author: "advisor",
         body: text,
       });
 
@@ -92,7 +93,7 @@ export function CommsTab({
 
       setMessages((current) => [...current, result.message]);
       setBody("");
-      toast.success(isNote ? "Note added." : "Message sent.");
+      toast.success("Sent");
     });
   }
 
@@ -102,15 +103,15 @@ export function CommsTab({
         <CardHeader>
           <CardTitle>Conversation with {clientName}</CardTitle>
           <CardDescription>
-            {messages.length} message{messages.length === 1 ? "" : "s"}. Notes
-            stay internal.
+            {messages.length} message{messages.length === 1 ? "" : "s"} with
+            the client.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="max-h-[420px] space-y-3 overflow-y-auto">
             {messages.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No messages yet. Start the conversation below.
+                No messages yet. Write below.
               </p>
             ) : (
               messages.map((message) => (
@@ -122,15 +123,8 @@ export function CommsTab({
                       "border border-border bg-card",
                     message.author === "advisor" &&
                       "ml-auto bg-primary text-primary-foreground",
-                    message.author === "note" &&
-                      "border border-dashed border-amber-500/40 bg-amber-500/5",
                   )}
                 >
-                  {message.author === "note" ? (
-                    <Badge variant="outline" className="mb-1.5">
-                      Internal note
-                    </Badge>
-                  ) : null}
                   <p>{message.body}</p>
                   <p
                     className={cn(
@@ -152,28 +146,18 @@ export function CommsTab({
               <Textarea
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                placeholder={
-                  isNote
-                    ? "Record an internal note for the file."
-                    : `Write to ${clientName}…`
-                }
+                placeholder={`Write to ${clientName}…`}
                 rows={3}
               />
               <div className="flex flex-wrap items-center gap-2">
                 <Button onClick={send} disabled={isPending || !body.trim()}>
-                  {isNote ? "Save note" : "Send message"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsNote((current) => !current)}
-                >
-                  {isNote ? "Switch to message" : "Switch to internal note"}
+                  Send message
                 </Button>
               </div>
             </div>
           ) : (
             <p className="border-t border-border pt-3 text-sm text-muted-foreground">
-              Your role has read-only access to client communications.
+              Read-only for your role.
             </p>
           )}
         </CardContent>
@@ -182,7 +166,7 @@ export function CommsTab({
       <Card size="sm" className="shadow-none">
         <CardHeader>
           <CardTitle>Templates</CardTitle>
-          <CardDescription>Edit before sending.</CardDescription>
+          <CardDescription>Edit before you send.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {TEMPLATES.map((template) => (

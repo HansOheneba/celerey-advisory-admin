@@ -13,7 +13,9 @@ import type {
   RiskLevel,
 } from "@/types/client";
 import type { ClientDetailState } from "@/types/client-detail";
+import { sortInternalNotesNewestFirst } from "@/lib/clients/internal-notes";
 import type { ClientSegment, DemoClientRecord } from "@/lib/demo/types";
+import type { ClientInternalNote } from "@/types/client-internal-note";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -59,6 +61,10 @@ export type GoalSpec = {
   years: number;
   priority: number;
   status?: string;
+  targetDate?: string;
+  icon?: string;
+  color?: string;
+  probability?: number;
 };
 
 export type AccountSpec = {
@@ -69,6 +75,25 @@ export type AccountSpec = {
   relationship?: AssetRelationship;
 };
 
+export type PropertyMortgageSpec = {
+  lender: string;
+  balance: number;
+  interestRatePct: number;
+  minPaymentMonthly: number;
+  termYears?: number;
+  startDate?: string;
+  originalLoanAmount?: number;
+};
+
+export type PropertyInsuranceSpec = {
+  type: string;
+  provider: string;
+  policyNumber?: string;
+  coverageAmount?: number;
+  annualPremium?: number;
+  expiryDate?: string;
+};
+
 export type PropertySpec = {
   name: string;
   type: string;
@@ -76,6 +101,10 @@ export type PropertySpec = {
   city: string;
   purchase: number;
   current: number;
+  purchaseDate?: string;
+  isPrimary?: boolean;
+  mortgage?: PropertyMortgageSpec;
+  insurance?: PropertyInsuranceSpec[];
 };
 
 export type LiabilitySpec = {
@@ -85,6 +114,8 @@ export type LiabilitySpec = {
   balance: number;
   ratePct: number;
   monthly: number;
+  dueDay?: number;
+  originalLoanAmount?: number;
 };
 
 export type InsuranceSpec = {
@@ -93,9 +124,21 @@ export type InsuranceSpec = {
   name: string;
   coverage: number;
   premium: number;
+  policyNumber?: string;
+  startDate?: string;
+  renewalDate?: string;
+  deductible?: number;
+  beneficiary?: string;
+  notes?: string;
+  autoRenew?: boolean;
 };
 
-export type MoneySpec = { name: string; amount: number; essential?: boolean };
+export type MoneySpec = {
+  name: string;
+  amount: number;
+  essential?: boolean;
+  category?: string;
+};
 
 export type DependentSpec = {
   name: string;
@@ -149,6 +192,7 @@ export type ClientSpec = {
   netFlowQtdUsd: number;
   performanceYtdPct: number;
   retirementAge?: number;
+  retirementStorage?: string;
   desiredMonthlyIncome?: number;
   emergencyTargetMonths?: number;
   maturingInvestment?: {
@@ -160,6 +204,11 @@ export type ClientSpec = {
   marginalTaxRatePct?: number;
   /** How assets split between AUA and AUM in the demo book. */
   assetMandate?: AssetMandate;
+  preferredContact?: string;
+  investmentCurrency?: string;
+  prefix?: string | null;
+  /** Reference personas ship fully populated — skip auto-enrich. */
+  skipEnrich?: boolean;
 };
 
 function sum(values: number[]): number {
@@ -234,6 +283,67 @@ function buildPerformance(currentValue: number, ytdPct: number) {
   });
 }
 
+function goalTargetDate(years: number): string {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + Math.ceil(years));
+  date.setMonth(11, 31);
+  return date.toISOString().slice(0, 10);
+}
+
+function attachMortgagesToProperties(
+  properties: PropertySpec[],
+  liabilities: LiabilitySpec[],
+): { properties: PropertySpec[]; liabilities: LiabilitySpec[] } {
+  const mortgages = liabilities.filter((row) => row.type === "mortgage");
+  const standalone = liabilities.filter((row) => row.type !== "mortgage");
+  const nextProperties = properties.map((property) => ({ ...property }));
+
+  for (const mortgage of mortgages) {
+    const target =
+      nextProperties.find((property) => !property.mortgage) ?? nextProperties[0];
+    if (!target) {
+      standalone.push(mortgage);
+      continue;
+    }
+    target.mortgage = {
+      lender: mortgage.lender,
+      balance: mortgage.balance,
+      interestRatePct: mortgage.ratePct,
+      minPaymentMonthly: mortgage.monthly,
+      originalLoanAmount: mortgage.originalLoanAmount,
+    };
+  }
+
+  return { properties: nextProperties, liabilities: standalone };
+}
+
+function buildRetirementProjections(
+  retirement: ClientDetailState["retirement"],
+  monthlySurplus: number,
+) {
+  const yearsToRetirement = Math.max(
+    1,
+    retirement.retirementAge - retirement.currentAge,
+  );
+  const projectedBalanceAtRetirement = round(
+    retirement.currentInvested * Math.pow(1 + retirement.expectedReturnPct / 100, yearsToRetirement) +
+      retirement.monthlySavings * 12 * yearsToRetirement * 1.4,
+  );
+  const desiredAnnual = retirement.desiredMonthlyIncome * 12;
+  const projectedIncome = round(
+    (projectedBalanceAtRetirement * retirement.safeWithdrawalRatePct) / 100 / 12,
+  );
+  const shortfallMonthly = Math.max(0, retirement.desiredMonthlyIncome - projectedIncome);
+
+  return {
+    projectedBalanceAtRetirement,
+    monthlyIncomeAtRetirement: projectedIncome,
+    onTrack: shortfallMonthly === 0,
+    shortfallMonthly,
+    surplusFromPlan: monthlySurplus,
+  };
+}
+
 function buildCashFlowHistory(income: number, expenses: number) {
   return Array.from({ length: 6 }, (_, index) => {
     const variance = 1 + Math.sin(index * 1.3) * 0.06;
@@ -247,6 +357,77 @@ function buildCashFlowHistory(income: number, expenses: number) {
       surplus: monthIncome - monthExpenses,
     };
   });
+}
+
+type SeedNoteExtra = {
+  body: string;
+  authorId?: string;
+  authorName?: string;
+  daysBeforeLastContact: number;
+};
+
+const EXTRA_INTERNAL_NOTES: Record<string, SeedNoteExtra[]> = {
+  "osei-bonsu": [
+    {
+      body: "Prefers written summaries before any call. PA handles calendar.",
+      daysBeforeLastContact: 12,
+    },
+  ],
+  "ada-mensah": [
+    {
+      body: "Wants WhatsApp for quick checks. Do not text after 8pm Accra time.",
+      daysBeforeLastContact: 18,
+    },
+    {
+      body: "2026 review: asked to model home deposit vs pension top-up before she commits.",
+      daysBeforeLastContact: 45,
+    },
+  ],
+  darko: [
+    {
+      body: "Copy spouse on any equity sleeve changes.",
+      daysBeforeLastContact: 28,
+    },
+  ],
+};
+
+function buildSeedInternalNotes(spec: ClientSpec): ClientInternalNote[] {
+  const notes: ClientInternalNote[] = [];
+
+  if (spec.notes?.trim()) {
+    notes.push({
+      id: `${spec.id}-note-1`,
+      body: spec.notes.trim(),
+      authorId: spec.advisorId,
+      authorName: spec.advisorName,
+      createdAt: daysFromNow(-spec.lastContactDaysAgo),
+    });
+  }
+
+  const extras = EXTRA_INTERNAL_NOTES[spec.id];
+  if (extras) {
+    for (const [index, extra] of extras.entries()) {
+      notes.push({
+        id: `${spec.id}-note-extra-${index + 1}`,
+        body: extra.body,
+        authorId: extra.authorId ?? spec.advisorId,
+        authorName: extra.authorName ?? spec.advisorName,
+        createdAt: daysFromNow(
+          -spec.lastContactDaysAgo - extra.daysBeforeLastContact,
+        ),
+      });
+    }
+  } else if (spec.notes?.trim() && spec.segment !== "emerging") {
+    notes.push({
+      id: `${spec.id}-note-2`,
+      body: "Confirm preferred channel before sending portfolio commentary.",
+      authorId: spec.advisorId,
+      authorName: spec.advisorName,
+      createdAt: daysFromNow(-spec.lastContactDaysAgo - 14),
+    });
+  }
+
+  return sortInternalNotesNewestFirst(notes);
 }
 
 export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
@@ -308,11 +489,40 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     nextReviewAt: daysFromNow(spec.nextReviewInDays),
     joinedAt,
     goalsCount: spec.goals.length,
-    notes: spec.notes,
   };
+
+  const internalNotes = buildSeedInternalNotes(spec);
 
   const birthYear = new Date().getFullYear() - spec.age;
   const bandCopy = RISK_BAND_COPY[spec.riskLevel];
+  const propertyBundle = attachMortgagesToProperties(
+    spec.properties ?? [],
+    spec.liabilities ?? [],
+  );
+  const updatedAt = daysFromNow(-spec.lastContactDaysAgo);
+  const targetAmount = monthlyExpenses * emergencyTargetMonths;
+  const runwayMonths =
+    monthlyExpenses > 0
+      ? Math.round((cashBalance / monthlyExpenses) * 10) / 10
+      : 0;
+  const fundedPct =
+    targetAmount > 0 ? Math.round((cashBalance / targetAmount) * 100) : 0;
+
+  const retirementBase = {
+    currentAge: spec.age,
+    retirementAge,
+    lifeExpectancy: 88,
+    currentInvested: holdingsValue,
+    monthlySavings: Math.max(0, round(monthlySurplus * 0.55)),
+    existingPensionBalance: round(holdingsValue * 0.18),
+    monthlyPensionContribution: round(monthlyIncome * 0.08),
+    expectedReturnPct: 7.5,
+    inflationPct: 3.2,
+    safeWithdrawalRatePct: 4,
+    desiredMonthlyIncome:
+      spec.desiredMonthlyIncome ?? round(monthlyExpenses * 0.85),
+    storageLocation: spec.retirementStorage ?? "employer_pension",
+  };
 
   const detail: ClientDetailState = {
     user: {
@@ -327,10 +537,12 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       city: spec.city,
       date_of_birth: `${birthYear}-04-12`,
       currency: spec.currency,
+      investment_currency: spec.investmentCurrency ?? spec.currency,
+      preferred_contact: spec.preferredContact ?? "email",
       occupation: spec.occupation,
       marital_status: spec.maritalStatus,
       gender: spec.gender,
-      prefix: null,
+      prefix: spec.prefix ?? null,
       dependents: spec.dependents?.length ?? 0,
       citizenships: spec.citizenships,
       risk_profile: spec.riskLevel,
@@ -339,7 +551,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       is_active: spec.status !== "inactive",
       user_type: "user",
       created_at: joinedAt,
-      updated_at: daysFromNow(-spec.lastContactDaysAgo),
+      updated_at: updatedAt,
     },
     riskAssessment: {
       assessment_id: `risk-${spec.id}`,
@@ -365,19 +577,21 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       id: `${spec.id}-income-${index}`,
       name: row.name,
       amount: row.amount,
+      category: row.category ?? row.name,
       isRecurring: true,
       recurringType: "monthly",
-      startDate: joinedAt,
+      startDate: joinedAt.slice(0, 10),
       endDate: null,
     })),
     expenseCategories: spec.expenses.map((row, index) => ({
       id: `${spec.id}-expense-${index}`,
       name: row.name,
       amount: row.amount,
+      category: row.category ?? row.name,
       essential: row.essential ?? false,
       isRecurring: true,
       recurringType: "monthly",
-      startDate: joinedAt,
+      startDate: joinedAt.slice(0, 10),
     })),
     goals: spec.goals.map((goal, index) => ({
       id: `${spec.id}-goal-${index}`,
@@ -389,8 +603,14 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       yearsRemaining: goal.years,
       current: goal.current,
       target: goal.target,
+      targetDate: goal.targetDate ?? goalTargetDate(goal.years),
       monthlyContribution: goal.monthly,
+      monthlyContributionNeeded: goal.monthly,
       status: goal.status ?? "active",
+      icon: goal.icon,
+      color: goal.color,
+      probability: goal.probability,
+      completed: goal.status === "completed",
     })),
     goalsMeta: {
       totalMonthlyNeeded: sum(spec.goals.map((goal) => goal.monthly)),
@@ -405,9 +625,14 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       name: holding.name,
       symbol: holding.symbol,
       asset_type: holding.assetType,
+      valuation_method: holding.symbol ? "market" : "manual",
       quantity: holding.quantity ?? undefined,
       cost_basis: holding.costBasis,
       current_value: holding.value,
+      initial_value: holding.costBasis,
+      initial_value_date: joinedAt.slice(0, 10),
+      last_updated: updatedAt,
+      is_active: true,
       relationship: classifyHoldingRelationship(holding.relationship),
     })),
     accounts: resolved.accounts.map((account, index) => ({
@@ -423,16 +648,34 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
         account.relationship,
       ),
     })),
-    propertyAssets: (spec.properties ?? []).map((property, index) => ({
+    propertyAssets: propertyBundle.properties.map((property, index) => ({
       property_id: `${spec.id}-property-${index}`,
       name: property.name,
       property_type: property.type,
       country: property.country,
       city: property.city,
+      purchase_date: property.purchaseDate ?? joinedAt.slice(0, 10),
       purchase_price: property.purchase,
+      market_value: property.current,
       current_value: property.current,
+      mortgage_balance: property.mortgage?.balance ?? 0,
+      is_primary: property.isPrimary ?? index === 0,
+      is_active: true,
+      mortgage: property.mortgage
+        ? {
+            lender: property.mortgage.lender,
+            balance: property.mortgage.balance,
+            interest_rate_pct: property.mortgage.interestRatePct,
+            min_payment_monthly: property.mortgage.minPaymentMonthly,
+            term_years: property.mortgage.termYears,
+            start_date: property.mortgage.startDate,
+            original_loan_amount: property.mortgage.originalLoanAmount,
+            type: "repayment",
+          }
+        : undefined,
+      insurance: property.insurance,
     })),
-    liabilities: (spec.liabilities ?? []).map((liability, index) => ({
+    liabilities: propertyBundle.liabilities.map((liability, index) => ({
       id: `${spec.id}-liability-${index}`,
       name: liability.name,
       lender: liability.lender,
@@ -440,39 +683,44 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       balance: liability.balance,
       interestRatePct: liability.ratePct,
       minPaymentMonthly: liability.monthly,
+      dueDay: liability.dueDay,
+      originalLoanAmount: liability.originalLoanAmount,
+      updatedAt,
     })),
     insurancePolicies: (spec.insurance ?? []).map((policy, index) => ({
       policy_id: `${spec.id}-policy-${index}`,
       category: policy.category,
       provider: policy.provider,
       name: policy.name,
-      policy_number: `POL-${spec.id.toUpperCase()}-${index + 1}`,
+      policy_number:
+        policy.policyNumber ?? `POL-${spec.id.toUpperCase()}-${index + 1}`,
       coverage_amount: policy.coverage,
       premium_monthly: policy.premium,
+      deductible: policy.deductible,
+      start_date: policy.startDate,
+      renewal_date: policy.renewalDate,
+      auto_renew: policy.autoRenew ?? true,
+      beneficiary: policy.beneficiary,
+      notes: policy.notes,
+      is_active: true,
     })),
-    retirement: {
-      currentAge: spec.age,
-      retirementAge,
-      lifeExpectancy: 88,
-      currentInvested: holdingsValue,
-      monthlySavings: Math.max(0, round(monthlySurplus * 0.55)),
-      existingPensionBalance: round(holdingsValue * 0.18),
-      monthlyPensionContribution: round(monthlyIncome * 0.08),
-      expectedReturnPct: 7.5,
-      inflationPct: 3.2,
-      safeWithdrawalRatePct: 4,
-      desiredMonthlyIncome:
-        spec.desiredMonthlyIncome ?? round(monthlyExpenses * 0.85),
-    },
+    retirement: retirementBase,
+    retirementProjections: buildRetirementProjections(
+      retirementBase,
+      monthlySurplus,
+    ),
     emergencyFund: {
       targetMonths: emergencyTargetMonths,
       currentCashBalance: cashBalance,
-      storageLocation: resolved.accounts[0]?.institution ?? "Cash account",
+      storageLocation: resolved.accounts[0]?.institution ?? "savings_account",
+      updatedAt,
       computed: {
-        monthsCovered:
-          monthlyExpenses > 0
-            ? Math.round((cashBalance / monthlyExpenses) * 10) / 10
-            : 0,
+        monthlyBaseline: monthlyExpenses,
+        targetAmount: round(targetAmount),
+        runwayMonths,
+        monthsCovered: runwayMonths,
+        fundedPct,
+        shortfall: round(emergencyGap),
         gap: round(emergencyGap),
       },
     },
@@ -507,11 +755,14 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
       financialReliance: dependent.reliance ?? "full",
     })),
     freshness: [
-      { section: "Profile", updatedAt: daysFromNow(-12) },
-      { section: "Portfolio", updatedAt: daysFromNow(-1) },
-      { section: "Goals", updatedAt: daysFromNow(-30) },
-      { section: "Risk", updatedAt: daysFromNow(-spec.joinedDaysAgo + 5) },
-      { section: "Cash flow", updatedAt: daysFromNow(-20) },
+      { section: "income", updatedAt },
+      { section: "expenses", updatedAt },
+      { section: "goals", updatedAt: daysFromNow(-30) },
+      { section: "assets", updatedAt: daysFromNow(-1) },
+      { section: "properties", updatedAt: daysFromNow(-45) },
+      { section: "insurance", updatedAt: daysFromNow(-60) },
+      { section: "retirement", updatedAt: daysFromNow(-90) },
+      { section: "liabilities", updatedAt: daysFromNow(-20) },
     ],
     profileCompletionScore: Math.min(
       100,
@@ -525,6 +776,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
   return {
     client,
     detail,
+    internalNotes,
     subscription: spec.subscription,
     segment: spec.segment,
     idleCashPct,

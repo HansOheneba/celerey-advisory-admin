@@ -32,6 +32,21 @@ export function formatCompactCurrency(value: number) {
   }).format(amount);
 }
 
+/** Trailing twelve-month return, written out instead of "TTM". */
+export function formatPastTwelveMonthReturn(
+  pct: number,
+  subject: "managed" | "default" = "default",
+): string {
+  const sign = pct >= 0 ? "+" : "";
+  const base = `${sign}${pct}% over the past 12 months`;
+
+  if (subject === "managed") {
+    return `${base} on managed assets`;
+  }
+
+  return base;
+}
+
 export function formatDate(value: string) {
   if (!value) {
     return "—";

@@ -6,8 +6,8 @@ import {
   getBookMetrics,
   getRecommendations,
   getReports,
+  getScopedAiSessions,
   getScopedClientRecords,
-  getViewer,
 } from "@/lib/demo/repositories";
 
 export const metadata: Metadata = {
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
 export default async function InsightsPage() {
   const session = await requireSession();
 
-  const [metrics, records, recommendations, reports, { db }] =
+  const [metrics, records, recommendations, reports, aiSessions] =
     await Promise.all([
       getBookMetrics(),
       getScopedClientRecords(),
       getRecommendations(),
       getReports(),
-      getViewer(),
+      getScopedAiSessions(),
     ]);
 
   return (
@@ -33,7 +33,7 @@ export default async function InsightsPage() {
       records={records}
       recommendations={recommendations}
       reports={reports}
-      aiSessions={db.aiSessions.slice(0, 25)}
+      aiSessions={aiSessions}
     />
   );
 }

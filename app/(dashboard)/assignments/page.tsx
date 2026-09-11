@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { AssignmentsWorkspace } from "@/components/assignments/assignments-workspace";
-import { mergeAssignableAdvisors } from "@/lib/advisors/assignable";
+import {
+  filterRelationshipManagers,
+  mergeAssignableAdvisors,
+} from "@/lib/advisors/assignable";
 import { requireAdmin } from "@/lib/dal";
 import { listClients } from "@/lib/repositories/clients";
 import { listAdvisors } from "@/lib/repositories/advisors";
@@ -21,10 +24,14 @@ export default async function AssignmentsPage() {
     (client) => !client.advisorId,
   );
 
+  const assignableAdvisors = filterRelationshipManagers(
+    mergeAssignableAdvisors(advisorsResult.items, session),
+  );
+
   return (
     <AssignmentsWorkspace
       unassignedClients={unassignedClients}
-      advisors={mergeAssignableAdvisors(advisorsResult.items, session)}
+      advisors={assignableAdvisors}
     />
   );
 }

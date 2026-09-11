@@ -291,7 +291,7 @@ export function buildUpcomingItems(
       title: task.title,
       subtitle: task.clientName ?? "Book task",
       href: task.clientId
-        ? `/clients/${task.clientId}?tab=service`
+        ? `/clients/${task.clientId}?tab=advisory&advisory=tasks`
         : "/tasks",
     });
   }

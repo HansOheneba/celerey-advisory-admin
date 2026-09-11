@@ -1,9 +1,18 @@
 import "server-only";
 
 import { DEMO_USERS, demoUserById, type DemoUser } from "@/lib/demo/seed/users";
+import { appendInternalNote } from "@/lib/clients/internal-notes";
 import { recordClientContact } from "@/lib/clients/contact-tracking";
+import {
+  canAccessClientRecord,
+  scopedClientRecords,
+} from "@/lib/demo/book-scope";
 import { daysFromNow } from "@/lib/demo/seed/client-builder";
 import { deriveAlerts } from "@/lib/demo/insights";
+import {
+  mutateClientProfileRecord,
+  nextProfileId,
+} from "@/lib/demo/profile";
 import { mutateDemoDb, readDemoDb } from "@/lib/demo/store";
 import type { DemoClientRecord, DemoDatabase } from "@/lib/demo/types";
 import { bookScope } from "@/lib/auth/capabilities";
@@ -24,30 +33,11 @@ function userFromToken(accessToken?: string): DemoUser | null {
   return demoUserById(accessToken.slice(ACCESS_TOKEN_PREFIX.length)) ?? null;
 }
 
-/**
- * Clients the acting user is allowed to see, per the privilege matrix:
- * RMs see their own book, Team Leads their team's, everyone else the firm.
- */
 function scopedClients(db: DemoDatabase, user: DemoUser): DemoClientRecord[] {
-  const scope = bookScope(user.demoRole);
-
-  if (scope === "firm") {
-    return db.clients;
-  }
-
-  if (scope === "team") {
-    const teamMemberIds = new Set(
-      DEMO_USERS.filter(
-        (member) => member.teamLeadId === user.id || member.id === user.id,
-      ).map((member) => member.id),
-    );
-
-    return db.clients.filter((record) =>
-      teamMemberIds.has(record.client.advisorId),
-    );
-  }
-
-  return db.clients.filter((record) => record.client.advisorId === user.id);
+  return scopedClientRecords(db, {
+    userId: user.id,
+    demoRole: user.demoRole,
+  });
 }
 
 type Params = Record<string, string | number | boolean | undefined | null>;
@@ -169,8 +159,10 @@ function toRawDetailState(state: ClientDetailState) {
         inflationPct: state.retirement.inflationPct,
         safeWithdrawalRatePct: state.retirement.safeWithdrawalRatePct,
         desiredMonthlyIncome: state.retirement.desiredMonthlyIncome,
+        storageLocation: state.retirement.storageLocation ?? null,
+        storage_location: state.retirement.storageLocation ?? null,
       },
-      projections: {},
+      projections: state.retirementProjections ?? {},
     },
     emergencyFund: {
       cash_balance: state.emergencyFund.currentCashBalance,
@@ -351,6 +343,17 @@ const HANDLERS: Record<string, Handler> = {
 
   "admin.clients.detail": (ctx) => {
     const clientId = param(ctx, "client_id", "clientId");
+
+    if (
+      !canAccessClientRecord(
+        ctx.db,
+        { userId: ctx.user.id, demoRole: ctx.user.demoRole },
+        clientId,
+      )
+    ) {
+      throw new DemoApiError("Client not found.", 404);
+    }
+
     const record = ctx.db.clients.find(
       (candidate) => candidate.client.id === clientId,
     );
@@ -436,7 +439,6 @@ const HANDLERS: Record<string, Handler> = {
         nextReviewAt: daysFromNow(180),
         joinedAt: new Date().toISOString(),
         goalsCount: 0,
-        notes: "",
       };
 
       const emptyDetail: ClientDetailState = {
@@ -540,6 +542,7 @@ const HANDLERS: Record<string, Handler> = {
       db.clients.push({
         client,
         detail: emptyDetail,
+        internalNotes: [],
         subscription: client.subscription,
         segment: "emerging",
         idleCashPct: 0,
@@ -688,6 +691,191 @@ const HANDLERS: Record<string, Handler> = {
 
       db.availability[clientId] = next as DemoDatabase["availability"][string];
       return next;
+    });
+  },
+
+  "admin.clients.user.update": async (ctx) => {
+    const clientId = bodyString(ctx, "client_id", "clientId");
+    const data =
+      ctx.body.data && typeof ctx.body.data === "object"
+        ? (ctx.body.data as Record<string, unknown>)
+        : ctx.body;
+
+    if (!clientId) {
+      throw new DemoApiError("Missing client.", 400);
+    }
+
+    return mutateDemoDb((db) => {
+      const record = db.clients.find(
+        (candidate) => candidate.client.id === clientId,
+      );
+
+      if (!record) {
+        throw new DemoApiError("Client not found.", 404);
+      }
+
+      mutateClientProfileRecord(record, (entry) => {
+        const user = entry.detail.user;
+        if (typeof data.phone_number === "string") {
+          user.phone_number = data.phone_number;
+          entry.client.phone = data.phone_number;
+        }
+        if (typeof data.occupation === "string") {
+          user.occupation = data.occupation;
+        }
+        if (typeof data.bio === "string") {
+          user.bio = data.bio;
+        }
+        if (typeof data.preferred_contact === "string") {
+          user.preferred_contact = data.preferred_contact;
+        }
+        if (typeof data.investment_currency === "string") {
+          user.investment_currency = data.investment_currency;
+        }
+        if (typeof data.city === "string") {
+          user.city = data.city;
+          entry.client.location = user.resident_country
+            ? `${data.city}, ${user.resident_country}`
+            : data.city;
+        }
+        user.updated_at = new Date().toISOString();
+      });
+
+      return { updated: true, clientId };
+    });
+  },
+
+  "admin.clients.internal-notes.update": async (ctx) => {
+    const clientId = bodyString(ctx, "client_id", "clientId");
+    const data =
+      ctx.body.data && typeof ctx.body.data === "object"
+        ? (ctx.body.data as Record<string, unknown>)
+        : ctx.body;
+    const body =
+      typeof data.body === "string"
+        ? data.body.trim()
+        : typeof data.internal_notes === "string"
+          ? data.internal_notes.trim()
+          : typeof data.internalNotes === "string"
+            ? data.internalNotes.trim()
+            : "";
+
+    if (!clientId) {
+      throw new DemoApiError("Missing client.", 400);
+    }
+
+    if (!body) {
+      throw new DemoApiError("Note body is required.", 400);
+    }
+
+    if (
+      !canAccessClientRecord(
+        ctx.db,
+        { userId: ctx.user.id, demoRole: ctx.user.demoRole },
+        clientId,
+      )
+    ) {
+      throw new DemoApiError("Client not found.", 404);
+    }
+
+    return mutateDemoDb((db) => {
+      const record = db.clients.find(
+        (candidate) => candidate.client.id === clientId,
+      );
+
+      if (!record) {
+        throw new DemoApiError("Client not found.", 404);
+      }
+
+      record.internalNotes = appendInternalNote(record.internalNotes ?? [], {
+        id: nextProfileId("note"),
+        body,
+        authorId: ctx.user.id,
+        authorName: ctx.user.name,
+        createdAt: new Date().toISOString(),
+      });
+
+      recordAudit(db, ctx.user, "client.internal_notes.updated", {
+        type: "client",
+        id: clientId,
+        label: `${record.client.firstName} ${record.client.lastName}`,
+      });
+
+      return { updated: true, clientId };
+    });
+  },
+
+  "admin.clients.risk-assessment.submit": async (ctx) => {
+    const clientId = bodyString(ctx, "client_id", "clientId");
+    const data =
+      ctx.body.data && typeof ctx.body.data === "object"
+        ? (ctx.body.data as Record<string, unknown>)
+        : ctx.body;
+    const riskBand =
+      typeof data.risk_band === "string"
+        ? data.risk_band
+        : typeof data.riskBand === "string"
+          ? data.riskBand
+          : "moderate";
+
+    if (!clientId) {
+      throw new DemoApiError("Missing client.", 400);
+    }
+
+    return mutateDemoDb((db) => {
+      const record = db.clients.find(
+        (candidate) => candidate.client.id === clientId,
+      );
+
+      if (!record) {
+        throw new DemoApiError("Client not found.", 404);
+      }
+
+      mutateClientProfileRecord(record, (entry) => {
+        entry.detail.riskAssessment = {
+          assessment_id: nextProfileId("risk"),
+          questionnaire_version: String(data.questionnaire_version ?? "v3"),
+          responses:
+            data.responses && typeof data.responses === "object"
+              ? (data.responses as Record<string, number>)
+              : { horizon: 3, drawdown: 3, liquidity: 3, experience: 3 },
+          profile_snapshot: { band: riskBand },
+          scoring: {
+            time_horizon_avg: 3,
+            questionnaire_score: 60,
+            modifiers: {},
+            modifier_total: 0,
+            final_score: 60,
+          },
+          result: {
+            risk_band: riskBand,
+            description: String(
+              data.description ??
+                "Balanced growth and stability over a medium horizon.",
+            ),
+            strategy: String(
+              data.strategy ??
+                "Diversified multi-asset portfolio with moderate equity tilt.",
+            ),
+          },
+          is_recalculation: Boolean(entry.detail.riskAssessment),
+          created_at: new Date().toISOString(),
+        };
+        entry.detail.user.risk_profile = riskBand;
+        if (
+          riskBand === "conservative" ||
+          riskBand === "moderate" ||
+          riskBand === "growth" ||
+          riskBand === "aggressive"
+        ) {
+          entry.client.riskLevel = riskBand;
+        }
+      });
+
+      return {
+        updated: true,
+        assessmentId: record.detail.riskAssessment?.assessment_id,
+      };
     });
   },
 

@@ -246,7 +246,7 @@ function ProductCard({ product }: { product: DemoProduct }) {
 
         <StatGrid columns={2} className="gap-3 border-t border-border pt-3">
           <StatItem
-            label="Return TTM"
+            label="Past 12 mo return"
             value={`${product.returnPct >= 0 ? "+" : ""}${product.returnPct.toFixed(1)}%`}
           />
           <StatItem

@@ -7,6 +7,7 @@ import type { AdvisorSettings } from "@/lib/settings/local-store";
 import type { Task } from "@/lib/tasks/types";
 import type { Advisor } from "@/types/advisor";
 import type { Client, ClientActivity, ClientSubscription } from "@/types/client";
+import type { ClientInternalNote } from "@/types/client-internal-note";
 import type { ClientDetailState } from "@/types/client-detail";
 
 /**
@@ -251,6 +252,8 @@ export type DemoClientRecord = {
   detail: ClientDetailState;
   subscription: ClientSubscription;
   segment: ClientSegment;
+  /** Team-only note log. Never sent to the client portal. */
+  internalNotes: ClientInternalNote[];
   /** Share of the portfolio sitting in cash, percent. */
   idleCashPct: number;
   /** Target cash weighting from the mandate, percent. */

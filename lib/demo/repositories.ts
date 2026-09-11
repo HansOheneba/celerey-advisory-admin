@@ -2,8 +2,9 @@ import "server-only";
 
 import { cache } from "react";
 
+import { hasCapability } from "@/lib/auth/capabilities";
 import { requireSession, type AdvisorSession } from "@/lib/dal";
-import { scopedClients } from "@/lib/demo/api-router";
+import { scopedClientRecords } from "@/lib/demo/book-scope";
 import {
   aggregateAdvisorySessions,
   bookMetrics,
@@ -12,9 +13,9 @@ import {
   type BookMetrics,
 } from "@/lib/demo/insights";
 import { DEMO_PRODUCTS } from "@/lib/demo/seed/products";
-import { demoUserById } from "@/lib/demo/seed/users";
 import { readDemoDb } from "@/lib/demo/store";
 import type {
+  AiSessionEntry,
   DemoAlert,
   DemoClientRecord,
   DemoOpportunity,
@@ -31,11 +32,11 @@ import type {
 export const getViewer = cache(async () => {
   const session = await requireSession();
   const db = await readDemoDb();
-  const user = demoUserById(session.userId);
 
-  const records = user
-    ? scopedClients(db, user)
-    : db.clients.filter((record) => record.client.advisorId === session.userId);
+  const records = scopedClientRecords(db, {
+    userId: session.userId,
+    demoRole: session.demoRole,
+  });
 
   return { session, db, records };
 });
@@ -179,6 +180,27 @@ export async function getClientAppointments(clientId: string) {
 export async function getUnreadAlertCount(): Promise<number> {
   const alerts = await getAlertFeed();
   return alerts.filter((alert) => !alert.read).length;
+}
+
+/** Copilot audit log entries visible to the current viewer. */
+export async function getScopedAiSessions(
+  limit = 25,
+): Promise<AiSessionEntry[]> {
+  const { session, db, records } = await getViewer();
+
+  if (!hasCapability(session.capabilities, "view_firm_analytics")) {
+    return [];
+  }
+
+  const visibleClientIds = new Set(records.map((record) => record.client.id));
+
+  return db.aiSessions
+    .filter(
+      (entry) =>
+        (entry.clientId !== null && visibleClientIds.has(entry.clientId)) ||
+        (entry.clientId === null && entry.userId === session.userId),
+    )
+    .slice(0, limit);
 }
 
 /** Appointments and open advisor tasks visible on the Overview upcoming panel. */

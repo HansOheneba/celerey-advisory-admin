@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  AlertCircle,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 import { AgeDistributionPanel } from "@/components/insights/age-distribution-panel";
 import { BookCompositionPanel } from "@/components/overview/book-composition-panel";
@@ -14,9 +7,9 @@ import { GhanaRegionalMap } from "@/components/overview/ghana-regional-map";
 import { NeedsAttentionSection } from "@/components/overview/needs-attention-section";
 import { RecentActivitySection } from "@/components/overview/recent-activity-section";
 import { UpcomingSection } from "@/components/overview/upcoming-section";
+import { BookAssetsCard } from "@/components/shared/book-assets-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
-import { StatGrid } from "@/components/shared/stat-grid";
 import { Button } from "@/components/ui/button";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { formatCompactCurrency } from "@/lib/format";
@@ -64,7 +57,6 @@ export function OverviewView({
   const ghanaSpread = computeGhanaRegionalSpread(records);
   const ageAnalytics = computeAgeAnalytics(records);
   const upcoming = buildUpcomingItems(appointments, tasks);
-
   return (
     <div className={dashboardTheme.pageContainer}>
       <PageHeader
@@ -84,65 +76,53 @@ export function OverviewView({
         totalCount={attentionRows.length}
       />
 
-      <StatGrid columns={6}>
-        <MetricCard
-          label="Assets Under Advice"
-          value={formatCompactCurrency(metrics.totalAua)}
-          hint="Total advised book (includes managed)"
-          icon={DollarSign}
-          variant="info"
+      <div className="space-y-3">
+        <BookAssetsCard
+          totalAua={metrics.totalAua}
+          totalAum={metrics.totalAum}
+          scope={capabilities.scope}
+          performancePct={metrics.weightedPerformancePct}
         />
-        <MetricCard
-          label="Assets Under Management"
-          value={formatCompactCurrency(metrics.totalAum)}
-          delta={{
-            value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
-            positive: metrics.weightedPerformancePct >= 0,
-          }}
-          hint={
-            metrics.totalAua > 0
-              ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA managed · ${metrics.clientsWithMixedMandate} mixed mandate`
-              : "Managed subset of AUA"
-          }
-          icon={Wallet}
-          variant="brand"
-        />
-        <MetricCard
-          label="Advisory sessions"
-          value={`${metrics.advisorySessions.used} / ${metrics.advisorySessions.included}`}
-          hint={`${metrics.advisorySessions.remaining} remaining this year`}
-          icon={Calendar}
-          variant="info"
-        />
-        <MetricCard
-          label="Net flows QTD"
-          value={formatCompactCurrency(metrics.netFlowQtd)}
-          delta={{
-            value: metrics.netFlowQtd >= 0 ? "Inflow" : "Outflow",
-            positive: metrics.netFlowQtd >= 0,
-          }}
-          icon={Wallet}
-          variant={metrics.netFlowQtd >= 0 ? "success" : "warning"}
-        />
-        <MetricCard
-          label="Clients"
-          value={String(metrics.clientCount)}
-          hint={`${metrics.activeClients} active · ${metrics.onboarding} onboarding`}
-          icon={Users}
-        />
-        <MetricCard
-          label="Reviews due"
-          value={String(metrics.reviewsDue + metrics.reviewsOverdue)}
-          delta={
-            metrics.reviewsOverdue > 0
-              ? { value: `${metrics.reviewsOverdue} overdue`, positive: false }
-              : undefined
-          }
-          hint="next 7 days"
-          icon={AlertCircle}
-          variant={metrics.reviewsOverdue > 0 ? "warning" : "default"}
-        />
-      </StatGrid>
+        <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-4">
+          <MetricCard
+            compact
+            label="Advisory sessions"
+            value={`${metrics.advisorySessions.used} / ${metrics.advisorySessions.included}`}
+            hint={`${metrics.advisorySessions.remaining} left this year`}
+          />
+          <MetricCard
+            compact
+            label="Net flows QTD"
+            value={formatCompactCurrency(metrics.netFlowQtd)}
+            delta={{
+              value: metrics.netFlowQtd >= 0 ? "Inflow" : "Outflow",
+              positive: metrics.netFlowQtd >= 0,
+            }}
+            variant={metrics.netFlowQtd >= 0 ? "success" : "warning"}
+          />
+          <MetricCard
+            compact
+            label="Clients"
+            value={String(metrics.clientCount)}
+            hint={`${metrics.activeClients} active · ${metrics.onboarding} onboarding`}
+          />
+          <MetricCard
+            compact
+            label="Reviews due"
+            value={String(metrics.reviewsDue + metrics.reviewsOverdue)}
+            delta={
+              metrics.reviewsOverdue > 0
+                ? {
+                    value: `${metrics.reviewsOverdue} overdue`,
+                    positive: false,
+                  }
+                : undefined
+            }
+            hint="next 7 days"
+            variant={metrics.reviewsOverdue > 0 ? "warning" : "default"}
+          />
+        </div>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
         <div className="min-w-0 lg:col-span-3">

@@ -2,11 +2,9 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Bot,
-  DollarSign,
   FileText,
   Scale,
   ShieldAlert,
-  Wallet,
 } from "lucide-react";
 
 import { AgeDistributionPanel } from "@/components/insights/age-distribution-panel";
@@ -17,6 +15,7 @@ import { GlobalResidencyMap } from "@/components/insights/global-residency-map";
 import { EmptyState } from "@/components/shared/empty-state";
 import { IconTile } from "@/components/shared/icon-tile";
 import { ListRow } from "@/components/shared/list-row";
+import { BookAssetsCard } from "@/components/shared/book-assets-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionPanel } from "@/components/shared/section-panel";
@@ -37,8 +36,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import type { CapabilitySet } from "@/lib/auth/capabilities";
+import { hasCapability, type CapabilitySet } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { insightsPageDescription } from "@/lib/overview/book-scope-copy";
 import type { BookMetrics } from "@/lib/demo/insights";
 import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
@@ -131,12 +131,17 @@ export function InsightsView({
     .sort((a, b) => b.client.aua - a.client.aua)
     .slice(0, 10);
 
+  const canViewFirmAnalytics = hasCapability(
+    capabilities,
+    "view_firm_analytics",
+  );
+  const isOwnBook = capabilities.scope === "own_book";
   return (
     <div className={dashboardTheme.pageContainer}>
       <PageHeader
         eyebrow="Insights"
-        title="Analytics, compliance and reporting"
-        description="Analytics for the book in your scope."
+        title="Analytics and compliance"
+        description={insightsPageDescription(capabilities.scope)}
         icon={Scale}
       />
 
@@ -155,13 +160,15 @@ export function InsightsView({
           icon={FileText}
           variant="info"
         />
-        <MetricCard
-          label="Celerey Copilot sessions"
-          value={String(aiSessions.length)}
-          hint="book and client queries"
-          symbol="celerey-ai"
-          variant="ai"
-        />
+        {canViewFirmAnalytics ? (
+          <MetricCard
+            label="Celerey Copilot sessions"
+            value={String(aiSessions.length)}
+            hint="book and client"
+            symbol="celerey-ai"
+            variant="ai"
+          />
+        ) : null}
         <MetricCard
           label="Open escalations"
           value={String(metrics.escalations)}
@@ -183,34 +190,19 @@ export function InsightsView({
             ) : null}
           </TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="ai">Celerey Copilot activity</TabsTrigger>
+          {canViewFirmAnalytics ? (
+            <TabsTrigger value="ai">Celerey Copilot activity</TabsTrigger>
+          ) : null}
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard
-              label="Assets under advice"
-              value={formatCompactCurrency(metrics.totalAua)}
-              hint={
-                metrics.clientsWithMixedMandate > 0
-                  ? `${metrics.clientsWithMixedMandate} mixed mandate · total advised book`
-                  : "Total advised book (includes managed)"
-              }
-              icon={DollarSign}
-            />
-            <MetricCard
-              label="Assets under management"
-              value={formatCompactCurrency(metrics.totalAum)}
-              delta={{
-                value: `${metrics.weightedPerformancePct >= 0 ? "+" : ""}${metrics.weightedPerformancePct}% TTM`,
-                positive: metrics.weightedPerformancePct >= 0,
-              }}
-              hint={
-                metrics.totalAua > 0
-                  ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA under management`
-                  : "Managed subset of AUA"
-              }
-              icon={Wallet}
+          <div className="grid gap-4 lg:grid-cols-3">
+            <BookAssetsCard
+              className="lg:col-span-2"
+              totalAua={metrics.totalAua}
+              totalAum={metrics.totalAum}
+              scope={capabilities.scope}
+              performancePct={metrics.weightedPerformancePct}
             />
             <MetricCard
               label="Net flows QTD"
@@ -227,11 +219,12 @@ export function InsightsView({
             totalAua={metrics.totalAua}
             totalAum={metrics.totalAum}
             records={records}
+            scope={capabilities.scope}
           />
 
           <SectionPanel
             title="AUA and AUM trend"
-            description="Trailing six-month movement. AUM is a subset of AUA."
+            description="Six months of AUA and AUM. AUM counts toward AUA."
           >
             <BookTrendChart
               currentAua={metrics.totalAua}
@@ -245,7 +238,7 @@ export function InsightsView({
 
             <SectionPanel
               title="By segment"
-              description="Assets and revenue by segment."
+              description="Revenue and assets by client segment."
               variant="muted"
             >
               <div className={dashboardTheme.tableShell}>
@@ -257,7 +250,7 @@ export function InsightsView({
                       <TableHead className="text-right">AUA</TableHead>
                       <TableHead className="text-right">AUM</TableHead>
                       <TableHead className="text-right">Revenue QTD</TableHead>
-                      <TableHead className="text-right">TTM</TableHead>
+                      <TableHead className="text-right">Past 12 mo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -291,7 +284,7 @@ export function InsightsView({
 
             <SectionPanel
               title="Book health"
-              description={`Service and risk indicators across ${metrics.clientCount} relationships.`}
+              description={`Reviews, onboarding, breaches, and dormant clients across ${metrics.clientCount} relationships.`}
               variant="warning"
             >
               <StatGrid columns={2}>
@@ -355,10 +348,12 @@ export function InsightsView({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Client</TableHead>
-                    <TableHead>Relationship manager</TableHead>
+                    {!isOwnBook ? (
+                      <TableHead>Relationship manager</TableHead>
+                    ) : null}
                     <TableHead className="text-right">AUA</TableHead>
                     <TableHead className="text-right">AUM</TableHead>
-                    <TableHead className="text-right">TTM</TableHead>
+                    <TableHead className="text-right">Past 12 mo</TableHead>
                     <TableHead className="text-right">Revenue QTD</TableHead>
                     <TableHead className="text-right">Next review</TableHead>
                   </TableRow>
@@ -381,9 +376,11 @@ export function InsightsView({
                           />
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {record.client.advisorName}
-                      </TableCell>
+                      {!isOwnBook ? (
+                        <TableCell className="text-muted-foreground">
+                          {record.client.advisorName}
+                        </TableCell>
+                      ) : null}
                       <TableCell className="text-right">
                         {formatCompactCurrency(record.client.aua)}
                       </TableCell>
@@ -420,13 +417,13 @@ export function InsightsView({
         <TabsContent value="reports">
           <SectionPanel
             title="Report library"
-            description="Every PDF generated from the portal, with who produced it."
+            description="Reports created in the portal."
           >
             {reports.length === 0 ? (
               <EmptyState
                 icon={FileText}
                 title="No reports yet"
-                description="Produce a report from a client workspace to see it here."
+                description="Generate a report from a client workspace."
               />
             ) : (
               <div className={dashboardTheme.tableShell}>
@@ -487,40 +484,44 @@ export function InsightsView({
           </SectionPanel>
         </TabsContent>
 
-        <TabsContent value="ai">
-          <SectionPanel
-            title="Celerey Copilot activity log"
-            description="Each query, the data scopes read, and who asked."
-            variant="ai"
-          >
-            {aiSessions.length === 0 ? (
-              <EmptyState
-                icon={Bot}
-                title="No Celerey Copilot activity"
-                description="No Celerey Copilot sessions yet. Queries from the Celerey Copilot page log here."
-                variant="ai"
-              />
-            ) : (
-              <div className="divide-y divide-border">
-                {aiSessions.map((entry) => (
-                  <ListRow
-                    key={entry.id}
-                    leading={
-                      <IconTile symbol="celerey-ai" variant="ai" size="sm" />
-                    }
-                    title={
-                      <>
-                        <span className="text-sm font-medium">{entry.prompt}</span>
-                        <Badge variant="outline">{entry.mode}</Badge>
-                      </>
-                    }
-                    meta={`${entry.userName} (${entry.role}) · ${formatDate(entry.createdAt)} · scopes: ${entry.contextScopes.join(", ")}`}
-                  />
-                ))}
-              </div>
-            )}
-          </SectionPanel>
-        </TabsContent>
+        {canViewFirmAnalytics ? (
+          <TabsContent value="ai">
+            <SectionPanel
+              title="Celerey Copilot activity log"
+              description="Who asked, what they queried, and which scopes were read."
+              variant="ai"
+            >
+              {aiSessions.length === 0 ? (
+                <EmptyState
+                  icon={Bot}
+                  title="No Celerey Copilot activity"
+                  description="Queries from the Celerey Copilot page show up here."
+                  variant="ai"
+                />
+              ) : (
+                <div className="divide-y divide-border">
+                  {aiSessions.map((entry) => (
+                    <ListRow
+                      key={entry.id}
+                      leading={
+                        <IconTile symbol="celerey-ai" variant="ai" size="sm" />
+                      }
+                      title={
+                        <>
+                          <span className="text-sm font-medium">
+                            {entry.prompt}
+                          </span>
+                          <Badge variant="outline">{entry.mode}</Badge>
+                        </>
+                      }
+                      meta={`${entry.userName} (${entry.role}) · ${formatDate(entry.createdAt)} · scopes: ${entry.contextScopes.join(", ")}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </SectionPanel>
+          </TabsContent>
+        ) : null}
       </Tabs>
     </div>
   );

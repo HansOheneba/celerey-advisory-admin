@@ -26,6 +26,8 @@ export type ApiClientRow = Partial<Client> & {
   next_review_at?: string | null;
   joined_at?: string;
   goals_count?: number;
+  internal_notes?: string;
+  notes?: string;
 };
 
 const CLIENT_STATUSES = new Set<ClientStatus>([
@@ -117,7 +119,6 @@ export function normalizeClient(row: ApiClientRow): Client {
       typeof row.goalsCount === "number"
         ? row.goalsCount
         : toNumber(row.goals_count),
-    notes: row.notes,
   };
 }
 
@@ -172,7 +173,7 @@ type RawDetailState = {
   liabilities?: ClientDetailState["liabilities"];
   insurancePolicies?: ClientDetailState["insurancePolicies"];
   retirement?: {
-    config?: Partial<Record<string, number>>;
+    config?: Partial<Record<string, number | string>>;
     projections?: Record<string, number | boolean>;
   } | null;
   emergencyFund?: {
@@ -187,6 +188,7 @@ type RawDetailState = {
   allocation?: ClientDetailState["allocation"];
   taxProfile?: ClientDetailState["taxProfile"] | null;
   dependents?: ClientDetailState["dependents"];
+  retirementProjections?: ClientDetailState["retirementProjections"];
   freshness?: Array<{
     section: string;
     updatedAt?: string;
@@ -368,6 +370,12 @@ export function normalizeClientDetail(raw: RawClientDetail): {
       inflationPct: toNumber(retirementConfig.inflationPct),
       safeWithdrawalRatePct: toNumber(retirementConfig.safeWithdrawalRatePct),
       desiredMonthlyIncome: toNumber(retirementConfig.desiredMonthlyIncome),
+      storageLocation:
+        typeof retirementConfig.storageLocation === "string"
+          ? retirementConfig.storageLocation
+          : typeof retirementConfig.storage_location === "string"
+            ? retirementConfig.storage_location
+            : undefined,
       projections: rawState.retirement?.projections,
     },
     emergencyFund: {
@@ -398,6 +406,10 @@ export function normalizeClientDetail(raw: RawClientDetail): {
       updatedAt: String(item.updatedAt ?? item.updated_at ?? ""),
     })),
     profileCompletionScore: toNumber(rawState.profileCompletionScore),
+    retirementProjections:
+      rawState.retirementProjections ??
+      rawState.retirement?.projections ??
+      undefined,
   };
 
   return {

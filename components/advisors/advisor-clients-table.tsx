@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
+import { ClientMetaLine } from "@/components/clients/client-meta-line";
+import { clientNeedsStatusHighlight } from "@/lib/clients/client-meta";
+import { StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
@@ -10,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCurrency, formatDate, getInitials } from "@/lib/format";
+import { formatCurrency, formatDate, getInitials, titleCase } from "@/lib/format";
 import type { Client } from "@/types/client";
 
 type AdvisorClientsTableProps = {
@@ -64,14 +66,24 @@ export function AdvisorClientsTable({ items }: AdvisorClientsTableProps) {
                     <p className="truncate text-xs text-muted-foreground">
                       {client.email}
                     </p>
+                    <ClientMetaLine
+                      client={client}
+                      className="mt-1 text-xs md:hidden"
+                    />
                   </div>
                 </Link>
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                <StatusBadge status={client.status} />
+                {clientNeedsStatusHighlight(client.status) ? (
+                  <StatusBadge status={client.status} />
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {titleCase(client.status)}
+                  </span>
+                )}
               </TableCell>
-              <TableCell className="hidden lg:table-cell">
-                <RiskBadge riskLevel={client.riskLevel} />
+              <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
+                {titleCase(client.riskLevel)}
               </TableCell>
               <TableCell className="font-medium tabular-nums">
                 {formatCurrency(client.aua + client.aum, client.currency)}

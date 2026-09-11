@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { CalendarPlus, MessageSquare } from "lucide-react";
 
-import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
-import { SubscriptionBadge } from "@/components/clients/subscription-badge";
+import { AssignedAdvisorBadge } from "@/components/clients/assigned-advisor-badge";
+import { ClientMetaLine } from "@/components/clients/client-meta-line";
+import { StatusBadge } from "@/components/clients/status-badge";
 import { GenerateReportButton } from "@/components/reports/generate-report-button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
+import { clientNeedsStatusHighlight } from "@/lib/clients/client-meta";
 import { formatCompactCurrency, formatDate, getInitials } from "@/lib/format";
-import { CLIENT_SEGMENT_LABELS, type DemoClientRecord } from "@/lib/demo/types";
+import type { DemoClientRecord } from "@/lib/demo/types";
 
 type WorkspaceHeaderProps = {
   record: DemoClientRecord;
   canMessage: boolean;
   canGenerateReport: boolean;
+  showAssignedAdvisor?: boolean;
 };
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -32,6 +33,7 @@ export function WorkspaceHeader({
   record,
   canMessage,
   canGenerateReport,
+  showAssignedAdvisor = false,
 }: WorkspaceHeaderProps) {
   const { client } = record;
   const name = `${client.firstName} ${client.lastName}`;
@@ -52,22 +54,19 @@ export function WorkspaceHeader({
               {getInitials(client.firstName, client.lastName)}
             </AvatarFallback>
           </Avatar>
-          <div className="min-w-0 space-y-1.5">
+          <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-medium tracking-tight">
-                {name}
-              </h1>
-              <Badge variant="secondary">
-                {CLIENT_SEGMENT_LABELS[record.segment]}
-              </Badge>
-              <StatusBadge status={client.status} />
-              <RiskBadge riskLevel={client.riskLevel} />
-              <SubscriptionBadge subscription={client.subscription} />
-              <AssetRelationshipBadge aua={client.aua} aum={client.aum} />
+              <h1 className="text-xl font-medium tracking-tight">{name}</h1>
+              {clientNeedsStatusHighlight(client.status) ? (
+                <StatusBadge status={client.status} />
+              ) : null}
+              {showAssignedAdvisor ? (
+                <AssignedAdvisorBadge advisorName={client.advisorName} />
+              ) : null}
             </div>
-            <p className="text-sm text-muted-foreground">
-              {client.location} · Since {formatDate(client.joinedAt)} ·{" "}
-              {client.advisorName}
+            <ClientMetaLine client={client} segment={record.segment} />
+            <p className="text-xs text-muted-foreground">
+              Client since {formatDate(client.joinedAt)}
             </p>
           </div>
         </div>
@@ -77,7 +76,11 @@ export function WorkspaceHeader({
             <Button
               variant="outline"
               size="sm"
-              render={<Link href={`/clients/${client.id}?tab=comms`} />}
+              render={
+                <Link
+                  href={`/clients/${client.id}?tab=advisory&advisory=messages`}
+                />
+              }
             >
               <MessageSquare />
               Message
@@ -99,11 +102,11 @@ export function WorkspaceHeader({
 
       <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
         <Stat
-          label="AUA"
-          value={formatCompactCurrency(client.aua)}
+          label="AUA / AUM"
+          value={`${formatCompactCurrency(client.aua)} / ${formatCompactCurrency(client.aum)}`}
         />
         <Stat
-          label="TTM performance"
+          label="Past 12 months"
           value={`${record.performanceYtdPct >= 0 ? "+" : ""}${record.performanceYtdPct.toFixed(1)}%`}
         />
         <Stat

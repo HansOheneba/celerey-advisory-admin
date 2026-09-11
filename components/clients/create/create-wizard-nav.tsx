@@ -18,7 +18,7 @@ export function CreateWizardNav({
         {CREATE_CLIENT_WIZARD_STEPS.map((step, index) => {
           const isActive = index === currentStep;
           const isComplete = index < currentStep;
-          const canNavigate = index < currentStep && onStepClick;
+          const canNavigate = Boolean(onStepClick);
 
           return (
             <li key={step.id}>
@@ -32,7 +32,7 @@ export function CreateWizardNav({
                     ? "border-primary/30 bg-primary/5"
                     : isComplete
                       ? "border-border/60 bg-muted/30 hover:bg-muted/50"
-                      : "border-border/40 bg-background opacity-70",
+                      : "border-border/60 bg-background hover:bg-muted/30",
                   canNavigate ? "cursor-pointer" : "cursor-default",
                 )}
               >

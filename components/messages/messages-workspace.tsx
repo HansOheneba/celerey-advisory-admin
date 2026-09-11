@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { StickyNote, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   createMessageThreadAction,
@@ -26,17 +26,13 @@ type MessagesWorkspaceProps = {
 };
 
 function lastPreview(thread: ConversationThread) {
-  const last =
-    thread.lastMessage ?? thread.messages[thread.messages.length - 1];
+  const last = [...thread.messages]
+    .reverse()
+    .find((message) => message.author !== "note");
   if (!last) {
     return "No messages yet";
   }
-  const prefix =
-    last.author === "note"
-      ? "Note · "
-      : last.author === "advisor"
-        ? "You · "
-        : "Client · ";
+  const prefix = last.author === "advisor" ? "You · " : "Client · ";
   return `${prefix}${last.body}`;
 }
 
@@ -130,7 +126,7 @@ export function MessagesWorkspace({
     });
   }
 
-  function send(author: "advisor" | "note") {
+  function send() {
     if (!active || !draft.trim()) {
       return;
     }
@@ -141,7 +137,7 @@ export function MessagesWorkspace({
     startTransition(async () => {
       const result = await sendMessageAction({
         threadId: active.id,
-        author,
+        author: "advisor",
         body,
       });
 
@@ -184,7 +180,7 @@ export function MessagesWorkspace({
         <p className={dashboardTheme.sectionLabel}>Inbox</p>
         <h2 className={dashboardTheme.pageTitle}>Messages</h2>
         <p className={dashboardTheme.pageDescription}>
-          Converse with clients and keep private advisor notes on each thread.
+          Messages with clients. Team notes live on each client&apos;s Notes tab.
         </p>
       </section>
 
@@ -300,14 +296,16 @@ export function MessagesWorkspace({
                   <p className="text-sm text-muted-foreground">
                     Loading conversation…
                   </p>
-                ) : active.messages.length === 0 ? (
+                ) : active.messages.filter((m) => m.author !== "note").length ===
+                  0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No messages yet. Send a reply or leave an internal note.
+                    No messages yet. Write below.
                   </p>
                 ) : (
-                  active.messages.map((message) => {
+                  active.messages
+                    .filter((message) => message.author !== "note")
+                    .map((message) => {
                     const isAdvisor = message.author === "advisor";
-                    const isNote = message.author === "note";
                     return (
                       <div
                         key={message.id}
@@ -319,26 +317,20 @@ export function MessagesWorkspace({
                         <div
                           className={cn(
                             "max-w-[85%] rounded-xl px-3 py-2 text-sm",
-                            isNote &&
-                              "w-full border border-dashed border-amber-500/40 bg-amber-500/[0.06] text-foreground",
                             isAdvisor && "bg-primary text-primary-foreground",
-                            !isAdvisor && !isNote && "bg-muted text-foreground",
+                            !isAdvisor && "bg-muted text-foreground",
                           )}
                         >
                           <div className="mb-1 flex items-center gap-2">
                             <Badge
-                              variant={isNote ? "outline" : "secondary"}
+                              variant="secondary"
                               className={cn(
                                 "h-5 text-[10px]",
                                 isAdvisor &&
                                   "border-transparent bg-white/15 text-primary-foreground",
                               )}
                             >
-                              {isNote
-                                ? "Internal note"
-                                : isAdvisor
-                                  ? "You"
-                                  : "Client"}
+                              {isAdvisor ? "You" : "Client"}
                             </Badge>
                             <span
                               className={cn(
@@ -367,28 +359,18 @@ export function MessagesWorkspace({
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
                     rows={3}
-                    placeholder="Write a message to the client, or an internal note…"
+                    placeholder="Write to the client…"
                     className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   />
                   <div className="flex flex-wrap justify-end gap-2">
                     <Button
                       type="button"
-                      variant="outline"
                       size="sm"
                       disabled={!draft.trim() || pending}
-                      onClick={() => send("note")}
-                    >
-                      <StickyNote />
-                      Save note
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      disabled={!draft.trim() || pending}
-                      onClick={() => send("advisor")}
+                      onClick={() => send()}
                     >
                       <Send />
-                      Send reply
+                      Send
                     </Button>
                   </div>
                 </div>

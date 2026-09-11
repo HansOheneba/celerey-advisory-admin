@@ -4,13 +4,13 @@ import { Users } from "lucide-react";
 import { AddClientButton } from "@/components/clients/add-client-button";
 import { ClientsTable } from "@/components/clients/clients-table";
 import { ClientsTableSkeleton } from "@/components/clients/clients-table-skeleton";
+import { BookAssetsCard } from "@/components/shared/book-assets-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { PageHeader } from "@/components/shared/page-header";
-import { hasCapability } from "@/lib/auth/capabilities";
+import { hasCapability, showsAssignedAdvisor } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { requireSession } from "@/lib/dal";
 import { getBookMetrics } from "@/lib/demo/repositories";
-import { formatCompactCurrency } from "@/lib/format";
 import { listClients } from "@/lib/repositories/clients";
 
 export const metadata: Metadata = {
@@ -32,6 +32,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const session = await requireSession();
   const canCreate = hasCapability(session.capabilities, "create_client");
   const canAssign = hasCapability(session.capabilities, "assign_advisor");
+  const showAssignedAdvisor = showsAssignedAdvisor(session.capabilities.scope);
   const params = await searchParams;
 
   const query = params.query ?? "";
@@ -84,21 +85,11 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Assets Under Advice"
-          value={formatCompactCurrency(metrics.totalAua)}
-          hint="Total advised book (includes managed)"
-          variant="info"
-        />
-        <MetricCard
-          label="Assets Under Management"
-          value={formatCompactCurrency(metrics.totalAum)}
-          hint={
-            metrics.totalAua > 0
-              ? `${Math.round((metrics.totalAum / metrics.totalAua) * 100)}% of AUA`
-              : "Managed subset of AUA"
-          }
-          variant="brand"
+        <BookAssetsCard
+          className="sm:col-span-2"
+          totalAua={metrics.totalAua}
+          totalAum={metrics.totalAum}
+          scope={session.capabilities.scope}
         />
         <MetricCard
           label="Active clients"
@@ -134,7 +125,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           sortBy={sortBy}
           sortDir={sortDir}
           canManageSubscriptions={canAssign}
-          showAdvisorColumn={canAssign}
+          showAdvisorColumn={showAssignedAdvisor}
         />
       </Suspense>
     </div>

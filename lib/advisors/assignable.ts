@@ -1,7 +1,19 @@
 import { isAdmin, roleLabel, rolesFromPrimary } from "@/lib/auth/roles";
 import type { AdvisorSession } from "@/lib/dal";
+import { DEMO_USERS } from "@/lib/demo/seed/users";
 import { getInitials } from "@/lib/format";
 import type { Advisor } from "@/types/advisor";
+
+const RELATIONSHIP_MANAGER_IDS = new Set(
+  DEMO_USERS.filter((user) => user.demoRole === "relationship_manager").map(
+    (user) => user.id,
+  ),
+);
+
+/** RMs who can receive client assignments in the demo. */
+export function filterRelationshipManagers(advisors: Advisor[]): Advisor[] {
+  return advisors.filter((advisor) => RELATIONSHIP_MANAGER_IDS.has(advisor.id));
+}
 
 /**
  * Admins are also advisors and can hold a client book.

@@ -64,7 +64,7 @@ const ROLE_DEFINITIONS: Record<DemoRole, RoleDefinition> = {
     label: "Relationship Manager",
     tier: "operational",
     scope: "own_book",
-    mission: "Owns the client relationship — understand, advise, engage, grow.",
+    mission: "Your clients, your book. Message, recommend, report.",
     menus: ["overview", "clients", "copilot", "insights", "products", "tools"],
     capabilities: [
       "view_client_360",
@@ -82,8 +82,7 @@ const ROLE_DEFINITIONS: Record<DemoRole, RoleDefinition> = {
     label: "Portfolio Officer",
     tier: "operational",
     scope: "firm",
-    mission:
-      "Portfolio analysis, monitoring, recommendations, rebalancing and execution.",
+    mission: "Firm-wide portfolios. Propose trades and run models.",
     menus: ["overview", "clients", "copilot", "insights", "products", "tools"],
     capabilities: [
       "view_client_portfolio",
@@ -98,7 +97,7 @@ const ROLE_DEFINITIONS: Record<DemoRole, RoleDefinition> = {
     label: "Team Lead",
     tier: "governance",
     scope: "team",
-    mission: "Supervises a team of RMs, approves recommendations, owns the team book.",
+    mission: "Your team's book. Approve recs and reassign clients.",
     menus: ["overview", "clients", "copilot", "insights", "products", "tools"],
     capabilities: [
       "view_client_360",
@@ -121,8 +120,7 @@ const ROLE_DEFINITIONS: Record<DemoRole, RoleDefinition> = {
     label: "Compliance",
     tier: "control",
     scope: "firm",
-    mission:
-      "Suitability, KYC/AML, disclosures and audit — gates every recommendation.",
+    mission: "Sign off suitability and KYC. Block what fails.",
     menus: ["overview", "clients", "copilot", "insights"],
     capabilities: [
       "view_client_360",
@@ -139,8 +137,7 @@ const ROLE_DEFINITIONS: Record<DemoRole, RoleDefinition> = {
     label: "Management",
     tier: "governance",
     scope: "firm",
-    mission:
-      "Oversight of AUA, revenue, risk and relationships; configuration and permissions.",
+    mission: "Firm totals, permissions, and the advisor roster.",
     menus: ["overview", "clients", "copilot", "insights", "products", "tools"],
     capabilities: [
       "view_client_360",
@@ -223,4 +220,9 @@ export function hasCapability(
   capability: Capability,
 ): boolean {
   return set.capabilities.includes(capability);
+}
+
+/** Oversight roles (team / firm book) need to see who owns each relationship. */
+export function showsAssignedAdvisor(scope: BookScope): boolean {
+  return scope !== "own_book";
 }

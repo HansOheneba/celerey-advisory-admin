@@ -2,20 +2,26 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AdviceTab } from "@/components/workspace/tabs/advice-tab";
-import { CommsTab } from "@/components/workspace/tabs/comms-tab";
+import { AdvisoryTab } from "@/components/workspace/tabs/advisory-tab";
+import { AssetsTab } from "@/components/workspace/tabs/assets-tab";
+import { CashFlowTab } from "@/components/workspace/tabs/cash-flow-tab";
 import { ComplianceTab } from "@/components/workspace/tabs/compliance-tab";
+import { GoalsTab } from "@/components/workspace/tabs/goals-tab";
+import { InsuranceTab } from "@/components/workspace/tabs/insurance-tab";
 import { IntelligenceTab } from "@/components/workspace/tabs/intelligence-tab";
+import { LiabilitiesTab } from "@/components/workspace/tabs/liabilities-tab";
 import { OverviewTab } from "@/components/workspace/tabs/overview-tab";
-import { PlanTab } from "@/components/workspace/tabs/plan-tab";
-import { PortfolioTab } from "@/components/workspace/tabs/portfolio-tab";
-import { ServiceTab } from "@/components/workspace/tabs/service-tab";
+import { NotesTab } from "@/components/workspace/tabs/notes-tab";
+import { ProfileTab } from "@/components/workspace/tabs/profile-tab";
+import { PropertiesTab } from "@/components/workspace/tabs/properties-tab";
+import { RetirementTab } from "@/components/workspace/tabs/retirement-tab";
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
 import {
   WorkspaceTabs,
   type WorkspaceTabDefinition,
 } from "@/components/workspace/workspace-tabs";
 import { DEFAULT_CLIENT_AVAILABILITY } from "@/lib/availability/types";
-import { hasCapability } from "@/lib/auth/capabilities";
+import { hasCapability, showsAssignedAdvisor } from "@/lib/auth/capabilities";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { requireSession } from "@/lib/dal";
 import { intelligenceCards, suitabilityChecks } from "@/lib/demo/insights";
@@ -87,6 +93,7 @@ export default async function ClientWorkspacePage({
 
   const { capabilities } = session;
   const canFull = hasCapability(capabilities, "view_client_360");
+  const canPortfolio = hasCapability(capabilities, "view_client_portfolio");
   const canMessage = hasCapability(capabilities, "message_client");
   const canGenerateReport = hasCapability(capabilities, "generate_report");
   const canManageDocuments = hasCapability(capabilities, "manage_documents");
@@ -103,48 +110,113 @@ export default async function ClientWorkspacePage({
 
   const clientName = `${record.client.firstName} ${record.client.lastName}`;
 
-  const tabs: WorkspaceTabDefinition[] = [
-    {
-      value: "overview",
-      label: "Overview",
-      content: (
-        <OverviewTab record={record} activity={activity} tasks={tasks} />
-      ),
-    },
-    {
-      value: "intelligence",
-      label: "Insights",
-      content: (
-        <IntelligenceTab
-          clientId={id}
-          cards={cards}
-          canUseCopilot={hasCapability(capabilities, "use_copilot")}
-        />
-      ),
-    },
-    {
-      value: "portfolio",
-      label: "Portfolio",
-      content: (
-        <PortfolioTab
-          client={record.client}
-          detail={record.detail}
-          idleCashPct={record.idleCashPct}
-          targetCashPct={record.targetCashPct}
-          driftPct={record.portfolioDriftPct}
-          heldAwayUsd={record.heldAwayUsd}
-          canEdit={canEditPortfolio}
-        />
-      ),
-    },
-  ];
+  const financialTabs: WorkspaceTabDefinition[] = canPortfolio
+    ? [
+        {
+          value: "overview",
+          label: "Overview",
+          content: (
+            <OverviewTab
+              record={record}
+              activity={activity}
+              tasks={tasks}
+              showInternalNotes={canFull}
+              canEditInternalNotes={canEditProfile}
+            />
+          ),
+        },
+        {
+          value: "goals",
+          label: "Goals",
+          content: <GoalsTab record={record} canEdit={canEditProfile} />,
+        },
+        {
+          value: "assets",
+          label: "Assets",
+          content: (
+            <AssetsTab
+              client={record.client}
+              detail={record.detail}
+              idleCashPct={record.idleCashPct}
+              targetCashPct={record.targetCashPct}
+              driftPct={record.portfolioDriftPct}
+              heldAwayUsd={record.heldAwayUsd}
+              canEdit={canEditPortfolio}
+            />
+          ),
+        },
+        {
+          value: "properties",
+          label: "Properties",
+          content: <PropertiesTab record={record} canEdit={canEditProfile} />,
+        },
+        {
+          value: "insurance",
+          label: "Insurance",
+          content: <InsuranceTab record={record} canEdit={canEditProfile} />,
+        },
+        {
+          value: "cash-flow",
+          label: "Cash flow",
+          content: <CashFlowTab record={record} canEdit={canEditProfile} />,
+        },
+        {
+          value: "liabilities",
+          label: "Liabilities",
+          content: <LiabilitiesTab record={record} canEdit={canEditProfile} />,
+        },
+        {
+          value: "retirement",
+          label: "Retirement",
+          content: <RetirementTab record={record} canEdit={canEditProfile} />,
+        },
+      ]
+    : [];
+
+  const tabs: WorkspaceTabDefinition[] = [...financialTabs];
 
   if (canFull) {
     tabs.push(
       {
-        value: "plan",
-        label: "Plan",
-        content: <PlanTab record={record} canEdit={canEditProfile} />,
+        value: "profile",
+        label: "Profile",
+        content: <ProfileTab record={record} canEdit={canEditProfile} />,
+      },
+      {
+        value: "notes",
+        label: "Notes",
+        content: <NotesTab record={record} canEdit={canEditProfile} />,
+      },
+      {
+        value: "advisory",
+        label: "Advisory",
+        content: (
+          <AdvisoryTab
+            clientId={id}
+            clientName={clientName}
+            thread={thread}
+            documents={documents}
+            reports={reports}
+            serviceRequests={serviceRequests}
+            tasks={tasks}
+            appointments={appointments}
+            availability={db.availability[id] ?? DEFAULT_CLIENT_AVAILABILITY}
+            canMessage={canMessage}
+            canManageDocuments={canManageDocuments}
+            canGenerateReport={canGenerateReport}
+          />
+        ),
+      },
+      {
+        value: "insights",
+        label: "Insights",
+        content: (
+          <IntelligenceTab
+            clientId={id}
+            cards={cards}
+            canUseCopilot={hasCapability(capabilities, "use_copilot")}
+          />
+        ),
       },
       {
         value: "advice",
@@ -158,37 +230,6 @@ export default async function ClientWorkspacePage({
             canPropose={hasCapability(capabilities, "propose_recommendation")}
             canApprove={hasCapability(capabilities, "approve_recommendation")}
             canExecute={hasCapability(capabilities, "execute_trade")}
-          />
-        ),
-      },
-      {
-        value: "comms",
-        label: "Comms",
-        content: (
-          <CommsTab
-            clientId={id}
-            clientName={clientName}
-            thread={thread}
-            canMessage={canMessage}
-          />
-        ),
-      },
-      {
-        value: "service",
-        label: "Service",
-        content: (
-          <ServiceTab
-            clientId={id}
-            documents={documents}
-            reports={reports}
-            serviceRequests={serviceRequests}
-            tasks={tasks}
-            appointments={appointments}
-            availability={
-              db.availability[id] ?? DEFAULT_CLIENT_AVAILABILITY
-            }
-            canManageDocuments={canManageDocuments}
-            canGenerateReport={canGenerateReport}
           />
         ),
       },
@@ -214,9 +255,13 @@ export default async function ClientWorkspacePage({
         record={record}
         canMessage={canMessage}
         canGenerateReport={canGenerateReport}
+        showAssignedAdvisor={showsAssignedAdvisor(capabilities.scope)}
       />
 
-      <WorkspaceTabs tabs={tabs} defaultValue="overview" />
+      <WorkspaceTabs
+        tabs={tabs}
+        defaultValue={tabs[0]?.value ?? "compliance"}
+      />
     </div>
   );
 }

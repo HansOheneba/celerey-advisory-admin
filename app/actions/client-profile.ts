@@ -371,6 +371,13 @@ export async function addClientInsuranceAction(
   const category = text(formData, "category") || "other";
   const coverageAmount = number(formData, "coverageAmount");
   const premiumMonthly = number(formData, "premiumMonthly");
+  const policyNumber = text(formData, "policyNumber");
+  const startDate = text(formData, "startDate");
+  const renewalDate = text(formData, "renewalDate");
+  const deductible = number(formData, "deductible");
+  const beneficiary = text(formData, "beneficiary");
+  const notes = text(formData, "notes");
+  const autoRenew = flag(formData, "autoRenew");
 
   if (!clientId || !name) {
     return { ok: false, message: "Add a policy name." };
@@ -386,13 +393,405 @@ export async function addClientInsuranceAction(
         category,
         provider: provider || "Undisclosed",
         name,
+        policy_number: policyNumber || undefined,
         coverage_amount: Number.isFinite(coverageAmount)
           ? coverageAmount
           : undefined,
         premium_monthly: Number.isFinite(premiumMonthly)
           ? premiumMonthly
           : undefined,
+        deductible: Number.isFinite(deductible) ? deductible : undefined,
+        start_date: startDate || undefined,
+        renewal_date: renewalDate || undefined,
+        auto_renew: autoRenew,
+        beneficiary: beneficiary || undefined,
+        notes: notes || undefined,
+        is_active: true,
       });
+    },
+  );
+}
+
+export async function updateClientUserAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const phone = text(formData, "phoneNumber");
+  const occupation = text(formData, "occupation");
+  const bio = text(formData, "bio");
+  const preferredContact = text(formData, "preferredContact");
+  const investmentCurrency = text(formData, "investmentCurrency");
+  const city = text(formData, "city");
+
+  if (!clientId) {
+    return { ok: false, message: "Missing client." };
+  }
+
+  return writeClientProfile(clientId, "profile.user.updated", "Profile", (record) => {
+    record.detail.user = {
+      ...record.detail.user,
+      phone_number: phone || record.detail.user.phone_number,
+      occupation: occupation || record.detail.user.occupation,
+      bio: bio || record.detail.user.bio,
+      preferred_contact: preferredContact || record.detail.user.preferred_contact,
+      investment_currency:
+        investmentCurrency || record.detail.user.investment_currency,
+      city: city || record.detail.user.city,
+    };
+    record.client.phone = phone || record.client.phone;
+    record.client.location = city
+      ? `${city}, ${record.detail.user.resident_country ?? ""}`.trim()
+      : record.client.location;
+  });
+}
+
+export async function addClientDependentAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const name = text(formData, "name");
+  const relationship = text(formData, "relationship");
+  const dateOfBirth = text(formData, "dateOfBirth");
+  const financialReliance = text(formData, "financialReliance");
+
+  if (!clientId || !name || !relationship) {
+    return { ok: false, message: "Add name and relationship." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.dependent.added",
+    name,
+    (record) => {
+      record.detail.dependents.push({
+        id: nextProfileId("dependent"),
+        name,
+        relationship,
+        dateOfBirth: dateOfBirth || "2000-01-01",
+        financialReliance: financialReliance || "partial",
+      });
+      record.detail.user.dependents = record.detail.dependents.length;
+    },
+  );
+}
+
+export async function updateClientTaxProfileAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const effectiveTaxRatePct = number(formData, "effectiveTaxRatePct");
+  const marginalTaxRatePct = number(formData, "marginalTaxRatePct");
+  const filingStatus = text(formData, "filingStatus");
+  const stateOrRegion = text(formData, "stateOrRegion");
+
+  if (!clientId) {
+    return { ok: false, message: "Missing client." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.tax.updated",
+    "Tax profile",
+    (record) => {
+      record.detail.taxProfile = {
+        effectiveTaxRatePct: Number.isFinite(effectiveTaxRatePct)
+          ? effectiveTaxRatePct
+          : (record.detail.taxProfile?.effectiveTaxRatePct ?? 0),
+        marginalTaxRatePct: Number.isFinite(marginalTaxRatePct)
+          ? marginalTaxRatePct
+          : (record.detail.taxProfile?.marginalTaxRatePct ?? 0),
+        filingStatus:
+          filingStatus || record.detail.taxProfile?.filingStatus || "Individual",
+        stateOrRegion:
+          stateOrRegion || record.detail.taxProfile?.stateOrRegion || "",
+        updatedAt: new Date().toISOString(),
+      };
+    },
+  );
+}
+
+export async function updateClientGoalAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const goalId = text(formData, "goalId");
+  const title = text(formData, "title");
+  const current = number(formData, "current");
+  const target = number(formData, "target");
+
+  if (!clientId || !goalId || !title) {
+    return { ok: false, message: "Missing goal details." };
+  }
+
+  return writeClientProfile(clientId, "profile.goal.updated", title, (record) => {
+    const goal = record.detail.goals.find((item) => item.id === goalId);
+    if (!goal) {
+      return;
+    }
+    goal.title = title;
+    if (Number.isFinite(current)) {
+      goal.current = current;
+    }
+    if (Number.isFinite(target) && target > 0) {
+      goal.target = target;
+    }
+  });
+}
+
+export async function updateClientIncomeAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const incomeId = text(formData, "incomeId");
+  const name = text(formData, "name");
+  const amount = number(formData, "amount");
+
+  if (!clientId || !incomeId || !name || !Number.isFinite(amount)) {
+    return { ok: false, message: "Missing income details." };
+  }
+
+  return writeClientProfile(clientId, "profile.income.updated", name, (record) => {
+    const row = record.detail.incomeRows.find((item) => item.id === incomeId);
+    if (!row) {
+      return;
+    }
+    row.name = name;
+    row.amount = amount;
+  });
+}
+
+export async function updateClientExpenseAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const expenseId = text(formData, "expenseId");
+  const name = text(formData, "name");
+  const amount = number(formData, "amount");
+
+  if (!clientId || !expenseId || !name || !Number.isFinite(amount)) {
+    return { ok: false, message: "Missing expense details." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.expense.updated",
+    name,
+    (record) => {
+      const row = record.detail.expenseCategories.find(
+        (item) => item.id === expenseId,
+      );
+      if (!row) {
+        return;
+      }
+      row.name = name;
+      row.amount = amount;
+      row.essential = flag(formData, "essential");
+    },
+  );
+}
+
+export async function updateClientHoldingAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const holdingId = text(formData, "holdingId");
+  const name = text(formData, "name");
+  const currentValue = number(formData, "currentValue");
+  const quantity = number(formData, "quantity");
+
+  if (!clientId || !holdingId || !name) {
+    return { ok: false, message: "Missing holding details." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.holding.updated",
+    name,
+    (record) => {
+      const holding = record.detail.holdings.find(
+        (item) => item.holding_id === holdingId,
+      );
+      if (!holding) {
+        return;
+      }
+      holding.name = name;
+      if (Number.isFinite(currentValue)) {
+        holding.current_value = currentValue;
+      }
+      if (Number.isFinite(quantity)) {
+        holding.quantity = quantity;
+      }
+    },
+  );
+}
+
+export async function updateClientLiabilityAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const liabilityId = text(formData, "liabilityId");
+  const name = text(formData, "name");
+  const balance = number(formData, "balance");
+  const minPaymentMonthly = number(formData, "minPaymentMonthly");
+
+  if (!clientId || !liabilityId || !name) {
+    return { ok: false, message: "Missing liability details." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.liability.updated",
+    name,
+    (record) => {
+      const liability = record.detail.liabilities.find(
+        (item) => item.id === liabilityId,
+      );
+      if (!liability) {
+        return;
+      }
+      liability.name = name;
+      if (Number.isFinite(balance)) {
+        liability.balance = balance;
+      }
+      if (Number.isFinite(minPaymentMonthly)) {
+        liability.minPaymentMonthly = minPaymentMonthly;
+      }
+    },
+  );
+}
+
+export async function updateClientInsuranceAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const policyId = text(formData, "policyId");
+  const name = text(formData, "name");
+  const provider = text(formData, "provider");
+  const coverageAmount = number(formData, "coverageAmount");
+  const premiumMonthly = number(formData, "premiumMonthly");
+  const renewalDate = text(formData, "renewalDate");
+
+  if (!clientId || !policyId || !name) {
+    return { ok: false, message: "Missing policy details." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.insurance.updated",
+    name,
+    (record) => {
+      const policy = record.detail.insurancePolicies.find(
+        (item) => item.policy_id === policyId,
+      );
+      if (!policy) {
+        return;
+      }
+      policy.name = name;
+      policy.provider = provider || policy.provider;
+      if (Number.isFinite(coverageAmount)) {
+        policy.coverage_amount = coverageAmount;
+      }
+      if (Number.isFinite(premiumMonthly)) {
+        policy.premium_monthly = premiumMonthly;
+      }
+      if (renewalDate) {
+        policy.renewal_date = renewalDate;
+      }
+    },
+  );
+}
+
+export async function updateClientPropertyAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const propertyId = text(formData, "propertyId");
+  const name = text(formData, "name");
+  const marketValue = number(formData, "marketValue");
+
+  if (!clientId || !propertyId || !name) {
+    return { ok: false, message: "Missing property details." };
+  }
+
+  return writeClientProfile(
+    clientId,
+    "profile.property.updated",
+    name,
+    (record) => {
+      const property = record.detail.propertyAssets.find(
+        (item) => item.property_id === propertyId,
+      );
+      if (!property) {
+        return;
+      }
+      property.name = name;
+      if (Number.isFinite(marketValue) && marketValue > 0) {
+        property.market_value = marketValue;
+        property.current_value = marketValue;
+        property.value_uncertain = false;
+      }
+    },
+  );
+}
+
+export async function submitClientRiskAssessmentAction(
+  formData: FormData,
+): Promise<ProfileWriteResult> {
+  const clientId = text(formData, "clientId");
+  const riskBand = text(formData, "riskBand") || "moderate";
+
+  if (!clientId) {
+    return { ok: false, message: "Missing client." };
+  }
+
+  const bandCopy: Record<string, { description: string; strategy: string }> = {
+    conservative: {
+      description: "Prefers capital preservation with limited volatility.",
+      strategy: "Income-focused allocation with high-quality bonds and cash.",
+    },
+    moderate: {
+      description: "Balanced growth and stability over a medium horizon.",
+      strategy: "Diversified multi-asset portfolio with moderate equity tilt.",
+    },
+    growth: {
+      description: "Comfortable with volatility for higher long-term returns.",
+      strategy: "Equity-led allocation with selective alternatives.",
+    },
+    aggressive: {
+      description: "High tolerance for drawdowns in pursuit of growth.",
+      strategy: "Growth equities and alternatives with limited defensive sleeve.",
+    },
+  };
+
+  const copy = bandCopy[riskBand] ?? bandCopy.moderate;
+
+  return writeClientProfile(
+    clientId,
+    "profile.risk.submitted",
+    "Risk assessment",
+    (record) => {
+      record.detail.riskAssessment = {
+        assessment_id: nextProfileId("risk"),
+        questionnaire_version: "v3",
+        responses: { horizon: 3, drawdown: 3, liquidity: 3, experience: 3 },
+        profile_snapshot: { band: riskBand },
+        scoring: {
+          time_horizon_avg: 3,
+          questionnaire_score: 60,
+          modifiers: {},
+          modifier_total: 0,
+          final_score: 60,
+        },
+        result: {
+          risk_band: riskBand,
+          description: copy.description,
+          strategy: copy.strategy,
+        },
+        is_recalculation: Boolean(record.detail.riskAssessment),
+        created_at: new Date().toISOString(),
+      };
+      record.detail.user.risk_profile = riskBand;
+      record.client.riskLevel = riskBand as typeof record.client.riskLevel;
     },
   );
 }
@@ -409,6 +808,7 @@ export async function updateClientRetirementAction(
   const desiredMonthlyIncome = number(formData, "desiredMonthlyIncome");
   const expectedReturnPct = number(formData, "expectedReturnPct");
   const safeWithdrawalRatePct = number(formData, "safeWithdrawalRatePct");
+  const storageLocation = text(formData, "storageLocation");
 
   if (!clientId) {
     return { ok: false, message: "Missing client." };
@@ -445,6 +845,8 @@ export async function updateClientRetirementAction(
         safeWithdrawalRatePct: Number.isFinite(safeWithdrawalRatePct)
           ? safeWithdrawalRatePct
           : record.detail.retirement.safeWithdrawalRatePct,
+        storageLocation:
+          storageLocation || record.detail.retirement.storageLocation,
       };
     },
   );

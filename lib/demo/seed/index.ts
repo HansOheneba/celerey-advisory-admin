@@ -29,7 +29,7 @@ import type { ClientActivity } from "@/types/client";
 import type { AppRole, IdentityRole } from "@/lib/auth/roles";
 
 /** Bump when seed shape changes (e.g. AUA/AUM split on client records). */
-export const DEMO_DB_VERSION = 7;
+export const DEMO_DB_VERSION = 10;
 
 const APP_ROLE_BY_DEMO_ROLE: Record<DemoUser["demoRole"], AppRole> = {
   relationship_manager: "advisor",
@@ -209,12 +209,70 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
     );
   }
 
+  const adaMensah = byId.get("ada-mensah");
+  if (adaMensah) {
+    threads.push(
+      threadFor(
+        adaMensah,
+        [
+          {
+            author: "advisor",
+            body: "Annual review notes are in your documents. Have a read before our next session.",
+            daysAgo: 175,
+          },
+          {
+            author: "client",
+            body: "Thanks. Uploaded my latest payslip.",
+            daysAgo: 3,
+          },
+          {
+            author: "advisor",
+            body: "Got the payslip. See you Wednesday at 10am for the quarterly check-in.",
+            daysAgo: 2,
+          },
+        ],
+        0,
+      ),
+    );
+  }
+
+  const covered = new Set(threads.map((thread) => thread.clientId));
+  for (const record of clients) {
+    const { client } = record;
+    if (covered.has(client.id)) {
+      continue;
+    }
+    if (record.subscription !== "celerey_core" || client.status === "inactive") {
+      continue;
+    }
+
+    threads.push(
+      threadFor(
+        record,
+        [
+          {
+            author: "advisor",
+            body: `Hi ${client.firstName}, sharing a quick portfolio snapshot ahead of our next check-in.`,
+            daysAgo: 14,
+          },
+          {
+            author: "client",
+            body: "Thanks — looks good. Happy to discuss at the review.",
+            daysAgo: 13,
+          },
+        ],
+        0,
+      ),
+    );
+  }
+
   return threads;
 }
 
 function buildDocuments(clients: DemoClientRecord[]): ClientDocument[] {
   const documents: ClientDocument[] = [];
   const targets = [
+    "ada-mensah",
     "osei-bonsu",
     "darko",
     "quaye",
@@ -277,6 +335,8 @@ function buildTasks(clients: DemoClientRecord[]): Task[] {
     category: Task["category"];
     status: Task["status"];
   }> = [
+    { clientId: "ada-mensah", title: "Increase pension contribution to 10%", description: "Action from annual review — target Q4.", dueInDays: 90, priority: "high", assignee: "client", category: "financial", status: "open" },
+    { clientId: "ada-mensah", title: "Upload latest payslip", description: "For income verification.", dueInDays: -3, priority: "medium", assignee: "client", category: "documents", status: "done" },
     { clientId: "osei-bonsu", title: "Model staged cash deployment", description: "Two options: full deployment and staged over three months.", dueInDays: 2, priority: "high", assignee: "advisor", category: "financial", status: "open" },
     { clientId: "osei-bonsu", title: "Prepare education goal top-up plan", description: "2027 tuition goal is 71% funded. Model a monthly uplift.", dueInDays: 5, priority: "high", assignee: "advisor", category: "financial", status: "open" },
     { clientId: "osei-bonsu", title: "Confirm annual review date", description: "Client prefers the last week of the month.", dueInDays: 8, priority: "medium", assignee: "advisor", category: "other", status: "open" },
@@ -331,6 +391,8 @@ function buildAppointments(clients: DemoClientRecord[]): Appointment[] {
     publishedNotes?: boolean;
     proposed?: boolean;
   }> = [
+    { clientId: "ada-mensah", type: "quarterly_check_in", title: "Quarterly check-in", inDays: 2, atHour: 10, status: "upcoming", createdBy: "advisor" },
+    { clientId: "ada-mensah", type: "annual_review", title: "Annual review, March 2026", inDays: -175, status: "published", createdBy: "advisor", withLog: true, publishedNotes: true },
     { clientId: "osei-bonsu", type: "annual_review", title: "Annual review", inDays: 21, atHour: 10, status: "upcoming", createdBy: "advisor" },
     { clientId: "quaye", type: "portfolio_update", title: "Deployment planning call", inDays: 2, atHour: 10, status: "upcoming", createdBy: "advisor" },
     { clientId: "darko", type: "review", title: "Rebalance discussion", inDays: 4, atHour: 14, status: "upcoming", createdBy: "advisor" },
@@ -718,9 +780,9 @@ function buildEventAlerts(clients: DemoClientRecord[]): DemoAlert[] {
   };
 
   push("alert-escalation-nkrumah", "nkrumah", "escalation", "critical", "Escalation open", "Client disputes the structured note recommendation. Compliance review in progress.", 7, "compliance");
-  push("alert-message-osei-bonsu", "osei-bonsu", "client_message", "info", "New client message", "Asked whether the London property can support a facility instead of an asset sale.", 2, "comms");
-  push("alert-message-quaye", "quaye", "client_message", "info", "New client message", "Confirmed the sale proceeds have cleared and is ready to fund.", 3, "comms");
-  push("alert-message-mensah", "mensah-kofi", "client_message", "info", "New client message", "Asked for the income comparison before the note matures.", 5, "comms");
+  push("alert-message-osei-bonsu", "osei-bonsu", "client_message", "info", "New client message", "Asked whether the London property can support a facility instead of an asset sale.", 2, "advisory");
+  push("alert-message-quaye", "quaye", "client_message", "info", "New client message", "Confirmed the sale proceeds have cleared and is ready to fund.", 3, "advisory");
+  push("alert-message-mensah", "mensah-kofi", "client_message", "info", "New client message", "Asked for the income comparison before the note matures.", 5, "advisory");
   push("alert-doc-agyapong", "agyapong", "document_uploaded", "warning", "KYC documents outstanding", "Proof of address and source of funds letter still missing.", 3, "compliance");
 
   return alerts;

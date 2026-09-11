@@ -13,6 +13,8 @@ export type ClientDetailUser = {
   city: string | null;
   date_of_birth: string | null;
   currency: string;
+  investment_currency?: string;
+  preferred_contact?: string;
   occupation: string | null;
   marital_status: string | null;
   gender: string | null;
@@ -159,6 +161,7 @@ export type ClientDetailState = {
     inflationPct: number;
     safeWithdrawalRatePct: number;
     desiredMonthlyIncome: number;
+    storageLocation?: string;
     [key: string]: unknown;
   };
   emergencyFund: {
@@ -209,6 +212,13 @@ export type ClientDetailState = {
     updatedAt: string;
   }>;
   profileCompletionScore: number;
+  retirementProjections?: {
+    projectedBalanceAtRetirement?: number;
+    monthlyIncomeAtRetirement?: number;
+    onTrack?: boolean;
+    shortfallMonthly?: number;
+    [key: string]: unknown;
+  };
 };
 
 export type ClientDetail = {

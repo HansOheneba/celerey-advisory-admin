@@ -37,7 +37,6 @@ export type Client = {
   nextReviewAt: string;
   joinedAt: string;
   goalsCount: number;
-  notes?: string;
 };
 
 export type ClientActivity = {

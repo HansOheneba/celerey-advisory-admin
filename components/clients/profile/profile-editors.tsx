@@ -2,6 +2,7 @@
 
 import {
   addClientAccountAction,
+  addClientDependentAction,
   addClientExpenseAction,
   addClientGoalAction,
   addClientHoldingAction,
@@ -9,8 +10,18 @@ import {
   addClientInsuranceAction,
   addClientLiabilityAction,
   addClientPropertyAction,
+  submitClientRiskAssessmentAction,
   updateClientEmergencyFundAction,
+  updateClientExpenseAction,
+  updateClientGoalAction,
+  updateClientHoldingAction,
+  updateClientIncomeAction,
+  updateClientInsuranceAction,
+  updateClientLiabilityAction,
+  updateClientPropertyAction,
   updateClientRetirementAction,
+  updateClientTaxProfileAction,
+  updateClientUserAction,
 } from "@/app/actions/client-profile";
 import { AssetHoldingFields } from "@/components/clients/create/asset-holding-fields";
 import { FormCheckbox } from "@/components/clients/create/form-checkbox";
@@ -23,6 +34,7 @@ import { ProfileField } from "@/components/clients/profile/profile-field";
 import { Input } from "@/components/ui/input";
 import { SelectItem } from "@/components/ui/select";
 import {
+  CURRENCY_OPTIONS,
   EMERGENCY_FUND_STORAGE_OPTIONS,
   EMERGENCY_FUND_TARGET_MONTHS,
   EXPENSE_CATEGORIES,
@@ -30,7 +42,10 @@ import {
   GOAL_STATUS_OPTIONS,
   INCOME_CATEGORIES,
   INSURANCE_CATEGORIES,
+  PREFERRED_CONTACT_OPTIONS,
   RECURRING_TYPE_OPTIONS,
+  RETIREMENT_STORAGE_OPTIONS,
+  RISK_PROFILE_OPTIONS,
 } from "@/lib/clients/creation-options";
 
 type ClientIdProps = {
@@ -42,7 +57,7 @@ export function AddGoalDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add goal"
-      description="Capture a goal on the client's behalf — useful when they are read-only on the portal."
+      description="Add a goal for them if they cannot edit it on the portal."
       triggerLabel="Add goal"
       submitLabel="Add goal"
       successMessage="Goal added"
@@ -121,7 +136,7 @@ export function AddHoldingDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add holding"
-      description="Fields follow the client dashboard contract — market types need symbol and quantity; stocks need a current value mark."
+      description="Market holdings need symbol and quantity. Stocks need a current value."
       triggerLabel="Add holding"
       submitLabel="Add holding"
       successMessage="Holding added"
@@ -142,7 +157,7 @@ export function AddAccountDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add cash account"
-      description="Add a cash or bank account that counts toward AUA and cash weighting."
+      description="Cash or bank account. Counts toward AUA and cash weight."
       triggerLabel="Add account"
       submitLabel="Add account"
       successMessage="Account added"
@@ -178,7 +193,7 @@ export function AddIncomeDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add income"
-      description="Income rows feed surplus, emergency runway and the cash-flow chart."
+      description="Feeds surplus, emergency runway, and the cash-flow chart."
       triggerLabel="Add income"
       submitLabel="Add income"
       successMessage="Income added"
@@ -230,7 +245,7 @@ export function AddExpenseDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add expense"
-      description="Expenses drive surplus, savings rate and emergency-fund cover."
+      description="Feeds surplus, savings rate, and emergency fund cover."
       triggerLabel="Add expense"
       submitLabel="Add expense"
       successMessage="Expense added"
@@ -284,7 +299,7 @@ export function AddLiabilityDialog({ clientId, currency }: AddLiabilityDialogPro
     <ProfileEditorDialog
       clientId={clientId}
       title="Add liability"
-      description="Credit cards, auto loans, and other standalone debt. Mortgages belong on the property record."
+      description="Cards, auto loans, and other debt. Put mortgages on the property."
       triggerLabel="Add liability"
       submitLabel="Add liability"
       successMessage="Liability added"
@@ -309,7 +324,7 @@ export function AddPropertyDialog({ clientId, currency }: AddPropertyDialogProps
     <ProfileEditorDialog
       clientId={clientId}
       title="Add property"
-      description="Track a new real estate holding with optional mortgage and property-tied insurance."
+      description="Add a property. You can attach a mortgage and home insurance."
       triggerLabel="Add property"
       submitLabel="Add property"
       successMessage="Property added"
@@ -333,7 +348,7 @@ export function AddInsuranceDialog({ clientId }: ClientIdProps) {
     <ProfileEditorDialog
       clientId={clientId}
       title="Add protection"
-      description="Record life, health or other cover held by the client."
+      description="Life, health, or other cover the client holds."
       triggerLabel="Add cover"
       submitLabel="Add cover"
       successMessage="Policy added"
@@ -373,7 +388,609 @@ export function AddInsuranceDialog({ clientId }: ClientIdProps) {
             step="0.01"
           />
         </ProfileField>
+        <ProfileField label="Policy number" htmlFor="policy-number">
+          <Input id="policy-number" name="policyNumber" />
+        </ProfileField>
+        <ProfileField label="Start date" htmlFor="policy-start">
+          <Input id="policy-start" name="startDate" type="date" />
+        </ProfileField>
+        <ProfileField label="Renewal date" htmlFor="policy-renewal">
+          <Input id="policy-renewal" name="renewalDate" type="date" />
+        </ProfileField>
+        <ProfileField label="Deductible" htmlFor="policy-deductible">
+          <Input
+            id="policy-deductible"
+            name="deductible"
+            type="number"
+            min={0}
+            step="0.01"
+          />
+        </ProfileField>
+        <ProfileField label="Beneficiary" htmlFor="policy-beneficiary">
+          <Input id="policy-beneficiary" name="beneficiary" />
+        </ProfileField>
       </div>
+      <ProfileField label="Notes" htmlFor="policy-notes">
+        <Input id="policy-notes" name="notes" />
+      </ProfileField>
+      <FormCheckbox id="policy-auto-renew" name="autoRenew" label="Auto-renew" />
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditUserProfileDialog({
+  clientId,
+  user,
+}: ClientIdProps & {
+  user: {
+    phone_number: string | null;
+    occupation: string | null;
+    bio: string | null;
+    preferred_contact?: string;
+    investment_currency?: string;
+    city: string | null;
+  };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit profile"
+      description="Contact and household fields they see on the portal."
+      triggerLabel="Edit profile"
+      submitLabel="Save"
+      successMessage="Profile updated"
+      action={updateClientUserAction}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Phone" htmlFor="profile-phone">
+          <Input
+            id="profile-phone"
+            name="phoneNumber"
+            defaultValue={user.phone_number ?? ""}
+          />
+        </ProfileField>
+        <ProfileField label="Preferred contact" htmlFor="profile-contact">
+          <FormSelect
+            id="profile-contact"
+            name="preferredContact"
+            defaultValue={user.preferred_contact ?? "email"}
+          >
+            {PREFERRED_CONTACT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </FormSelect>
+        </ProfileField>
+        <ProfileField label="City" htmlFor="profile-city">
+          <Input id="profile-city" name="city" defaultValue={user.city ?? ""} />
+        </ProfileField>
+        <ProfileField label="Investment currency" htmlFor="profile-inv-currency">
+          <FormSelect
+            id="profile-inv-currency"
+            name="investmentCurrency"
+            defaultValue={user.investment_currency ?? "USD"}
+          >
+            {CURRENCY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </FormSelect>
+        </ProfileField>
+        <ProfileField label="Occupation" htmlFor="profile-occupation" className="sm:col-span-2">
+          <Input
+            id="profile-occupation"
+            name="occupation"
+            defaultValue={user.occupation ?? ""}
+          />
+        </ProfileField>
+        <ProfileField label="Bio" htmlFor="profile-bio" className="sm:col-span-2">
+          <Input id="profile-bio" name="bio" defaultValue={user.bio ?? ""} />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function AddDependentDialog({ clientId }: ClientIdProps) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Add dependent"
+      description="Record a household member the client supports."
+      triggerLabel="Add dependent"
+      submitLabel="Add"
+      successMessage="Dependent added"
+      action={addClientDependentAction}
+    >
+      <ProfileField label="Name" htmlFor="dependent-name">
+        <Input id="dependent-name" name="name" required />
+      </ProfileField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Relationship" htmlFor="dependent-relationship">
+          <Input id="dependent-relationship" name="relationship" required />
+        </ProfileField>
+        <ProfileField label="Date of birth" htmlFor="dependent-dob">
+          <Input id="dependent-dob" name="dateOfBirth" type="date" required />
+        </ProfileField>
+        <ProfileField label="Financial reliance" htmlFor="dependent-reliance">
+          <FormSelect
+            id="dependent-reliance"
+            name="financialReliance"
+            defaultValue="partial"
+          >
+            <SelectItem value="full">Full</SelectItem>
+            <SelectItem value="partial">Partial</SelectItem>
+            <SelectItem value="none">None</SelectItem>
+          </FormSelect>
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditTaxProfileDialog({
+  clientId,
+  taxProfile,
+}: ClientIdProps & {
+  taxProfile: {
+    effectiveTaxRatePct: number;
+    marginalTaxRatePct: number;
+    filingStatus: string;
+    stateOrRegion: string;
+  } | null;
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit tax profile"
+      description="Tax assumptions used in planning and surplus calculations."
+      triggerLabel="Edit tax"
+      submitLabel="Save"
+      successMessage="Tax profile updated"
+      action={updateClientTaxProfileAction}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Effective rate %" htmlFor="tax-effective">
+          <Input
+            id="tax-effective"
+            name="effectiveTaxRatePct"
+            type="number"
+            min={0}
+            max={100}
+            step="0.1"
+            defaultValue={taxProfile?.effectiveTaxRatePct ?? 0}
+          />
+        </ProfileField>
+        <ProfileField label="Marginal rate %" htmlFor="tax-marginal">
+          <Input
+            id="tax-marginal"
+            name="marginalTaxRatePct"
+            type="number"
+            min={0}
+            max={100}
+            step="0.1"
+            defaultValue={taxProfile?.marginalTaxRatePct ?? 0}
+          />
+        </ProfileField>
+        <ProfileField label="Filing status" htmlFor="tax-filing">
+          <Input
+            id="tax-filing"
+            name="filingStatus"
+            defaultValue={taxProfile?.filingStatus ?? "Individual"}
+          />
+        </ProfileField>
+        <ProfileField label="State / region" htmlFor="tax-region">
+          <Input
+            id="tax-region"
+            name="stateOrRegion"
+            defaultValue={taxProfile?.stateOrRegion ?? ""}
+          />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function SubmitRiskAssessmentDialog({ clientId }: ClientIdProps) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Record risk assessment"
+      description="File a risk band if they have not finished the questionnaire."
+      triggerLabel="Record assessment"
+      submitLabel="Submit"
+      successMessage="Risk assessment recorded"
+      action={submitClientRiskAssessmentAction}
+    >
+      <ProfileField label="Risk band" htmlFor="risk-band">
+        <FormSelect id="risk-band" name="riskBand" defaultValue="moderate">
+          {RISK_PROFILE_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </FormSelect>
+      </ProfileField>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditGoalDialog({
+  clientId,
+  goal,
+}: ClientIdProps & {
+  goal: { id: string; title: string; current: number; target?: number };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit goal"
+      description="Update funded amount or target."
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Goal updated"
+      action={updateClientGoalAction}
+    >
+      <input type="hidden" name="goalId" value={goal.id} />
+      <ProfileField label="Title" htmlFor={`goal-title-${goal.id}`}>
+        <Input
+          id={`goal-title-${goal.id}`}
+          name="title"
+          defaultValue={goal.title}
+          required
+        />
+      </ProfileField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Current" htmlFor={`goal-current-${goal.id}`}>
+          <Input
+            id={`goal-current-${goal.id}`}
+            name="current"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={goal.current}
+          />
+        </ProfileField>
+        <ProfileField label="Target" htmlFor={`goal-target-${goal.id}`}>
+          <Input
+            id={`goal-target-${goal.id}`}
+            name="target"
+            type="number"
+            min={1}
+            step="0.01"
+            defaultValue={goal.target ?? 0}
+          />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditIncomeDialog({
+  clientId,
+  row,
+}: ClientIdProps & {
+  row: { id: string; name: string; amount: number };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit income"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Income updated"
+      action={updateClientIncomeAction}
+      description="Update a recurring income row."
+    >
+      <input type="hidden" name="incomeId" value={row.id} />
+      <ProfileField label="Category" htmlFor={`income-name-${row.id}`}>
+        <FormSelect
+          id={`income-name-${row.id}`}
+          name="name"
+          defaultValue={row.name}
+        >
+          {INCOME_CATEGORIES.map((category) => (
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
+            </SelectItem>
+          ))}
+        </FormSelect>
+      </ProfileField>
+      <ProfileField label="Amount" htmlFor={`income-amount-${row.id}`}>
+        <Input
+          id={`income-amount-${row.id}`}
+          name="amount"
+          type="number"
+          min={0}
+          step="0.01"
+          defaultValue={row.amount}
+          required
+        />
+      </ProfileField>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditExpenseDialog({
+  clientId,
+  row,
+}: ClientIdProps & {
+  row: { id: string; name: string; amount: number; essential: boolean };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit expense"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Expense updated"
+      action={updateClientExpenseAction}
+      description="Update a recurring expense row."
+    >
+      <input type="hidden" name="expenseId" value={row.id} />
+      <ProfileField label="Category" htmlFor={`expense-name-${row.id}`}>
+        <FormSelect
+          id={`expense-name-${row.id}`}
+          name="name"
+          defaultValue={row.name}
+        >
+          {EXPENSE_CATEGORIES.map((category) => (
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
+            </SelectItem>
+          ))}
+        </FormSelect>
+      </ProfileField>
+      <ProfileField label="Amount" htmlFor={`expense-amount-${row.id}`}>
+        <Input
+          id={`expense-amount-${row.id}`}
+          name="amount"
+          type="number"
+          min={0}
+          step="0.01"
+          defaultValue={row.amount}
+          required
+        />
+      </ProfileField>
+      <FormCheckbox
+        id={`expense-essential-${row.id}`}
+        name="essential"
+        label="Essential"
+        defaultChecked={row.essential}
+      />
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditHoldingDialog({
+  clientId,
+  holding,
+}: ClientIdProps & {
+  holding: {
+    holding_id: string;
+    name: string;
+    current_value?: number;
+    quantity?: number;
+  };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit holding"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Holding updated"
+      action={updateClientHoldingAction}
+      description="Update mark-to-market value or quantity."
+    >
+      <input type="hidden" name="holdingId" value={holding.holding_id} />
+      <ProfileField label="Name" htmlFor={`holding-name-${holding.holding_id}`}>
+        <Input
+          id={`holding-name-${holding.holding_id}`}
+          name="name"
+          defaultValue={holding.name}
+          required
+        />
+      </ProfileField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Current value" htmlFor={`holding-value-${holding.holding_id}`}>
+          <Input
+            id={`holding-value-${holding.holding_id}`}
+            name="currentValue"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={holding.current_value ?? 0}
+          />
+        </ProfileField>
+        <ProfileField label="Quantity" htmlFor={`holding-qty-${holding.holding_id}`}>
+          <Input
+            id={`holding-qty-${holding.holding_id}`}
+            name="quantity"
+            type="number"
+            min={0}
+            step="0.0001"
+            defaultValue={holding.quantity ?? 0}
+          />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditLiabilityDialog({
+  clientId,
+  liability,
+}: ClientIdProps & {
+  liability: {
+    id: string;
+    name: string;
+    balance: number;
+    minPaymentMonthly?: number;
+  };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit liability"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Liability updated"
+      action={updateClientLiabilityAction}
+      description="Update balance or minimum payment."
+    >
+      <input type="hidden" name="liabilityId" value={liability.id} />
+      <ProfileField label="Name" htmlFor={`liability-name-${liability.id}`}>
+        <Input
+          id={`liability-name-${liability.id}`}
+          name="name"
+          defaultValue={liability.name}
+          required
+        />
+      </ProfileField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Balance" htmlFor={`liability-balance-${liability.id}`}>
+          <Input
+            id={`liability-balance-${liability.id}`}
+            name="balance"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={liability.balance}
+          />
+        </ProfileField>
+        <ProfileField label="Min payment" htmlFor={`liability-min-${liability.id}`}>
+          <Input
+            id={`liability-min-${liability.id}`}
+            name="minPaymentMonthly"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={liability.minPaymentMonthly ?? 0}
+          />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditInsurancePolicyDialog({
+  clientId,
+  policy,
+}: ClientIdProps & {
+  policy: {
+    policy_id: string;
+    name: string;
+    provider: string;
+    coverage_amount?: number;
+    premium_monthly?: number;
+    renewal_date?: string;
+  };
+}) {
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit policy"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Policy updated"
+      action={updateClientInsuranceAction}
+      description="Update cover amount, premium, or renewal date."
+    >
+      <input type="hidden" name="policyId" value={policy.policy_id} />
+      <ProfileField label="Policy name" htmlFor={`policy-name-${policy.policy_id}`}>
+        <Input
+          id={`policy-name-${policy.policy_id}`}
+          name="name"
+          defaultValue={policy.name}
+          required
+        />
+      </ProfileField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ProfileField label="Provider" htmlFor={`policy-provider-${policy.policy_id}`}>
+          <Input
+            id={`policy-provider-${policy.policy_id}`}
+            name="provider"
+            defaultValue={policy.provider}
+          />
+        </ProfileField>
+        <ProfileField label="Renewal" htmlFor={`policy-renewal-${policy.policy_id}`}>
+          <Input
+            id={`policy-renewal-${policy.policy_id}`}
+            name="renewalDate"
+            type="date"
+            defaultValue={String(policy.renewal_date ?? "").slice(0, 10)}
+          />
+        </ProfileField>
+        <ProfileField label="Cover" htmlFor={`policy-cover-${policy.policy_id}`}>
+          <Input
+            id={`policy-cover-${policy.policy_id}`}
+            name="coverageAmount"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={policy.coverage_amount ?? 0}
+          />
+        </ProfileField>
+        <ProfileField label="Premium" htmlFor={`policy-premium-${policy.policy_id}`}>
+          <Input
+            id={`policy-premium-${policy.policy_id}`}
+            name="premiumMonthly"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={policy.premium_monthly ?? 0}
+          />
+        </ProfileField>
+      </div>
+    </ProfileEditorDialog>
+  );
+}
+
+export function EditPropertyDialog({
+  clientId,
+  property,
+}: ClientIdProps & {
+  property: {
+    property_id: string;
+    name: string;
+    market_value?: number;
+    current_value?: number;
+  };
+}) {
+  const value = property.market_value ?? property.current_value ?? 0;
+
+  return (
+    <ProfileEditorDialog
+      clientId={clientId}
+      title="Edit property"
+      triggerLabel="Edit"
+      submitLabel="Save"
+      successMessage="Property updated"
+      action={updateClientPropertyAction}
+      description="Update name or estimated market value."
+    >
+      <input type="hidden" name="propertyId" value={property.property_id} />
+      <ProfileField label="Name" htmlFor={`property-name-${property.property_id}`}>
+        <Input
+          id={`property-name-${property.property_id}`}
+          name="name"
+          defaultValue={property.name}
+          required
+        />
+      </ProfileField>
+      <ProfileField label="Market value" htmlFor={`property-value-${property.property_id}`}>
+        <Input
+          id={`property-value-${property.property_id}`}
+          name="marketValue"
+          type="number"
+          min={0}
+          step="0.01"
+          defaultValue={value}
+        />
+      </ProfileField>
     </ProfileEditorDialog>
   );
 }
@@ -391,13 +1008,14 @@ export function EditRetirementDialog({
     desiredMonthlyIncome: number;
     expectedReturnPct: number;
     safeWithdrawalRatePct: number;
+    storageLocation?: string;
   };
 }) {
   return (
     <ProfileEditorDialog
       clientId={clientId}
       title="Edit retirement"
-      description="Update the retirement assumptions used on the plan."
+      description="Update retirement assumptions and where savings are held."
       triggerLabel="Edit"
       submitLabel="Save"
       successMessage="Retirement plan updated"
@@ -481,6 +1099,23 @@ export function EditRetirementDialog({
             step="0.1"
             defaultValue={retirement.safeWithdrawalRatePct}
           />
+        </ProfileField>
+        <ProfileField
+          label="Storage location"
+          htmlFor="ret-storage"
+          className="sm:col-span-2"
+        >
+          <FormSelect
+            id="ret-storage"
+            name="storageLocation"
+            defaultValue={retirement.storageLocation ?? "employer_pension"}
+          >
+            {RETIREMENT_STORAGE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </FormSelect>
         </ProfileField>
       </div>
     </ProfileEditorDialog>

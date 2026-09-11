@@ -15,13 +15,13 @@ import {
   Search,
 } from "lucide-react";
 import type { Client } from "@/types/client";
-import {
-  AssetAmountCell,
-  AssetRelationshipBadge,
-} from "@/components/clients/asset-relationship-badge";
+import { AssignedAdvisorBadge } from "@/components/clients/assigned-advisor-badge";
+import { AssetAmountCell } from "@/components/clients/asset-relationship-badge";
+import { ClientMetaLine } from "@/components/clients/client-meta-line";
 import { formatLastContactProvenance } from "@/lib/clients/contact-tracking";
+import { clientNeedsStatusHighlight } from "@/lib/clients/client-meta";
 import { SubscriptionBadge } from "@/components/clients/subscription-badge";
-import { RiskBadge, StatusBadge } from "@/components/clients/status-badge";
+import { StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +51,7 @@ import {
   formatCurrency,
   formatDate,
   getInitials,
+  titleCase,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -226,7 +227,7 @@ export function ClientsTable({
                 </TableHead>
               ) : null}
               {showAdvisorColumn ? (
-                <TableHead className="hidden lg:table-cell">Advisor</TableHead>
+                <TableHead className="hidden lg:table-cell">RM</TableHead>
               ) : null}
               <TableHead className="hidden xl:table-cell">Risk</TableHead>
               <TableHead className="hidden lg:table-cell">
@@ -321,14 +322,18 @@ export function ClientsTable({
                         <p className="truncate text-xs text-muted-foreground">
                           {client.email}
                         </p>
-                        <div className="mt-1 flex flex-wrap gap-1 md:hidden">
-                          <StatusBadge status={client.status} />
-                          <AssetRelationshipBadge
-                            aua={client.aua}
-                            aum={client.aum}
-                            compact
-                          />
-                        </div>
+                        <ClientMetaLine
+                          client={client}
+                          className="mt-1 text-xs md:hidden"
+                        />
+                        {showAdvisorColumn ? (
+                          <div className="mt-1 lg:hidden">
+                            <AssignedAdvisorBadge
+                              advisorName={client.advisorName}
+                              className="max-w-full"
+                            />
+                          </div>
+                        ) : null}
                       </div>
                     </Link>
                   </TableCell>
@@ -336,7 +341,13 @@ export function ClientsTable({
                     {formatDate(client.joinedAt)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <StatusBadge status={client.status} />
+                    {clientNeedsStatusHighlight(client.status) ? (
+                      <StatusBadge status={client.status} />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        {titleCase(client.status)}
+                      </span>
+                    )}
                   </TableCell>
                   {canManageSubscriptions ? (
                     <TableCell className="hidden lg:table-cell">
@@ -344,12 +355,12 @@ export function ClientsTable({
                     </TableCell>
                   ) : null}
                   {showAdvisorColumn ? (
-                    <TableCell className="hidden text-muted-foreground lg:table-cell">
-                      {client.advisorName || "Unassigned"}
+                    <TableCell className="hidden lg:table-cell">
+                      <AssignedAdvisorBadge advisorName={client.advisorName} />
                     </TableCell>
                   ) : null}
-                  <TableCell className="hidden xl:table-cell">
-                    <RiskBadge riskLevel={client.riskLevel} />
+                  <TableCell className="hidden text-sm text-muted-foreground xl:table-cell">
+                    {titleCase(client.riskLevel)}
                   </TableCell>
                   <TableCell className="hidden font-medium lg:table-cell">
                     <AssetAmountCell

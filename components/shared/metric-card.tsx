@@ -15,6 +15,9 @@ type MetricCardProps = {
   icon?: LucideIcon;
   symbol?: "celerey-ai";
   variant?: MetricCardVariant;
+  /** Tighter card for secondary KPIs in dense grids. */
+  compact?: boolean;
+  className?: string;
 };
 
 const VARIANT_SURFACE: Record<MetricCardVariant, string> = {
@@ -43,25 +46,28 @@ export function MetricCard({
   icon: Icon,
   symbol,
   variant = "default",
+  compact = false,
+  className,
 }: MetricCardProps) {
   const showTint = variant !== "default";
-  const showIcon = Boolean(Icon || symbol);
+  const showIcon = !compact && Boolean(Icon || symbol);
 
   return (
     <Card
       size="sm"
       className={cn(
         dashboardTheme.kpiCard,
+        "min-w-0",
         showTint && VARIANT_SURFACE[variant],
+        className,
       )}
     >
-      <CardContent className="space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <p className={dashboardTheme.statLabel}>{label}</p>
+      <CardContent className={cn(compact ? "space-y-1" : "space-y-2")}>
+        <div className="flex min-w-0 items-center gap-2">
           {showIcon ? (
             <div
               className={cn(
-                "flex size-10 items-center justify-center rounded-md bg-surface-brand",
+                "flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-brand",
                 VARIANT_ICON[variant] ?? "text-primary",
               )}
             >
@@ -72,10 +78,20 @@ export function MetricCard({
               ) : null}
             </div>
           ) : null}
+          <p className={cn(dashboardTheme.statLabel, "min-w-0 leading-snug")}>
+            {label}
+          </p>
         </div>
-        <p className={dashboardTheme.statValueLarge}>{value}</p>
+        <p
+          className={cn(
+            "font-medium tracking-tight tabular-nums text-foreground",
+            compact ? "text-xl" : dashboardTheme.statValueLarge,
+          )}
+        >
+          {value}
+        </p>
         {delta || hint ? (
-          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-snug text-muted-foreground">
             {delta ? (
               <span
                 className={cn(
@@ -86,7 +102,7 @@ export function MetricCard({
                 {delta.value}
               </span>
             ) : null}
-            {hint}
+            {hint ? <span className="min-w-0">{hint}</span> : null}
           </p>
         ) : null}
       </CardContent>

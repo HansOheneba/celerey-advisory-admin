@@ -140,7 +140,7 @@ export function deriveAlerts(records: DemoClientRecord[]): DemoAlert[] {
         severity: "critical",
         title: "Risk band breach",
         detail: `Allocation sits ${record.portfolioDriftPct.toFixed(1)} points outside the agreed ${client.riskLevel} band.`,
-        workspaceTab: "portfolio",
+        workspaceTab: "assets",
         createdAt: client.lastContactAt,
       });
     }
@@ -167,7 +167,7 @@ export function deriveAlerts(records: DemoClientRecord[]): DemoAlert[] {
         severity: "warning",
         title: "Idle cash above mandate",
         detail: `${record.idleCashPct.toFixed(1)}% in cash against a ${record.targetCashPct}% target — ${formatCompactCurrency(excessCash(record))} deployable.`,
-        workspaceTab: "portfolio",
+        workspaceTab: "assets",
         createdAt: client.lastContactAt,
       });
     }
@@ -196,7 +196,7 @@ export function deriveAlerts(records: DemoClientRecord[]): DemoAlert[] {
           severity: maturityDays <= 7 ? "warning" : "info",
           title: "Investment maturing",
           detail: `${record.maturingInvestment.name} (${formatCompactCurrency(record.maturingInvestment.valueUsd)}) matures in ${maturityDays} day${maturityDays === 1 ? "" : "s"}.`,
-          workspaceTab: "portfolio",
+          workspaceTab: "assets",
           createdAt: client.lastContactAt,
         });
       }

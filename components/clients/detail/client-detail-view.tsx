@@ -45,6 +45,8 @@ import { advisedOnlyAssets } from "@/lib/clients/asset-relationship";
 import { formatLastContactProvenance } from "@/lib/clients/contact-tracking";
 import type { Client } from "@/types/client";
 import type { ClientDetail } from "@/types/client-detail";
+import type { ClientInternalNote } from "@/types/client-internal-note";
+import { latestInternalNote } from "@/lib/clients/internal-notes";
 import { cn } from "@/lib/utils";
 
 const chartColors = [
@@ -74,6 +76,7 @@ function holdingValue(holding: ClientDetail["state"]["holdings"][number]) {
 type ClientDetailViewProps = {
   client: Client;
   detail: ClientDetail;
+  internalNotes?: ClientInternalNote[];
   canViewAnalysis?: boolean;
   canManageSubscriptions?: boolean;
   advisors?: Advisor[];
@@ -165,6 +168,7 @@ function hasEmergencyFund(fund: ClientDetail["state"]["emergencyFund"]) {
 export function ClientDetailView({
   client,
   detail,
+  internalNotes = [],
   canViewAnalysis = false,
   canManageSubscriptions = false,
   advisors = [],
@@ -241,7 +245,7 @@ export function ClientDetailView({
   const kpis = [
     { label: "AUA", value: formatCompactCurrency(client.aua) },
     { label: "AUM", value: formatCompactCurrency(client.aum) },
-    { label: "Advised only", value: formatCompactCurrency(advisedOnly) },
+    { label: "Held away", value: formatCompactCurrency(advisedOnly) },
     { label: "Net", value: formatCompactCurrency(netWorth) },
     {
       label: "Surplus / mo",
@@ -322,18 +326,42 @@ export function ClientDetailView({
           </div>
         </div>
 
-        {client.notes ? (
+        {latestInternalNote(internalNotes) ? (
           <Card className={dashboardTheme.card}>
             <CardHeader className="pb-2">
               <p className={dashboardTheme.sectionLabel}>Notes</p>
               <CardTitle className="text-base font-medium">
-                Relationship notes
+                Team file
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {client.notes}
-              </p>
+            <CardContent className="space-y-2">
+              {(() => {
+                const latest = latestInternalNote(internalNotes);
+                if (!latest) {
+                  return null;
+                }
+
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground/80">
+                        {latest.authorName}
+                      </span>
+                      <span aria-hidden> · </span>
+                      {formatDate(latest.createdAt)}
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                      {latest.body}
+                    </p>
+                    {internalNotes.length > 1 ? (
+                      <p className="text-xs text-muted-foreground">
+                        {internalNotes.length - 1} earlier note
+                        {internalNotes.length - 1 === 1 ? "" : "s"} in workspace.
+                      </p>
+                    ) : null}
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
         ) : null}

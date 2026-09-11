@@ -22,8 +22,8 @@ type WorkspaceTabsProps = {
 
 /**
  * The active tab lives in the URL so alerts and quick actions can deep-link
- * straight into Comms, Service or Compliance. The tab bar scrolls rather than
- * squashing labels, since the workspace has more tabs than the default fits.
+ * into Goals, Advisory, or Compliance. The tab bar scrolls rather than
+ * squashing labels — the workspace has more tabs than fit on one row.
  */
 export function WorkspaceTabs({ tabs, defaultValue }: WorkspaceTabsProps) {
   const router = useRouter();
@@ -38,18 +38,23 @@ export function WorkspaceTabs({ tabs, defaultValue }: WorkspaceTabsProps) {
   function select(value: string) {
     const next = new URLSearchParams(searchParams);
     next.set("tab", value);
+    if (value !== "advisory") {
+      next.delete("advisory");
+    }
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
   return (
     <Tabs value={active} onValueChange={(value) => select(value ?? defaultValue)}>
-      <TabsList className="w-full justify-start overflow-x-auto">
-        {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value} className="flex-none">
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="-mx-1 overflow-x-auto scrollbar-none">
+        <TabsList className="inline-flex w-max min-w-full justify-start gap-0.5">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="flex-none">
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
       {tabs.map((tab) => (
         <TabsContent key={tab.value} value={tab.value}>

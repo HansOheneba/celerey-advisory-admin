@@ -24,10 +24,7 @@ type RoleSwitcherProps = {
   activeRole: DemoRole;
 };
 
-/**
- * Demo affordance: swap the acting role to show the privilege matrix changing
- * what is visible and actionable, without signing out.
- */
+/** Demo only: switch acting role without signing out. */
 export function RoleSwitcher({ activeRole }: RoleSwitcherProps) {
   const [isPending, startTransition] = useTransition();
   const active = roleDefinition(activeRole);

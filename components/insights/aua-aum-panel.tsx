@@ -1,9 +1,8 @@
 "use client";
 
-import {
-  advisedOnlyAssets,
-  deriveRelationshipKind,
-} from "@/lib/clients/asset-relationship";
+import { advisedOnlyAssets } from "@/lib/clients/asset-relationship";
+import type { BookScope } from "@/lib/auth/capabilities";
+import { formatBookAssetsManagedSubline } from "@/lib/overview/book-scope-copy";
 import { SectionPanel } from "@/components/shared/section-panel";
 import { StatGrid, StatItem } from "@/components/shared/stat-grid";
 import { dashboardTheme } from "@/lib/dashboard-theme";
@@ -15,28 +14,30 @@ type AuaAumPanelProps = {
   totalAua: number;
   totalAum: number;
   records: DemoClientRecord[];
+  scope: BookScope;
 };
 
 function countByMandate(records: DemoClientRecord[]) {
-  let advisedOnly = 0;
-  let managedOnly = 0;
-  let mixed = 0;
+  let adviseOnly = 0;
+  let managed = 0;
 
   for (const record of records) {
-    const kind = deriveRelationshipKind(record.client.aua, record.client.aum);
-    if (kind === "aua+aum") {
-      mixed += 1;
-    } else if (kind === "aum") {
-      managedOnly += 1;
-    } else if (kind === "aua") {
-      advisedOnly += 1;
+    if (record.client.aum > 0) {
+      managed += 1;
+    } else if (record.client.aua > 0) {
+      adviseOnly += 1;
     }
   }
 
-  return { advisedOnly, managedOnly, mixed };
+  return { adviseOnly, managed };
 }
 
-export function AuaAumPanel({ totalAua, totalAum, records }: AuaAumPanelProps) {
+export function AuaAumPanel({
+  totalAua,
+  totalAum,
+  records,
+  scope,
+}: AuaAumPanelProps) {
   const advisedOnlyTotal = advisedOnlyAssets(totalAua, totalAum);
   const aumShare =
     totalAua > 0 ? Math.round((totalAum / totalAua) * 1000) / 10 : 0;
@@ -49,28 +50,20 @@ export function AuaAumPanel({ totalAua, totalAum, records }: AuaAumPanelProps) {
   return (
     <SectionPanel
       title="AUA vs AUM"
-      description="AUM is a subset of AUA — advised-only assets are held away from Celerey management."
+      description="AUM sits inside AUA. Held-away assets count toward advice, not management."
     >
       <div className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className={dashboardTheme.statLabel}>Assets under advice</p>
-            <p className="text-2xl font-medium tabular-nums tracking-tight">
-              {formatCompactCurrency(totalAua)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {records.length} relationships
-            </p>
-          </div>
-          <div>
-            <p className={dashboardTheme.statLabel}>Assets under management</p>
-            <p className="text-2xl font-medium tabular-nums tracking-tight">
-              {formatCompactCurrency(totalAum)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {aumShare}% of AUA
-            </p>
-          </div>
+        <div>
+          <p className={dashboardTheme.statLabel}>Assets under advice</p>
+          <p className="text-2xl font-medium tabular-nums tracking-tight">
+            {formatCompactCurrency(totalAua)}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {formatBookAssetsManagedSubline(totalAua, totalAum, scope)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {records.length} relationships
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -86,26 +79,25 @@ export function AuaAumPanel({ totalAua, totalAum, records }: AuaAumPanelProps) {
               <div
                 className={cn("h-full bg-foreground/25")}
                 style={{ width: `${advisedOnlyShare}%` }}
-                title={`Advised only ${advisedOnlyShare}%`}
+                title={`Held away ${advisedOnlyShare}%`}
               />
             ) : null}
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-primary" aria-hidden />
-              AUM {formatCompactCurrency(totalAum)}
+              Managed {formatCompactCurrency(totalAum)}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-foreground/25" aria-hidden />
-              Advised only {formatCompactCurrency(advisedOnlyTotal)}
+              Held away {formatCompactCurrency(advisedOnlyTotal)}
             </span>
           </div>
         </div>
 
-        <StatGrid columns={3}>
-          <StatItem label="Managed only" value={mandateCounts.managedOnly} />
-          <StatItem label="Advised only" value={mandateCounts.advisedOnly} />
-          <StatItem label="Mixed mandate" value={mandateCounts.mixed} />
+        <StatGrid columns={2}>
+          <StatItem label="Managed" value={mandateCounts.managed} />
+          <StatItem label="Advise only" value={mandateCounts.adviseOnly} />
         </StatGrid>
       </div>
     </SectionPanel>

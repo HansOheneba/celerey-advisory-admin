@@ -150,7 +150,7 @@ export async function sendReportToClient(
       clientId: report.clientId,
       clientName: report.clientName,
       advisorId: session.userId,
-      workspaceTab: "service",
+      workspaceTab: "advisory",
       createdAt: sentAt,
       read: false,
     });
