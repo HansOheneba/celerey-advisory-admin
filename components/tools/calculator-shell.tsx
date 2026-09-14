@@ -6,6 +6,7 @@ import { StatGrid, StatItem } from "@/components/shared/stat-grid";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function NumberField({
@@ -67,7 +68,9 @@ export function CalculatorCard({
           <Icon className="size-[18px]" aria-hidden />
         </div>
         <div className="space-y-1">
-          <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+          <h2 className="text-base font-semibold tracking-tight">
+            {headingTitle(title)}
+          </h2>
           {description ? (
             <p className="text-sm text-muted-foreground">{description}</p>
           ) : null}
@@ -76,17 +79,19 @@ export function CalculatorCard({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-3">
-          <p className={dashboardTheme.sectionLabel}>Inputs</p>
+          <p className={dashboardTheme.sectionLabel}>{headingTitle("Inputs")}</p>
           <div className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
             {inputs}
           </div>
         </div>
 
         <div className="space-y-4">
-          <p className={dashboardTheme.sectionLabel}>Results</p>
+          <p className={dashboardTheme.sectionLabel}>{headingTitle("Results")}</p>
 
           <div className="rounded-lg border border-border/60 bg-card px-5 py-5">
-            <p className={dashboardTheme.statLabel}>{primaryResult.label}</p>
+            <p className={dashboardTheme.statLabel}>
+              {headingTitle(primaryResult.label)}
+            </p>
             <p
               className={cn(
                 "mt-1 text-3xl font-semibold tabular-nums tracking-tight",
@@ -100,7 +105,9 @@ export function CalculatorCard({
 
           {talkingPoint ? (
             <div className="rounded-lg border border-border border-l-[3px] border-l-foreground/20 bg-muted/25 px-4 py-3.5">
-              <p className={dashboardTheme.sectionLabel}>Say this</p>
+              <p className={dashboardTheme.sectionLabel}>
+                {headingTitle("Say this")}
+              </p>
               <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">
                 {talkingPoint}
               </p>

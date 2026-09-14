@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type CreateFormSectionProps = {
@@ -34,7 +35,7 @@ export function CreateFormSection({
       )}
     >
       <CardHeader className="border-b border-primary/10">
-        <CardTitle>{title}</CardTitle>
+        <CardTitle>{headingTitle(title)}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="space-y-4">{children}</CardContent>

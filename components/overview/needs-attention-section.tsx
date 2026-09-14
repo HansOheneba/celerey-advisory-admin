@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import type { AttentionRow } from "@/lib/overview/overview-helpers";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,9 @@ export function NeedsAttentionSection({
     <section className={cn(dashboardTheme.elevatedSection, "space-y-4")}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h2 className={dashboardTheme.sectionTitle}>Needs attention</h2>
+          <h2 className={dashboardTheme.sectionTitle}>
+            {headingTitle("Needs attention")}
+          </h2>
           <p className="text-sm text-muted-foreground">
             {totalCount === 0
               ? "Nothing needs your attention right now."

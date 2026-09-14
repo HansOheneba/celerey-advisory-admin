@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 import { dashboardTheme, type TintedSurfaceVariant } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type EmptyStateProps = {
@@ -32,7 +33,7 @@ export function EmptyState({
       <div className="flex size-12 items-center justify-center rounded-md bg-secondary text-muted-foreground">
         <Icon className="size-5" aria-hidden />
       </div>
-      <h2 className="mt-4 text-sm font-medium">{title}</h2>
+      <h2 className="mt-4 text-sm font-medium">{headingTitle(title)}</h2>
       {description ? (
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
           {description}

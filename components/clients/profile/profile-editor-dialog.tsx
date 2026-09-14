@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { ProfileWriteResult } from "@/lib/demo/profile-types";
+import { headingTitle } from "@/lib/format";
 
 type ProfileEditorDialogProps = {
   title: string;
@@ -71,7 +72,7 @@ export function ProfileEditorDialog({
       </DialogTrigger>
       <DialogContent className={contentClassName ?? "sm:max-w-lg"}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{headingTitle(title)}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form key={formKey} action={submit} className="space-y-4">

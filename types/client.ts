@@ -7,6 +7,16 @@ export type ClientSubscription =
   | "free_trial"
   | "celerey_core";
 
+/** Wealth segment — drives service tier and review cadence. */
+export type ClientSegment = "uhnw" | "hnw" | "affluent" | "emerging";
+
+export const CLIENT_SEGMENT_LABELS: Record<ClientSegment, string> = {
+  uhnw: "UHNW",
+  hnw: "High net worth",
+  affluent: "Affluent",
+  emerging: "Emerging",
+};
+
 export type Client = {
   id: string;
   firstName: string;
@@ -16,7 +26,8 @@ export type Client = {
   status: ClientStatus;
   riskLevel: RiskLevel;
   subscription: ClientSubscription;
-  /** Total assets under advice (includes managed; AUA >= AUM). */
+  segment: ClientSegment;
+  /** Total assets under advisory (includes managed; AUA >= AUM). */
   aua: number;
   /** Managed subset of AUA. */
   aum: number;

@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { IconTile } from "@/components/shared/icon-tile";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type PageHeaderProps = {
@@ -33,10 +34,10 @@ export function PageHeader({
                 iconVariant === "ai" && "text-accent-purple",
               )}
             >
-              {eyebrow}
+              {headingTitle(eyebrow)}
             </p>
           ) : null}
-          <h1 className={dashboardTheme.pageTitle}>{title}</h1>
+          <h1 className={dashboardTheme.pageTitle}>{headingTitle(title)}</h1>
           {description ? (
             <p className={dashboardTheme.pageDescription}>{description}</p>
           ) : null}

@@ -19,6 +19,7 @@ import {
 } from "@/lib/appointments/display";
 import type { Appointment, MeetingActionItem } from "@/lib/appointments/types";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 
 type ActionItemDraft = {
   title: string;
@@ -152,7 +153,9 @@ export function MeetingNotesReviewView({
         <section className={`${dashboardTheme.elevatedSection} space-y-4`}>
           <div className="flex items-center gap-2">
             <FileText className="size-4 text-muted-foreground" />
-            <h2 className={dashboardTheme.sectionTitle}>Summary</h2>
+            <h2 className={dashboardTheme.sectionTitle}>
+              {headingTitle("Summary")}
+            </h2>
           </div>
           <div className="space-y-2">
             <Label htmlFor="summary">Session summary</Label>
@@ -168,7 +171,9 @@ export function MeetingNotesReviewView({
 
         <section className={`${dashboardTheme.elevatedSection} space-y-4`}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className={dashboardTheme.sectionTitle}>Discussion points</h2>
+            <h2 className={dashboardTheme.sectionTitle}>
+              {headingTitle("Discussion points")}
+            </h2>
             <Button
               type="button"
               variant="outline"
@@ -219,7 +224,9 @@ export function MeetingNotesReviewView({
         <section className={`${dashboardTheme.elevatedSection} space-y-4`}>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className={dashboardTheme.sectionTitle}>Action items</h2>
+              <h2 className={dashboardTheme.sectionTitle}>
+                {headingTitle("Action items")}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Add follow-ups for you or the client before publishing.
               </p>
@@ -324,7 +331,9 @@ export function MeetingNotesReviewView({
         </section>
 
         <section className={`${dashboardTheme.elevatedSection} space-y-3`}>
-          <h2 className={dashboardTheme.sectionTitle}>Transcript excerpt</h2>
+          <h2 className={dashboardTheme.sectionTitle}>
+            {headingTitle("Transcript excerpt")}
+          </h2>
           <p className="rounded-lg border border-border bg-muted/20 p-4 text-sm leading-relaxed text-muted-foreground">
             {draft.transcriptExcerpt}
           </p>

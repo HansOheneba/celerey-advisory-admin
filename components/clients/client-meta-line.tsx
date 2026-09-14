@@ -1,5 +1,5 @@
 import { buildClientMetaParts } from "@/lib/clients/client-meta";
-import type { ClientSegment } from "@/lib/demo/types";
+import type { ClientSegment } from "@/types/client";
 import { cn } from "@/lib/utils";
 import type { Client } from "@/types/client";
 

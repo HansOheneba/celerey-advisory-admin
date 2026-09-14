@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   Client,
+  ClientSegment,
   ClientStatus,
   ClientSubscription,
   RiskLevel,
@@ -52,6 +53,13 @@ const SUBSCRIPTIONS = new Set<ClientSubscription>([
 
 const CURRENCIES = new Set(["USD", "GHS", "GBP"]);
 
+const CLIENT_SEGMENTS = new Set<ClientSegment>([
+  "uhnw",
+  "hnw",
+  "affluent",
+  "emerging",
+]);
+
 function asClientStatus(value: unknown): ClientStatus {
   return CLIENT_STATUSES.has(value as ClientStatus)
     ? (value as ClientStatus)
@@ -68,6 +76,12 @@ export function asSubscription(value: unknown): ClientSubscription {
   return SUBSCRIPTIONS.has(value as ClientSubscription)
     ? (value as ClientSubscription)
     : "not_onboarded";
+}
+
+export function asClientSegment(value: unknown): ClientSegment {
+  return CLIENT_SEGMENTS.has(value as ClientSegment)
+    ? (value as ClientSegment)
+    : "emerging";
 }
 
 function asCurrency(value: unknown): Client["currency"] {
@@ -94,6 +108,7 @@ export function normalizeClient(row: ApiClientRow): Client {
     status: asClientStatus(row.status),
     riskLevel: asRiskLevel(row.riskLevel ?? row.risk_level),
     subscription: asSubscription(row.subscription),
+    segment: asClientSegment(row.segment),
     aua: toNumber(row.aua),
     aum: toNumber(row.aum),
     currency: asCurrency(row.currency),

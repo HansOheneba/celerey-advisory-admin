@@ -20,7 +20,7 @@ import { AssetAmountCell } from "@/components/clients/asset-relationship-badge";
 import { ClientMetaLine } from "@/components/clients/client-meta-line";
 import { formatLastContactProvenance } from "@/lib/clients/contact-tracking";
 import { clientNeedsStatusHighlight } from "@/lib/clients/client-meta";
-import { SubscriptionBadge } from "@/components/clients/subscription-badge";
+import { ClientSegmentBadge } from "@/components/clients/client-segment-badge";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,6 @@ type ClientsTableProps = {
   riskLevel: string;
   sortBy: string;
   sortDir: "asc" | "desc";
-  canManageSubscriptions?: boolean;
   showAdvisorColumn?: boolean;
 };
 
@@ -81,7 +80,6 @@ export function ClientsTable({
   riskLevel,
   sortBy,
   sortDir,
-  canManageSubscriptions = false,
   showAdvisorColumn = false,
 }: ClientsTableProps) {
   const router = useRouter();
@@ -210,22 +208,8 @@ export function ClientsTable({
                   <ArrowDownUp className="size-3.5 text-muted-foreground" />
                 </button>
               </TableHead>
-              <TableHead className="hidden md:table-cell">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 font-medium"
-                  onClick={() => toggleSort("joinedAt")}
-                >
-                  Joined
-                  <ArrowDownUp className="size-3.5 text-muted-foreground" />
-                </button>
-              </TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
-              {canManageSubscriptions ? (
-                <TableHead className="hidden lg:table-cell">
-                  Subscription
-                </TableHead>
-              ) : null}
+              <TableHead className="hidden lg:table-cell">Type</TableHead>
               {showAdvisorColumn ? (
                 <TableHead className="hidden lg:table-cell">RM</TableHead>
               ) : null}
@@ -280,12 +264,7 @@ export function ClientsTable({
             {items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={
-                    8 +
-                    (canManageSubscriptions ? 1 : 0) +
-                    (showAdvisorColumn ? 1 : 0) +
-                    1
-                  }
+                  colSpan={8 + (showAdvisorColumn ? 1 : 0) + 1}
                   className="p-0"
                 >
                   <div
@@ -306,22 +285,29 @@ export function ClientsTable({
               items.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell>
-                    <Link
-                      href={`/clients/${client.id}`}
-                      className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <Avatar size="sm">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getInitials(client.firstName, client.lastName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium hover:underline">
-                          {client.firstName} {client.lastName}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {client.email}
-                        </p>
+                    <div className="flex items-start gap-3">
+                      <Link
+                        href={`/clients/${client.id}`}
+                        className="shrink-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <Avatar size="sm">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getInitials(client.firstName, client.lastName)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/clients/${client.id}`}
+                          className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <p className="truncate text-sm font-medium hover:underline">
+                            {client.firstName} {client.lastName}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {client.email}
+                          </p>
+                        </Link>
                         <ClientMetaLine
                           client={client}
                           className="mt-1 text-xs md:hidden"
@@ -329,16 +315,16 @@ export function ClientsTable({
                         {showAdvisorColumn ? (
                           <div className="mt-1 lg:hidden">
                             <AssignedAdvisorBadge
+                              advisorId={client.advisorId}
                               advisorName={client.advisorName}
+                              showRmPrefix={false}
+                              linkToBook
                               className="max-w-full"
                             />
                           </div>
                         ) : null}
                       </div>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {formatDate(client.joinedAt)}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {clientNeedsStatusHighlight(client.status) ? (
@@ -349,14 +335,17 @@ export function ClientsTable({
                       </span>
                     )}
                   </TableCell>
-                  {canManageSubscriptions ? (
-                    <TableCell className="hidden lg:table-cell">
-                      <SubscriptionBadge subscription={client.subscription} />
-                    </TableCell>
-                  ) : null}
+                  <TableCell className="hidden lg:table-cell">
+                    <ClientSegmentBadge segment={client.segment} />
+                  </TableCell>
                   {showAdvisorColumn ? (
                     <TableCell className="hidden lg:table-cell">
-                      <AssignedAdvisorBadge advisorName={client.advisorName} />
+                      <AssignedAdvisorBadge
+                        advisorId={client.advisorId}
+                        advisorName={client.advisorName}
+                        showRmPrefix={false}
+                        linkToBook
+                      />
                     </TableCell>
                   ) : null}
                   <TableCell className="hidden text-sm text-muted-foreground xl:table-cell">

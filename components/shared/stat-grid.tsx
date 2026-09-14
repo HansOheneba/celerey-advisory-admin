@@ -1,4 +1,5 @@
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type StatGridProps = {
@@ -43,7 +44,7 @@ export function StatItem({
 }: StatItemProps) {
   return (
     <div className={cn("space-y-1", className)}>
-      <p className={dashboardTheme.statLabel}>{label}</p>
+      <p className={dashboardTheme.statLabel}>{headingTitle(label)}</p>
       <p className={large ? dashboardTheme.statValueLarge : dashboardTheme.statValue}>
         {value}
       </p>

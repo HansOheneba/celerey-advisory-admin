@@ -36,6 +36,7 @@ import {
   formatCurrency,
   formatDate,
   getInitials,
+  headingTitle,
   titleCase,
 } from "@/lib/format";
 import type { Appointment, AdvisoryEntitlement } from "@/lib/appointments/types";
@@ -98,7 +99,9 @@ function Section({
 }) {
   return (
     <section className={cn("space-y-2", className)}>
-      <h3 className="text-sm font-medium tracking-tight">{title}</h3>
+      <h3 className="text-sm font-medium tracking-tight">
+        {headingTitle(title)}
+      </h3>
       {children}
     </section>
   );
@@ -391,10 +394,8 @@ export function ClientDetailView({
       />
 
       <ClientAdvisorySection
-        clientId={client.id}
         appointments={appointments}
         entitlement={entitlement}
-        canEditEntitlement={canEditAvailability}
       />
 
       {!canViewAnalysis ? (

@@ -12,7 +12,7 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCompactCurrency } from "@/lib/format";
+import { formatCompactCurrency, headingTitle } from "@/lib/format";
 import type { GeographicSpread } from "@/lib/overview/book-analytics";
 import { cn } from "@/lib/utils";
 
@@ -156,7 +156,9 @@ export function GeographicSpreadCompact({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <h2 className={dashboardTheme.sectionTitle}>Geographic spread</h2>
+          <h2 className={dashboardTheme.sectionTitle}>
+            {headingTitle("Geographic spread")}
+          </h2>
           <p className="text-sm text-muted-foreground">
             {spread.propertyCount > 0
               ? `${formatCompactCurrency(spread.totalPropertyValue)} across ${spread.propertyCount} ${spread.propertyCount === 1 ? "property" : "properties"}`

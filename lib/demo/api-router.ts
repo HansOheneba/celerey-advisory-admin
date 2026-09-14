@@ -7,6 +7,7 @@ import {
   canAccessClientRecord,
   scopedClientRecords,
 } from "@/lib/demo/book-scope";
+import { clientSummaryFromRecord } from "@/lib/demo/client-segment-sync";
 import { daysFromNow } from "@/lib/demo/seed/client-builder";
 import { deriveAlerts } from "@/lib/demo/insights";
 import {
@@ -337,7 +338,7 @@ const HANDLERS: Record<string, Handler> = {
 
     return {
       ...pageResult,
-      items: pageResult.items.map((record) => record.client),
+      items: pageResult.items.map((record) => clientSummaryFromRecord(record)),
     };
   },
 
@@ -439,6 +440,7 @@ const HANDLERS: Record<string, Handler> = {
         nextReviewAt: daysFromNow(180),
         joinedAt: new Date().toISOString(),
         goalsCount: 0,
+        segment: "emerging",
       };
 
       const emptyDetail: ClientDetailState = {

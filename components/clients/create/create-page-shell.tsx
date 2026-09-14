@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type CreatePageShellProps = {
@@ -32,8 +33,8 @@ export function CreatePageShell({
       </Link>
 
       <section className="space-y-1">
-        <p className={dashboardTheme.sectionLabel}>{eyebrow}</p>
-        <h1 className={dashboardTheme.pageTitle}>{title}</h1>
+        <p className={dashboardTheme.sectionLabel}>{headingTitle(eyebrow)}</p>
+        <h1 className={dashboardTheme.pageTitle}>{headingTitle(title)}</h1>
         <p className={dashboardTheme.pageDescription}>{description}</p>
       </section>
 

@@ -47,7 +47,7 @@ const ENTITIES = {
     status: "active | onboarding | review | inactive",
     riskLevel: "conservative | moderate | growth | aggressive",
     subscription: "not_onboarded | free_trial | celerey_core",
-    aua: "number — total assets under advice (includes AUM; AUA >= AUM)",
+    aua: "number — total assets under advisory (includes AUM; AUA >= AUM)",
     aum: "number — managed subset of AUA",
     currency: "USD | GHS | GBP",
     advisorId: "uuid",

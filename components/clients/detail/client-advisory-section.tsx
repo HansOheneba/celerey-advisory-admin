@@ -1,13 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
-import { updateAdvisoryEntitlementAction } from "@/app/actions/appointments";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   APPOINTMENT_TYPE_LABELS,
   type AdvisoryEntitlement,
@@ -17,10 +11,8 @@ import { dashboardTheme } from "@/lib/dashboard-theme";
 import { formatDate } from "@/lib/format";
 
 type ClientAdvisorySectionProps = {
-  clientId: string;
   appointments: Appointment[];
   entitlement: AdvisoryEntitlement | null;
-  canEditEntitlement: boolean;
 };
 
 function sessionHeading(appointment: Appointment) {
@@ -32,25 +24,9 @@ function sessionHeading(appointment: Appointment) {
 }
 
 export function ClientAdvisorySection({
-  clientId,
   appointments,
-  entitlement: initialEntitlement,
-  canEditEntitlement,
+  entitlement,
 }: ClientAdvisorySectionProps) {
-  const [entitlement, setEntitlement] = useState(initialEntitlement);
-  const [included, setIncluded] = useState(
-    String(initialEntitlement?.included ?? 2),
-  );
-  const [pending, startTransition] = useTransition();
-
-  const lastSession = [...appointments]
-    .filter((item) => item.status === "completed")
-    .sort(
-      (a, b) =>
-        new Date(b.scheduledAt ?? 0).getTime() -
-        new Date(a.scheduledAt ?? 0).getTime(),
-    )[0];
-
   const history = appointments
     .filter((item) => item.status === "completed")
     .sort(
@@ -59,113 +35,36 @@ export function ClientAdvisorySection({
         new Date(a.scheduledAt ?? 0).getTime(),
     );
 
-  function saveEntitlement() {
-    if (!entitlement) {
-      return;
-    }
-    const nextIncluded = Number(included);
-    if (!Number.isFinite(nextIncluded) || nextIncluded < 0) {
-      toast.error("Included sessions must be a number.");
-      return;
-    }
-
-    startTransition(async () => {
-      const result = await updateAdvisoryEntitlementAction({
-        clientId,
-        planYear: entitlement.planYear,
-        included: nextIncluded,
-      });
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      setEntitlement(result.entitlement);
-      setIncluded(String(result.entitlement.included));
-      toast.success("Entitlement updated");
-    });
-  }
-
+  const lastSession = history[0];
+  const sessionCount = entitlement?.used ?? history.length;
   const log = lastSession?.log;
 
   return (
     <div className="space-y-3">
-      {entitlement ? (
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Plan year</p>
-            <CardTitle className="text-base font-semibold">
-              {entitlement.planYear} sessions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-lg border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                  Included
-                </p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {entitlement.included}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                  Used
-                </p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {entitlement.used}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border px-3 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                  Remaining
-                </p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {entitlement.remaining}
-                </p>
-              </div>
-            </div>
-            {canEditEntitlement ? (
-              <div className="flex items-end gap-2">
-                <div className="space-y-2">
-                  <Label htmlFor="includedSessions">Included</Label>
-                  <Input
-                    id="includedSessions"
-                    type="number"
-                    min={0}
-                    className="w-24"
-                    value={included}
-                    onChange={(event) => setIncluded(event.target.value)}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  disabled={pending}
-                  onClick={saveEntitlement}
-                >
-                  Save
-                </Button>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {!lastSession && history.length === 0 ? (
-        <Card className={dashboardTheme.card}>
-          <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Advisory</p>
-            <CardTitle className="text-base font-semibold">
-              Session history
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No logged sessions yet. After a meeting, log it from Appointments so
-              the client Advisory page has notes, actions, and an assessment.
+      <Card className={dashboardTheme.card}>
+        <CardHeader>
+          {entitlement ? (
+            <p className={dashboardTheme.sectionLabel}>
+              Plan year {entitlement.planYear}
             </p>
-          </CardContent>
-        </Card>
-      ) : null}
+          ) : (
+            <p className={dashboardTheme.sectionLabel}>Advisory</p>
+          )}
+          <CardTitle className="text-base font-semibold">
+            Advisory sessions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-2xl font-medium tabular-nums tracking-tight">
+            {sessionCount}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {history.length === 0
+              ? "No logged sessions yet. After a meeting, log it from Appointments so the client Advisory page has notes, actions, and an assessment."
+              : `Logged advisory sessions${entitlement ? ` in ${entitlement.planYear}` : ""}`}
+          </p>
+        </CardContent>
+      </Card>
       {log && lastSession ? (
         <Card className={dashboardTheme.card}>
           <CardHeader>

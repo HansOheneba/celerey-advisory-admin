@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { CelereyAiSymbol } from "@/components/brand/celerey-ai-symbol";
 import { Card, CardContent } from "@/components/ui/card";
 import { dashboardTheme, type TintedSurfaceVariant } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type MetricCardVariant = "default" | "accent" | TintedSurfaceVariant;
@@ -79,7 +80,7 @@ export function MetricCard({
             </div>
           ) : null}
           <p className={cn(dashboardTheme.statLabel, "min-w-0 leading-snug")}>
-            {label}
+            {headingTitle(label)}
           </p>
         </div>
         <p

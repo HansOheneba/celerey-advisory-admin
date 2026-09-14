@@ -2,7 +2,7 @@
  * Asset relationship classification for Celerey advisory clients.
  *
  * Definitions:
- * - AUA (Assets Under Advice): total assets Celerey advises on, including managed
+ * - AUA (Assets Under Advisory): total assets Celerey advises on, including managed
  *   and advised-only holdings. AUA >= AUM always.
  * - AUM (Assets Under Management): subset of AUA that Celerey actively manages.
  * - Advised-only (held away): AUA − AUM. Never add AUA + AUM — that double-counts.
@@ -22,8 +22,10 @@ export type AssetRelationship = "aua" | "aum";
 
 export type AssetRelationshipKind = "aua" | "aum" | "aua+aum" | "none";
 
+export const ASSETS_UNDER_ADVISORY_LABEL = "Assets Under Advisory";
+
 export type ClientAssetTotals = {
-  /** Total assets under advice (managed + advised-only). */
+  /** Total Assets Under Advisory (managed + advised-only). */
   aua: number;
   /** Managed subset of AUA. */
   aum: number;
@@ -37,12 +39,12 @@ export const ASSET_RELATIONSHIP_SHORT_LABELS: Record<AssetRelationship, string> 
 
 export const ASSET_RELATIONSHIP_LONG_LABELS: Record<AssetRelationship, string> =
   {
-    aua: "Assets Under Advice",
+    aua: ASSETS_UNDER_ADVISORY_LABEL,
     aum: "Assets Under Management",
   };
 
 export const ASSET_RELATIONSHIP_HINTS: Record<AssetRelationship, string> = {
-  aua: "Total assets under advice (includes managed)",
+  aua: "Total Assets Under Advisory (includes managed)",
   aum: "Actively managed through Celerey",
 };
 

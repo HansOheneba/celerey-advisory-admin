@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "Celerey Advisory Admin — Full Scope Backend Contract",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Complete API contract for the Celerey Advisory Admin portal. Covers RBAC, every dashboard tab, client 360, operations, advisory domain, integrations, and webhooks.  Client portal Advisory contract cross-referenced under frontendChanges.",
     "callingConvention": {
       "baseUrl": "https://api-uat.celerey.app/api/execute",
@@ -203,9 +203,13 @@
     ],
     "capabilityDefinitions": {
       "view_client_360": {
-        "definition": "Full client workspace across all tabs",
+        "definition": "Full client workspace across all tabs including Notes, Insights, Advice, Compliance",
         "pages": [
-          "/clients/[id]"
+          "/clients/[id]",
+          "/clients/[id]?tab=notes",
+          "/clients/[id]?tab=insights",
+          "/clients/[id]?tab=advice",
+          "/clients/[id]?tab=compliance"
         ]
       },
       "view_client_portfolio": {
@@ -222,16 +226,17 @@
         ]
       },
       "edit_client_data": {
-        "definition": "Write client profile sub-entities on behalf of client",
+        "definition": "Write client profile sub-entities and append internal notes",
         "pages": [
-          "Goals tab",
-          "Assets tab",
-          "Properties tab",
-          "Insurance tab",
-          "Cash flow tab",
-          "Liabilities tab",
-          "Retirement tab",
-          "Profile tab"
+          "/clients/[id]?tab=goals",
+          "/clients/[id]?tab=assets",
+          "/clients/[id]?tab=properties",
+          "/clients/[id]?tab=insurance",
+          "/clients/[id]?tab=cash-flow",
+          "/clients/[id]?tab=liabilities",
+          "/clients/[id]?tab=retirement",
+          "/clients/[id]?tab=profile",
+          "/clients/[id]?tab=notes"
         ]
       },
       "create_client": {
@@ -251,13 +256,13 @@
         "definition": "Send and read client messages",
         "pages": [
           "/messages",
-          "Comms tab"
+          "/clients/[id]?tab=advisory&advisory=messages"
         ]
       },
       "manage_documents": {
         "definition": "Upload and delete client documents",
         "pages": [
-          "Service tab"
+          "/clients/[id]?tab=advisory&advisory=documents"
         ]
       },
       "propose_recommendation": {
@@ -282,7 +287,8 @@
       "generate_report": {
         "definition": "Generate client PDF reports",
         "pages": [
-          "Service tab",
+          "/clients/[id] workspace header",
+          "/clients/[id]?tab=advisory&advisory=sessions",
           "/insights reports"
         ]
       },
@@ -341,7 +347,7 @@
         "definition": "Access meeting join URLs",
         "pages": [
           "/appointments",
-          "Service tab"
+          "/clients/[id]?tab=advisory&advisory=sessions"
         ]
       },
       "review_session_notes": {
@@ -427,7 +433,7 @@
       "status": "active | onboarding | review | inactive",
       "riskLevel": "conservative | moderate | growth | aggressive",
       "subscription": "not_onboarded | free_trial | celerey_core",
-      "aua": "number — total assets under advice (includes AUM; AUA >= AUM)",
+      "aua": "number — total assets under advisory (includes AUM; AUA >= AUM)",
       "aum": "number — managed subset of AUA",
       "currency": "USD | GHS | GBP",
       "advisorId": "uuid",
@@ -438,14 +444,41 @@
       "reviewFrequencyDays": "number — days between scheduled reviews for this client",
       "nextReviewAt": "string (date-time)",
       "joinedAt": "string (date-time)",
-      "goalsCount": "number"
+      "goalsCount": "number",
+      "_uiNote": "advisorId and advisorName are always on Client for list/detail; RM badge/column shown only when session bookScope is team or firm (see uiConventions.clientListAssignedAdvisor)"
     },
     "ClientInternalNote": {
       "id": "uuid",
       "body": "string",
-      "authorId": "uuid",
-      "authorName": "string",
+      "authorId": "uuid — staff user who wrote the note",
+      "authorName": "string — display name at time of write",
       "createdAt": "string (date-time)"
+    },
+    "ClientSegment": {
+      "uhnw": "Ultra-high net worth",
+      "hnw": "High net worth",
+      "affluent": "Affluent",
+      "emerging": "Emerging"
+    },
+    "ClientWorkspaceMetrics": {
+      "idleCashPct": "number — cash as percent of AUA",
+      "targetCashPct": "number — mandate target cash weight, percent",
+      "heldAwayUsd": "number — assets held away from the bank, USD",
+      "portfolioDriftPct": "number — drift from model portfolio, percentage points",
+      "revenueQtdUsd": "number",
+      "netFlowQtdUsd": "number",
+      "performanceYtdPct": "number — trailing 12-month return on managed assets, percent",
+      "lastEngagementDays": "number",
+      "maturingInvestment": "{ name, valueUsd, maturesAt } | null"
+    },
+    "ClientDetailResponse": {
+      "id": "uuid",
+      "subscription": "not_onboarded | free_trial | celerey_core",
+      "segment": "uhnw | hnw | affluent | emerging",
+      "summary": "Client — book list fields; does not include internalNotes",
+      "internalNotes": "ClientInternalNote[] — append-only staff log; sorted newest-first on read",
+      "state": "ClientDetailState",
+      "metrics": "ClientWorkspaceMetrics — workspace header / insights derived fields"
     },
     "ClientDetailState": {
       "user": "ClientDetailUser",
@@ -737,14 +770,21 @@
     "clientProfile": {
       "label": "Client 360 profile sub-entities",
       "pages": [
-        "/clients/[id] Plan & Portfolio tabs"
+        "/clients/[id]?tab=goals",
+        "/clients/[id]?tab=assets",
+        "/clients/[id]?tab=properties",
+        "/clients/[id]?tab=insurance",
+        "/clients/[id]?tab=cash-flow",
+        "/clients/[id]?tab=liabilities",
+        "/clients/[id]?tab=retirement",
+        "/clients/[id]?tab=profile"
       ]
     },
     "messages": {
       "label": "Messaging",
       "pages": [
         "/messages",
-        "Comms tab"
+        "/clients/[id]?tab=advisory&advisory=messages"
       ]
     },
     "appointments": {
@@ -770,7 +810,7 @@
     "documents": {
       "label": "Documents",
       "pages": [
-        "Service tab"
+        "/clients/[id]?tab=advisory&advisory=documents"
       ]
     },
     "products": {
@@ -790,7 +830,7 @@
     "reports": {
       "label": "Reports",
       "pages": [
-        "Service tab",
+        "/clients/[id]?tab=advisory&advisory=sessions",
         "/insights reports",
         "/reports"
       ]
@@ -804,7 +844,7 @@
     "serviceRequests": {
       "label": "Service requests",
       "pages": [
-        "Service tab"
+        "/clients/[id]?tab=advisory&advisory=sessions"
       ]
     },
     "alerts": {
@@ -1590,7 +1630,7 @@
         "riskLevel": "all | conservative | moderate | growth | aggressive",
         "subscription": "all | not_onboarded | free_trial | celerey_core",
         "advisor_id": "uuid?",
-        "sortBy": "name | aua | lastContactAt | nextReviewAt",
+        "sortBy": "name | aua | aum | lastContactAt | nextReviewAt | joinedAt",
         "sortDir": "asc | desc",
         "page": "number",
         "pageSize": "number"
@@ -1633,13 +1673,7 @@
       "query": {
         "client_id": "uuid"
       },
-      "response": {
-        "id": "uuid",
-        "subscription": "ClientSubscription",
-        "summary": "Client",
-        "internalNotes": "ClientInternalNote[] — staff-only note log; never returned by client portal APIs",
-        "state": "ClientDetailState"
-      }
+      "response": "ClientDetailResponse"
     },
     {
       "errors": [
@@ -1817,7 +1851,7 @@
       "auth": "staff",
       "domain": "clients",
       "pageMapping": [
-        "Service tab"
+        "/clients/[id]?tab=advisory&advisory=sessions"
       ],
       "summary": "Client scheduling preferences.",
       "query": {
@@ -3119,7 +3153,8 @@
       },
       "response": {
         "updated": true,
-        "clientId": "uuid"
+        "clientId": "uuid",
+        "note": "ClientInternalNote — entry appended (newest first on subsequent detail reads)"
       }
     },
     {
@@ -3226,7 +3261,7 @@
       "domain": "messages",
       "pageMapping": [
         "/messages",
-        "Comms tab"
+        "/clients/[id]?tab=advisory&advisory=messages"
       ],
       "query": {
         "threadId": "uuid",
@@ -3292,7 +3327,7 @@
       "domain": "messages",
       "body": {
         "threadId": "uuid",
-        "author": "advisor | note",
+        "author": "advisor — client-visible messages only; staff notes use admin.clients.internal-notes.update",
         "body": "string"
       },
       "response": {
@@ -4030,7 +4065,7 @@
       "capability": "manage_documents",
       "domain": "documents",
       "pageMapping": [
-        "Service tab"
+        "/clients/[id]?tab=advisory&advisory=documents"
       ],
       "query": {
         "clientId": "uuid",
@@ -4287,7 +4322,7 @@
       "capability": "generate_report",
       "domain": "reports",
       "pageMapping": [
-        "Service tab",
+        "/clients/[id]?tab=advisory&advisory=sessions",
         "/insights reports"
       ],
       "query": {
@@ -4478,7 +4513,7 @@
       "auth": "staff",
       "domain": "serviceRequests",
       "pageMapping": [
-        "Service tab"
+        "/clients/[id]?tab=advisory&advisory=sessions"
       ],
       "query": {
         "clientId": "uuid?"
@@ -5189,7 +5224,7 @@
     "adminResolutionStrategy": "Admin UI keeps existing field names and statuses. lib/api/* normalizers accept client-portal aliases (appointmentId, assignedTo, joinUrl, publishedNotes, etc.) on admin.* responses. No admin features removed.",
     "sharedProductRules": [
       "Session history: published + completed only on client; admin shows pending_review in review queue",
-      "Internal message notes (author=note) never exposed on client.* endpoints",
+      "Staff internal notes live on ClientDetailResponse.internalNotes (admin.clients.internal-notes.update) — never in message threads or client.* APIs",
       "Documents: pdf/jpeg/png/webp/docx, 15 MB max",
       "One message thread per client-advisor pair",
       "Client toggles only tasks where assignedTo=client",
@@ -5316,7 +5351,7 @@
           "body",
           "createdAt"
         ],
-        "adminOnly": "author=note (internal); never on client.*",
+        "adminOnly": "none — legacy author=note removed; use ClientDetailResponse.internalNotes",
         "clientOnlyFields": [
           "readAt"
         ]
@@ -5339,7 +5374,7 @@
         "note": "AdvisoryEntitlement matches admin advisory entitlement (planYear, included, used, remaining)"
       },
       "Availability": {
-        "admin": "ClientAvailability on Service tab (demo today)",
+        "admin": "ClientAvailability on /clients/[id]?tab=advisory&advisory=sessions",
         "client": "client.availability.get | client.availability.update",
         "aligned": true
       }
@@ -5457,7 +5492,7 @@
     ],
     "adminFollowUps": [
       "Optional: expose proposalHistory on admin Appointment for RM pending-proposal UI",
-      "Optional: wire /clients/[id] Comms/Service tabs to admin.* API instead of demo repos"
+      "Optional: wire /clients/[id]?tab=advisory sub-tabs to admin.* API instead of demo repos"
     ],
     "backendFollowUps": [
       "Map admin scheduled|accepted → client upcoming on client.* reads",
@@ -5466,6 +5501,11 @@
     ]
   },
   "changelog": [
+    {
+      "version": "1.2.1",
+      "date": "2026-09-11",
+      "notes": "Internal notes as attributed ClientInternalNote[] on ClientDetailResponse (append via admin.clients.internal-notes.update); removed internalNotes from Client summary; Advisory tab sub-routes replace Comms/Service page mappings; ClientDetailResponse adds segment and metrics; list sortBy adds aum|joinedAt; uiConventions for RM visibility and header meta line."
+    },
     {
       "version": "1.2.0",
       "date": "2026-09-11",
@@ -5487,8 +5527,45 @@
       "notes": "Initial full-scope contract covering all admin backend usecases."
     }
   ],
+  "uiConventions": {
+    "clientListAssignedAdvisor": {
+      "rule": "Show RM column/badge when session bookScope is team or firm",
+      "rolesWithVisibility": [
+        "team_lead",
+        "management",
+        "compliance",
+        "portfolio_officer"
+      ],
+      "fieldSource": "Client.advisorId / Client.advisorName on admin.clients.find items"
+    },
+    "clientHeaderMeta": {
+      "rule": "Render segment, risk, subscription, location as dot-separated text — not a badge stack",
+      "statusBadgeOnlyWhen": [
+        "review",
+        "onboarding",
+        "inactive"
+      ],
+      "assetsDisplay": "AUA and AUM combined in workspace header stats row, not as relationship badges"
+    },
+    "internalNotes": {
+      "storage": "ClientDetailResponse.internalNotes — not Client.summary, not message threads",
+      "write": "admin.clients.internal-notes.update appends one ClientInternalNote with authorId, authorName, createdAt",
+      "readFull": "/clients/[id]?tab=notes",
+      "readPreview": "/clients/[id]?tab=overview when view_client_360"
+    },
+    "advisoryWorkspace": {
+      "tab": "/clients/[id]?tab=advisory",
+      "subTabs": [
+        "sessions",
+        "tasks",
+        "messages",
+        "documents"
+      ],
+      "queryPattern": "?tab=advisory&advisory={subTab}"
+    }
+  },
   "clientPortalFinancialParity": {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "reference": "docs/full-client-by-tab.json",
     "adminTabSlugs": [
       "overview",
@@ -5530,10 +5607,18 @@
       "allocation"
     ],
     "adminOnlyTabs": [
+      "notes",
       "insights",
       "advice",
       "compliance"
     ],
+    "internalNotesSemantics": {
+      "shape": "ClientInternalNote[]",
+      "writeMode": "append-only",
+      "endpoint": "admin.clients.internal-notes.update",
+      "bodyField": "data.body",
+      "neverOnClientPortal": true
+    },
     "retirementProfileFields": [
       "current_age",
       "retirement_age",
@@ -5551,7 +5636,9 @@
       "internalNotes"
     ],
     "clientPortalExclusions": [
-      "internalNotes must not appear on dashboard.summary, user.update, or any client.* read/write"
-    ]
+      "internalNotes must not appear on dashboard.summary, user.update, or any client.* read/write",
+      "ClientInternalNote author fields are admin-only audit metadata"
+    ],
+    "detailResponseShape": "ClientDetailResponse — summary (Client) + internalNotes + state + segment + metrics"
   }
 }

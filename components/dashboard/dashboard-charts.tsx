@@ -15,7 +15,7 @@ import {
 import type { DashboardSummary } from "@/types/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCompactCurrency, titleCase } from "@/lib/format";
+import { formatCompactCurrency, headingTitle, titleCase } from "@/lib/format";
 
 const riskColors = ["#1e3a5f", "#151339", "#8c80f8", "#7eb8e8"];
 
@@ -40,7 +40,7 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
         <CardHeader>
           <p className={dashboardTheme.sectionLabel}>Allocation</p>
           <CardTitle className="text-base font-semibold">
-            AUA by risk profile
+            {headingTitle("AUA by risk profile")}
           </CardTitle>
         </CardHeader>
         <CardContent className="h-64">
@@ -73,9 +73,11 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
 
       <Card className={dashboardTheme.card}>
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Book health</p>
+          <p className={dashboardTheme.sectionLabel}>
+            {headingTitle("Book health")}
+          </p>
           <CardTitle className="text-base font-semibold">
-            Clients by status
+            {headingTitle("Clients by status")}
           </CardTitle>
         </CardHeader>
         <CardContent className="h-64">

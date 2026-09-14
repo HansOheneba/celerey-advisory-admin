@@ -1,6 +1,9 @@
 "use client";
 
-import { advisedOnlyAssets } from "@/lib/clients/asset-relationship";
+import {
+  advisedOnlyAssets,
+  ASSETS_UNDER_ADVISORY_LABEL,
+} from "@/lib/clients/asset-relationship";
 import type { BookScope } from "@/lib/auth/capabilities";
 import { formatBookAssetsManagedSubline } from "@/lib/overview/book-scope-copy";
 import { SectionPanel } from "@/components/shared/section-panel";
@@ -50,11 +53,13 @@ export function AuaAumPanel({
   return (
     <SectionPanel
       title="AUA vs AUM"
-      description="AUM sits inside AUA. Held-away assets count toward advice, not management."
+      description="AUM sits inside AUA. Held-away assets count toward advisory, not management."
     >
       <div className="space-y-5">
         <div>
-          <p className={dashboardTheme.statLabel}>Assets under advice</p>
+          <p className={dashboardTheme.statLabel}>
+            {ASSETS_UNDER_ADVISORY_LABEL}
+          </p>
           <p className="text-2xl font-medium tabular-nums tracking-tight">
             {formatCompactCurrency(totalAua)}
           </p>

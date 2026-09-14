@@ -3,6 +3,7 @@ import "server-only";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { syncClientSegmentsOnRecords } from "@/lib/demo/client-segment-sync";
 import { buildDemoDatabase, DEMO_DB_VERSION } from "@/lib/demo/seed";
 import type { DemoDatabase } from "@/lib/demo/types";
 
@@ -82,6 +83,9 @@ async function loadFromDisk(): Promise<DemoDatabase> {
     const parsed = JSON.parse(raw) as DemoDatabase;
 
     if (parsed.version === DEMO_DB_VERSION) {
+      if (syncClientSegmentsOnRecords(parsed)) {
+        await persist(parsed);
+      }
       return parsed;
     }
   } catch {

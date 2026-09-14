@@ -11,7 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCompactCurrency, formatCurrency } from "@/lib/format";
+import {
+  formatCompactCurrency,
+  formatCurrency,
+  headingTitle,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type ClientContextStripProps = {
@@ -31,7 +35,7 @@ function ContextMetric({
 }) {
   return (
     <div className="min-w-0 border-l border-border/60 pl-3 first:border-l-0 first:pl-0">
-      <p className={dashboardTheme.statLabel}>{label}</p>
+      <p className={dashboardTheme.statLabel}>{headingTitle(label)}</p>
       <p className="truncate text-sm font-semibold tabular-nums tracking-tight">
         {value}
       </p>

@@ -224,7 +224,7 @@ function buildExecutiveSummary(
 
   return [
     `Over ${periodLabel} the portfolio ${direction} ${Math.abs(periodReturnPct).toFixed(1)}%, against a ${client.riskLevel} mandate.`,
-    `Total assets under advisement stand at ${Math.round(client.aua).toLocaleString("en-US")} ${client.currency}, of which ${Math.round(cash).toLocaleString("en-US")} is held in cash — ${record.idleCashPct.toFixed(1)}% of the portfolio against a ${record.targetCashPct}% target.`,
+    `Total assets under advisory stand at ${Math.round(client.aua).toLocaleString("en-US")} ${client.currency}, of which ${Math.round(cash).toLocaleString("en-US")} is held in cash — ${record.idleCashPct.toFixed(1)}% of the portfolio against a ${record.targetCashPct}% target.`,
     record.portfolioDriftPct >= 5
       ? `Allocation has drifted ${record.portfolioDriftPct.toFixed(1)} percentage points from the model and a rebalance is recommended.`
       : "Allocation remains within tolerance of the agreed model.",

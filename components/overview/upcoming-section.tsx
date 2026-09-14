@@ -4,6 +4,7 @@ import { ArrowRight, CalendarClock } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import type { UpcomingItem } from "@/lib/overview/overview-helpers";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +19,9 @@ export function UpcomingSection({ items }: UpcomingSectionProps) {
     <section className={cn(dashboardTheme.elevatedSection, "space-y-4")}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h2 className={dashboardTheme.sectionTitle}>Upcoming</h2>
+          <h2 className={dashboardTheme.sectionTitle}>
+            {headingTitle("Upcoming")}
+          </h2>
           <p className="text-sm text-muted-foreground">
             Meetings and tasks in the next two weeks.
           </p>

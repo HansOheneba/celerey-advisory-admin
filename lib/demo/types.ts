@@ -6,22 +6,16 @@ import type { ConversationThread } from "@/lib/messages/types";
 import type { AdvisorSettings } from "@/lib/settings/local-store";
 import type { Task } from "@/lib/tasks/types";
 import type { Advisor } from "@/types/advisor";
-import type { Client, ClientActivity, ClientSubscription } from "@/types/client";
+import type {
+  Client,
+  ClientActivity,
+  ClientSegment,
+  ClientSubscription,
+} from "@/types/client";
+export type { ClientSegment } from "@/types/client";
+export { CLIENT_SEGMENT_LABELS } from "@/types/client";
 import type { ClientInternalNote } from "@/types/client-internal-note";
 import type { ClientDetailState } from "@/types/client-detail";
-
-/**
- * Client segment drives the Priority / High value / At risk views in the
- * client book and the badge shown on the workspace header.
- */
-export type ClientSegment = "uhnw" | "hnw" | "affluent" | "emerging";
-
-export const CLIENT_SEGMENT_LABELS: Record<ClientSegment, string> = {
-  uhnw: "UHNW",
-  hnw: "HNW",
-  affluent: "Affluent",
-  emerging: "Emerging",
-};
 
 export type AlertSeverity = "critical" | "warning" | "info";
 

@@ -1,4 +1,5 @@
 import { dashboardTheme, type TintedSurfaceVariant } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type SectionPanelProps = {
@@ -42,7 +43,9 @@ export function SectionPanel({
           >
             <div className="space-y-1">
               {title ? (
-                <h2 className={dashboardTheme.sectionTitle}>{title}</h2>
+                <h2 className={dashboardTheme.sectionTitle}>
+                  {headingTitle(title)}
+                </h2>
               ) : null}
               {description ? (
                 <p className={dashboardTheme.sectionDescription}>

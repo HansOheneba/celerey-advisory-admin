@@ -52,6 +52,10 @@ import type {
   DemoReportRecord,
 } from "@/lib/demo/types";
 import type { AiSessionEntry } from "@/lib/demo/types";
+import {
+  CLIENT_SEGMENT_LABELS,
+  type ClientSegment,
+} from "@/types/client";
 
 type SegmentRow = {
   label: string;
@@ -63,7 +67,7 @@ type SegmentRow = {
 };
 
 function buildSegmentRows(records: DemoClientRecord[]): SegmentRow[] {
-  const bySegment = new Map<string, DemoClientRecord[]>();
+  const bySegment = new Map<ClientSegment, DemoClientRecord[]>();
 
   for (const record of records) {
     const existing = bySegment.get(record.segment);
@@ -80,7 +84,7 @@ function buildSegmentRows(records: DemoClientRecord[]): SegmentRow[] {
       const aum = group.reduce((total, item) => total + item.client.aum, 0);
 
       return {
-        label: segment.toUpperCase(),
+        label: CLIENT_SEGMENT_LABELS[segment],
         clients: group.length,
         aua,
         aum,

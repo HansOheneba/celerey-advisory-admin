@@ -1,5 +1,5 @@
 import { subscriptionLabel } from "@/components/clients/subscription-badge";
-import { CLIENT_SEGMENT_LABELS, type ClientSegment } from "@/lib/demo/types";
+import { CLIENT_SEGMENT_LABELS, type ClientSegment } from "@/types/client";
 import { titleCase } from "@/lib/format";
 import type { Client, ClientStatus } from "@/types/client";
 
@@ -19,8 +19,9 @@ export function buildClientMetaParts(
 ): string[] {
   const parts: string[] = [];
 
-  if (segment) {
-    parts.push(CLIENT_SEGMENT_LABELS[segment]);
+  const resolvedSegment = segment ?? client.segment;
+  if (resolvedSegment) {
+    parts.push(CLIENT_SEGMENT_LABELS[resolvedSegment]);
   }
 
   parts.push(titleCase(client.riskLevel));

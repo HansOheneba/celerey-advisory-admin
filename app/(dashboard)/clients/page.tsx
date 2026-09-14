@@ -124,7 +124,6 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           riskLevel={riskLevel}
           sortBy={sortBy}
           sortDir={sortDir}
-          canManageSubscriptions={canAssign}
           showAdvisorColumn={showAssignedAdvisor}
         />
       </Suspense>

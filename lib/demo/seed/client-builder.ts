@@ -477,6 +477,7 @@ export function buildClientRecord(spec: ClientSpec): DemoClientRecord {
     status: spec.status,
     riskLevel: spec.riskLevel,
     subscription: spec.subscription,
+    segment: spec.segment,
     aua: assetTotals.aua,
     aum: assetTotals.aum,
     currency: spec.currency,

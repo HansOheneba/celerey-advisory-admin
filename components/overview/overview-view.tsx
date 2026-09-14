@@ -87,8 +87,7 @@ export function OverviewView({
           <MetricCard
             compact
             label="Advisory sessions"
-            value={`${metrics.advisorySessions.used} / ${metrics.advisorySessions.included}`}
-            hint={`${metrics.advisorySessions.remaining} left this year`}
+            value={String(metrics.advisorySessions.used)}
           />
           <MetricCard
             compact
