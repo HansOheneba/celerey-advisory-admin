@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Download, Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ export function ClientReportsPanel({
   reports,
   canGenerate,
 }: ClientReportsPanelProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function send(reportId: string) {
@@ -46,7 +48,8 @@ export function ClientReportsPanel({
         return;
       }
 
-      toast.success("Report released to the client.");
+      toast.success("Report sent to the client. It appears under Documents.");
+      router.refresh();
     });
   }
 

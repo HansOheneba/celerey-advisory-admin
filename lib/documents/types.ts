@@ -12,6 +12,8 @@ export type ClientDocument = {
   id: string;
   clientId: string;
   sessionId: string | null;
+  /** Set when this row mirrors a generated PDF released to the client. */
+  reportId?: string | null;
   title: string;
   category: DocumentCategory;
   fileName: string;

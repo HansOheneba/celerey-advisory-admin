@@ -14,6 +14,7 @@ import {
   mutateClientProfileRecord,
   nextProfileId,
 } from "@/lib/demo/profile";
+import { enrichDocumentDownloadUrl } from "@/lib/documents/enrich-download-url";
 import { mutateDemoDb, readDemoDb } from "@/lib/demo/store";
 import type { DemoClientRecord, DemoDatabase } from "@/lib/demo/types";
 import { bookScope } from "@/lib/auth/capabilities";
@@ -1246,9 +1247,9 @@ const HANDLERS: Record<string, Handler> = {
     }
 
     return {
-      items: [...items].sort(
-        (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
-      ),
+      items: [...items]
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .map(enrichDocumentDownloadUrl),
     };
   },
 
@@ -1861,6 +1862,35 @@ const HANDLERS: Record<string, Handler> = {
 
   "admin.advisors.onboarding.get": () => {
     throw new DemoApiError("Onboarding invites are not used in the demo.", 404);
+  },
+
+  "client.documents.find": (ctx) => {
+    const record = ctx.db.clients.find(
+      (candidate) =>
+        candidate.client.email.toLowerCase() === ctx.user.email.toLowerCase(),
+    );
+
+    if (!record) {
+      throw new DemoApiError(
+        "No client profile is linked to this account.",
+        409,
+      );
+    }
+
+    const category = param(ctx, "category") || "all";
+    let items = ctx.db.documents.filter(
+      (document) => document.clientId === record.client.id,
+    );
+
+    if (category !== "all") {
+      items = items.filter((document) => document.category === category);
+    }
+
+    const documents = [...items]
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .map(enrichDocumentDownloadUrl);
+
+    return { documents };
   },
 };
 

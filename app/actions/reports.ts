@@ -12,6 +12,7 @@ import { demoUserById } from "@/lib/demo/seed/users";
 import { ensureReportsDir, mutateDemoDb, REPORTS_DIR } from "@/lib/demo/store";
 import { assembleInvestmentReportData } from "@/lib/reports/assemble-report-data";
 import { renderInvestmentReportPdf } from "@/lib/reports/generate-pdf";
+import { releaseReportToClient } from "@/lib/reports/release-to-client";
 import {
   REPORT_TEMPLATES,
   type ReportTemplateKey,
@@ -29,6 +30,7 @@ function isTemplateKey(value: string): value is ReportTemplateKey {
 export async function generateClientReport(
   clientId: string,
   templateKey: string,
+  sendToClient = false,
 ): Promise<GenerateReportResult> {
   const session = await requireSession();
 
@@ -111,6 +113,13 @@ export async function generateClientReport(
       targetLabel: report.title,
       occurredAt: report.createdAt,
     });
+
+    if (sendToClient) {
+      releaseReportToClient(db, {
+        reportId: report.id,
+        releasedBy: { userId: session.userId, name: session.name },
+      });
+    }
   });
 
   revalidatePath(`/clients/${clientId}`);
@@ -128,33 +137,19 @@ export async function sendReportToClient(
     return { ok: false, message: "Your role cannot send reports." };
   }
 
-  const sentAt = new Date().toISOString();
   let clientId: string | null = null;
 
   const found = await mutateDemoDb((db) => {
-    const report = db.reports.find((candidate) => candidate.id === reportId);
+    const report = releaseReportToClient(db, {
+      reportId,
+      releasedBy: { userId: session.userId, name: session.name },
+    });
 
     if (!report) {
       return false;
     }
 
-    report.sentAt = sentAt;
     clientId = report.clientId;
-
-    db.alerts.unshift({
-      id: `alert-report-${report.id}`,
-      kind: "report_ready",
-      severity: "info",
-      title: `${report.title} sent`,
-      detail: `${session.name} released the ${report.periodLabel} report to the client.`,
-      clientId: report.clientId,
-      clientName: report.clientName,
-      advisorId: session.userId,
-      workspaceTab: "advisory",
-      createdAt: sentAt,
-      read: false,
-    });
-
     return true;
   });
 

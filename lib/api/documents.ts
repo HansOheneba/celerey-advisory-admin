@@ -38,6 +38,7 @@ function normalizeDocument(row: Record<string, unknown>): ClientDocument {
     id: pickString(row, "id", "documentId", "document_id"),
     clientId: asString(row.clientId ?? row.client_id),
     sessionId,
+    reportId: pickNullableString(row, "reportId", "report_id"),
     title: asString(row.title),
     category: CATEGORIES.has(category as DocumentCategory)
       ? (category as DocumentCategory)

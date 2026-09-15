@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { enrichDocumentDownloadUrl } from "@/lib/documents/enrich-download-url";
 import { hasCapability } from "@/lib/auth/capabilities";
 import { requireSession, type AdvisorSession } from "@/lib/dal";
 import { scopedClientRecords } from "@/lib/demo/book-scope";
@@ -163,7 +164,8 @@ export async function getClientDocuments(clientId: string) {
   const { db } = await getViewer();
   return db.documents
     .filter((document) => document.clientId === clientId)
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .map(enrichDocumentDownloadUrl);
 }
 
 export async function getClientAppointments(clientId: string) {
