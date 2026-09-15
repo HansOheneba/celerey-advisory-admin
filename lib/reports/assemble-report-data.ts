@@ -5,6 +5,7 @@ import type { DemoClientRecord } from "@/lib/demo/types";
 import { FIRM_LEGAL_LINE } from "@/lib/reports/firm";
 import { formatLongDate } from "@/lib/reports/format";
 import { ALLOCATION_COLORS } from "@/lib/reports/pdf/report-theme";
+import { reportReference } from "@/lib/reports/report-reference";
 import type {
   InvestmentReportData,
   ReportAllocationSlice,
@@ -66,16 +67,6 @@ function yearsSince(iso: string): number {
     (Date.now() - new Date(iso).getTime()) / (365.25 * 24 * 60 * 60 * 1000);
 
   return Math.max(years, 0.25);
-}
-
-function reference(clientId: string, template: ReportTemplateKey): string {
-  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const prefix = template
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
-
-  return `${prefix}-${clientId.toUpperCase()}-${stamp}`;
 }
 
 /**
@@ -284,7 +275,7 @@ export function assembleInvestmentReportData(
   return {
     clientName: `${client.firstName} ${client.lastName}`,
     clientNumber: client.id.toUpperCase(),
-    reference: reference(client.id, template),
+    reference: reportReference(client.id, template),
     preparedOn: formatLongDate(new Date().toISOString()),
     reportKindTitle: meta.title,
     statementPeriodLabel: `${opening.label} to ${closing.label}`,

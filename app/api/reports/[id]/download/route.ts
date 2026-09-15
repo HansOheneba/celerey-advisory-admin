@@ -1,10 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import { NextResponse } from "next/server";
 
 import { verifySession } from "@/lib/dal";
-import { readDemoDb, REPORTS_DIR } from "@/lib/demo/store";
+import { loadReportPdf } from "@/lib/reports/load-report-pdf";
 
 export async function GET(
   _request: Request,
@@ -17,27 +14,24 @@ export async function GET(
   }
 
   const { id } = await params;
-  const db = await readDemoDb();
-  const report = db.reports.find((candidate) => candidate.id === id);
+  const result = await loadReportPdf({
+    reportId: id,
+    userId: session.userId,
+    demoRole: session.demoRole,
+  });
 
-  if (!report) {
-    return NextResponse.json({ message: "Not found." }, { status: 404 });
-  }
-
-  try {
-    const file = await readFile(path.join(REPORTS_DIR, report.fileName));
-
-    return new NextResponse(new Uint8Array(file), {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${report.fileName}"`,
-        "Cache-Control": "private, no-store",
-      },
-    });
-  } catch {
+  if (!result.ok) {
     return NextResponse.json(
-      { message: "The generated file is no longer available." },
-      { status: 410 },
+      { message: result.message },
+      { status: result.status },
     );
   }
+
+  return new NextResponse(new Uint8Array(result.buffer), {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `inline; filename="${result.fileName}"`,
+      "Cache-Control": "private, no-store",
+    },
+  });
 }

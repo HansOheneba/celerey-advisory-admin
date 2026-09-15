@@ -8,11 +8,9 @@ import { revalidatePath } from "next/cache";
 import { can } from "@/lib/auth/capabilities";
 import { requireSession } from "@/lib/dal";
 import { getClientRecord } from "@/lib/demo/repositories";
-import { demoUserById } from "@/lib/demo/seed/users";
 import { ensureReportsDir, mutateDemoDb, REPORTS_DIR } from "@/lib/demo/store";
-import { assembleInvestmentReportData } from "@/lib/reports/assemble-report-data";
-import { renderInvestmentReportPdf } from "@/lib/reports/generate-pdf";
 import { releaseReportToClient } from "@/lib/reports/release-to-client";
+import { renderClientReportPdf } from "@/lib/reports/render-client-report";
 import {
   REPORT_TEMPLATES,
   type ReportTemplateKey,
@@ -48,27 +46,10 @@ export async function generateClientReport(
     return { ok: false, message: "That client is not in your book." };
   }
 
-  const advisorUser = demoUserById(record.client.advisorId);
-  const data = assembleInvestmentReportData(
-    record,
-    templateKey,
-    advisorUser
-      ? {
-          name: advisorUser.name,
-          email: advisorUser.email,
-          title: advisorUser.title,
-        }
-      : {
-          name: record.client.advisorName,
-          email: "advisory@example.com",
-          title: "Relationship Manager",
-        },
-  );
-
-  let buffer: Buffer;
+  let rendered;
 
   try {
-    buffer = await renderInvestmentReportPdf(data);
+    rendered = await renderClientReportPdf(record, templateKey);
   } catch {
     return {
       ok: false,
@@ -76,19 +57,26 @@ export async function generateClientReport(
     };
   }
 
-  const fileName = `${data.reference}.pdf`;
+  const {
+    buffer,
+    fileName,
+    reference,
+    clientName,
+    reportKindTitle,
+    statementPeriodLabel,
+  } = rendered;
 
   await ensureReportsDir();
   await writeFile(path.join(REPORTS_DIR, fileName), buffer);
 
   const report: DemoReportRecord = {
-    id: data.reference,
+    id: reference,
     clientId,
-    clientName: data.clientName,
-    reference: data.reference,
-    title: `${data.reportKindTitle} — ${data.clientName}`,
+    clientName,
+    reference,
+    title: `${reportKindTitle} — ${clientName}`,
     templateKey,
-    periodLabel: data.statementPeriodLabel,
+    periodLabel: statementPeriodLabel,
     fileName,
     sizeBytes: buffer.byteLength,
     generatedBy: session.userId,
