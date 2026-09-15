@@ -18,7 +18,10 @@ import type {
   DemoRecommendation,
 } from "@/lib/demo/types";
 
-import { ADVISORY_VOICE_PROMPT } from "@/lib/ai/copilot-voice";
+import {
+  ADVISORY_FORMAT_PROMPT,
+  ADVISORY_VOICE_PROMPT,
+} from "@/lib/ai/copilot-voice";
 import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 
 export const ADVISORY_SYSTEM_PROMPT = [
@@ -29,6 +32,7 @@ export const ADVISORY_SYSTEM_PROMPT = [
   "Every recommendation must respect the stated risk mandate and the suitability verdicts supplied.",
   "If the data does not support an answer, say so plainly.",
   ADVISORY_VOICE_PROMPT,
+  ADVISORY_FORMAT_PROMPT,
 ].join(" ");
 
 /** Data scopes injected into a prompt, surfaced in the AI audit trail. */

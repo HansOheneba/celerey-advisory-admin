@@ -40,11 +40,11 @@ export type CopilotResult = {
 
 const MODE_INSTRUCTIONS: Record<CopilotMode, string> = {
   client_brief:
-    "Write a relationship brief for the RM: what changed since the last review, why it matters for this client, and what to do next. Under 300 words. Prose first; bullets only for actions or figures.",
+    "Relationship brief for the RM. Use ### sections: What changed, Why it matters, Next actions (bullets). Under 300 words. Numbers in bullets, not paragraphs.",
   meeting_prep:
-    "Meeting prep for the RM: a short agenda, the client questions you expect with grounded answers, and the outcome to aim for. Keep it scannable without template filler.",
+    "Meeting prep for the RM. Use ### Agenda, ### Likely questions, ### Outcome to secure. Bullets under each; one line per item with figures where relevant.",
   portfolio_review:
-    "Portfolio commentary: positioning against the mandate, what drove the trailing return, risks in the current allocation, and rebalancing steps you recommend. Cite numbers from the data.",
+    "Portfolio commentary. Use ### Mandate fit, ### Return drivers, ### Risks, ### Rebalancing steps. Bullets with numbers from the data.",
   book_question: COPILOT_BOOK_QUESTION_INSTRUCTION,
 };
 
