@@ -1,10 +1,23 @@
+import type { ReactNode } from "react";
+
+import type { ProgressMetric } from "@/lib/appointments/types";
+
+export type DisplayCurrency = "USD" | "GHS" | "GBP";
+
 function coerceFiniteNumber(value: number): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+function coerceDisplayCurrency(currency: string | undefined): DisplayCurrency {
+  if (currency === "GHS" || currency === "GBP") {
+    return currency;
+  }
+  return "USD";
+}
+
 export function formatCurrency(
   value: number,
-  currency: "USD" | "GHS" | "GBP" = "USD",
+  currency: DisplayCurrency = "USD",
 ) {
   const amount = coerceFiniteNumber(value);
   if (amount === null) {
@@ -18,18 +31,52 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export function formatCompactCurrency(value: number) {
+/** Full grouped currency (same as {@link formatCurrency}); name kept for existing call sites. */
+export function formatCompactCurrency(
+  value: number,
+  currency: DisplayCurrency = "USD",
+) {
+  return formatCurrency(value, currency);
+}
+
+export function formatGroupedNumber(value: number) {
   const amount = coerceFiniteNumber(value);
   if (amount === null) {
     return "—";
   }
 
   return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 0,
   }).format(amount);
+}
+
+export function formatNumberWithCommas(value: string): string {
+  const cleaned = value.replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+export function formatProgressMetric(
+  metric: ProgressMetric,
+  defaultCurrency: DisplayCurrency = "USD",
+): string {
+  if (metric.unit === "percent") {
+    return `${metric.value}%`;
+  }
+
+  if (metric.unit === "currency") {
+    return formatCurrency(
+      metric.value,
+      coerceDisplayCurrency(metric.currency ?? defaultCurrency),
+    );
+  }
+
+  return formatGroupedNumber(metric.value);
+}
+
+export function chartCurrencyFormatter(currency: DisplayCurrency = "USD") {
+  return (value: number) => formatCurrency(value, currency);
 }
 
 /** Trailing twelve-month return, written out instead of "TTM". */
@@ -102,7 +149,7 @@ const HEADING_TOKEN_OVERRIDES: Record<string, string> = {
   aum: "AUM",
   qtd: "QTD",
   fx: "FX",
-  celerey: "Celerey",
+  fidelity: "Fidelity",
   copilot: "Copilot",
 };
 
@@ -159,4 +206,12 @@ export function headingTitle(text: string): string {
       ),
     )
     .join(" ");
+}
+
+/** Apply {@link headingTitle} when `children` is a plain string (card/dialog titles). */
+export function formatTitleChildren(children: ReactNode): ReactNode {
+  if (typeof children === "string") {
+    return headingTitle(children);
+  }
+  return children;
 }

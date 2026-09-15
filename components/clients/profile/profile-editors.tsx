@@ -23,6 +23,7 @@ import {
   updateClientTaxProfileAction,
   updateClientUserAction,
 } from "@/app/actions/client-profile";
+import { FormMoneyInput } from "@/components/clients/create/form-money-input";
 import { AssetHoldingFields } from "@/components/clients/create/asset-holding-fields";
 import { FormCheckbox } from "@/components/clients/create/form-checkbox";
 import { LiabilityFormFields } from "@/components/clients/create/liability-form-fields";
@@ -47,12 +48,14 @@ import {
   RETIREMENT_STORAGE_OPTIONS,
   RISK_PROFILE_OPTIONS,
 } from "@/lib/clients/creation-options";
+import type { DisplayCurrency } from "@/lib/format";
 
 type ClientIdProps = {
   clientId: string;
+  currency?: DisplayCurrency;
 };
 
-export function AddGoalDialog({ clientId }: ClientIdProps) {
+export function AddGoalDialog({ clientId, currency = "USD" }: ClientIdProps) {
   return (
     <ProfileEditorDialog
       clientId={clientId}
@@ -86,22 +89,18 @@ export function AddGoalDialog({ clientId }: ClientIdProps) {
           </FormSelect>
         </ProfileField>
         <ProfileField label="Target amount" htmlFor="goal-target">
-          <Input
+          <FormMoneyInput
             id="goal-target"
             name="target"
-            type="number"
-            min={1}
-            step="0.01"
+            currency={currency}
             required
           />
         </ProfileField>
         <ProfileField label="Current amount" htmlFor="goal-current">
-          <Input
+          <FormMoneyInput
             id="goal-current"
             name="current"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={0}
           />
         </ProfileField>
@@ -152,7 +151,7 @@ export function AddHoldingDialog({ clientId }: ClientIdProps) {
   );
 }
 
-export function AddAccountDialog({ clientId }: ClientIdProps) {
+export function AddAccountDialog({ clientId, currency = "USD" }: ClientIdProps) {
   return (
     <ProfileEditorDialog
       clientId={clientId}
@@ -174,12 +173,10 @@ export function AddAccountDialog({ clientId }: ClientIdProps) {
           <Input id="account-type" name="type" defaultValue="cash" />
         </ProfileField>
         <ProfileField label="Balance" htmlFor="account-balance" className="space-y-2 sm:col-span-2">
-          <Input
+          <FormMoneyInput
             id="account-balance"
             name="balance"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             required
           />
         </ProfileField>
@@ -188,7 +185,7 @@ export function AddAccountDialog({ clientId }: ClientIdProps) {
   );
 }
 
-export function AddIncomeDialog({ clientId }: ClientIdProps) {
+export function AddIncomeDialog({ clientId, currency = "USD" }: ClientIdProps) {
   return (
     <ProfileEditorDialog
       clientId={clientId}
@@ -210,12 +207,10 @@ export function AddIncomeDialog({ clientId }: ClientIdProps) {
       </ProfileField>
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Amount" htmlFor="income-amount">
-          <Input
+          <FormMoneyInput
             id="income-amount"
             name="amount"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             required
           />
         </ProfileField>
@@ -240,7 +235,7 @@ export function AddIncomeDialog({ clientId }: ClientIdProps) {
   );
 }
 
-export function AddExpenseDialog({ clientId }: ClientIdProps) {
+export function AddExpenseDialog({ clientId, currency = "USD" }: ClientIdProps) {
   return (
     <ProfileEditorDialog
       clientId={clientId}
@@ -262,12 +257,10 @@ export function AddExpenseDialog({ clientId }: ClientIdProps) {
       </ProfileField>
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Amount" htmlFor="expense-amount">
-          <Input
+          <FormMoneyInput
             id="expense-amount"
             name="amount"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             required
           />
         </ProfileField>
@@ -620,6 +613,7 @@ export function SubmitRiskAssessmentDialog({ clientId }: ClientIdProps) {
 export function EditGoalDialog({
   clientId,
   goal,
+  currency = "USD",
 }: ClientIdProps & {
   goal: { id: string; title: string; current: number; target?: number };
 }) {
@@ -644,22 +638,18 @@ export function EditGoalDialog({
       </ProfileField>
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Current" htmlFor={`goal-current-${goal.id}`}>
-          <Input
+          <FormMoneyInput
             id={`goal-current-${goal.id}`}
             name="current"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={goal.current}
           />
         </ProfileField>
         <ProfileField label="Target" htmlFor={`goal-target-${goal.id}`}>
-          <Input
+          <FormMoneyInput
             id={`goal-target-${goal.id}`}
             name="target"
-            type="number"
-            min={1}
-            step="0.01"
+            currency={currency}
             defaultValue={goal.target ?? 0}
           />
         </ProfileField>
@@ -671,6 +661,7 @@ export function EditGoalDialog({
 export function EditIncomeDialog({
   clientId,
   row,
+  currency = "USD",
 }: ClientIdProps & {
   row: { id: string; name: string; amount: number };
 }) {
@@ -699,12 +690,10 @@ export function EditIncomeDialog({
         </FormSelect>
       </ProfileField>
       <ProfileField label="Amount" htmlFor={`income-amount-${row.id}`}>
-        <Input
+        <FormMoneyInput
           id={`income-amount-${row.id}`}
           name="amount"
-          type="number"
-          min={0}
-          step="0.01"
+          currency={currency}
           defaultValue={row.amount}
           required
         />
@@ -716,6 +705,7 @@ export function EditIncomeDialog({
 export function EditExpenseDialog({
   clientId,
   row,
+  currency = "USD",
 }: ClientIdProps & {
   row: { id: string; name: string; amount: number; essential: boolean };
 }) {
@@ -744,12 +734,10 @@ export function EditExpenseDialog({
         </FormSelect>
       </ProfileField>
       <ProfileField label="Amount" htmlFor={`expense-amount-${row.id}`}>
-        <Input
+        <FormMoneyInput
           id={`expense-amount-${row.id}`}
           name="amount"
-          type="number"
-          min={0}
-          step="0.01"
+          currency={currency}
           defaultValue={row.amount}
           required
         />
@@ -767,6 +755,7 @@ export function EditExpenseDialog({
 export function EditHoldingDialog({
   clientId,
   holding,
+  currency = "USD",
 }: ClientIdProps & {
   holding: {
     holding_id: string;
@@ -796,12 +785,10 @@ export function EditHoldingDialog({
       </ProfileField>
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Current value" htmlFor={`holding-value-${holding.holding_id}`}>
-          <Input
+          <FormMoneyInput
             id={`holding-value-${holding.holding_id}`}
             name="currentValue"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={holding.current_value ?? 0}
           />
         </ProfileField>
@@ -823,6 +810,7 @@ export function EditHoldingDialog({
 export function EditLiabilityDialog({
   clientId,
   liability,
+  currency = "USD",
 }: ClientIdProps & {
   liability: {
     id: string;
@@ -852,22 +840,18 @@ export function EditLiabilityDialog({
       </ProfileField>
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Balance" htmlFor={`liability-balance-${liability.id}`}>
-          <Input
+          <FormMoneyInput
             id={`liability-balance-${liability.id}`}
             name="balance"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={liability.balance}
           />
         </ProfileField>
         <ProfileField label="Min payment" htmlFor={`liability-min-${liability.id}`}>
-          <Input
+          <FormMoneyInput
             id={`liability-min-${liability.id}`}
             name="minPaymentMonthly"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={liability.minPaymentMonthly ?? 0}
           />
         </ProfileField>
@@ -879,6 +863,7 @@ export function EditLiabilityDialog({
 export function EditInsurancePolicyDialog({
   clientId,
   policy,
+  currency = "USD",
 }: ClientIdProps & {
   policy: {
     policy_id: string;
@@ -925,22 +910,18 @@ export function EditInsurancePolicyDialog({
           />
         </ProfileField>
         <ProfileField label="Cover" htmlFor={`policy-cover-${policy.policy_id}`}>
-          <Input
+          <FormMoneyInput
             id={`policy-cover-${policy.policy_id}`}
             name="coverageAmount"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={policy.coverage_amount ?? 0}
           />
         </ProfileField>
         <ProfileField label="Premium" htmlFor={`policy-premium-${policy.policy_id}`}>
-          <Input
+          <FormMoneyInput
             id={`policy-premium-${policy.policy_id}`}
             name="premiumMonthly"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={policy.premium_monthly ?? 0}
           />
         </ProfileField>
@@ -952,6 +933,7 @@ export function EditInsurancePolicyDialog({
 export function EditPropertyDialog({
   clientId,
   property,
+  currency = "USD",
 }: ClientIdProps & {
   property: {
     property_id: string;
@@ -982,12 +964,10 @@ export function EditPropertyDialog({
         />
       </ProfileField>
       <ProfileField label="Market value" htmlFor={`property-value-${property.property_id}`}>
-        <Input
+        <FormMoneyInput
           id={`property-value-${property.property_id}`}
           name="marketValue"
-          type="number"
-          min={0}
-          step="0.01"
+          currency={currency}
           defaultValue={value}
         />
       </ProfileField>
@@ -998,6 +978,7 @@ export function EditPropertyDialog({
 export function EditRetirementDialog({
   clientId,
   retirement,
+  currency = "USD",
 }: ClientIdProps & {
   retirement: {
     currentAge: number;
@@ -1041,42 +1022,34 @@ export function EditRetirementDialog({
           />
         </ProfileField>
         <ProfileField label="Invested today" htmlFor="ret-invested">
-          <Input
+          <FormMoneyInput
             id="ret-invested"
             name="currentInvested"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={retirement.currentInvested}
           />
         </ProfileField>
         <ProfileField label="Monthly savings" htmlFor="ret-savings">
-          <Input
+          <FormMoneyInput
             id="ret-savings"
             name="monthlySavings"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={retirement.monthlySavings}
           />
         </ProfileField>
         <ProfileField label="Pension balance" htmlFor="ret-pension">
-          <Input
+          <FormMoneyInput
             id="ret-pension"
             name="existingPensionBalance"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={retirement.existingPensionBalance}
           />
         </ProfileField>
         <ProfileField label="Desired monthly income" htmlFor="ret-income">
-          <Input
+          <FormMoneyInput
             id="ret-income"
             name="desiredMonthlyIncome"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={retirement.desiredMonthlyIncome}
           />
         </ProfileField>
@@ -1125,6 +1098,7 @@ export function EditRetirementDialog({
 export function EditEmergencyFundDialog({
   clientId,
   emergencyFund,
+  currency = "USD",
 }: ClientIdProps & {
   emergencyFund: {
     targetMonths: number;
@@ -1151,12 +1125,10 @@ export function EditEmergencyFundDialog({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <ProfileField label="Cash held" htmlFor="ef-cash">
-          <Input
+          <FormMoneyInput
             id="ef-cash"
             name="currentCashBalance"
-            type="number"
-            min={0}
-            step="0.01"
+            currency={currency}
             defaultValue={emergencyFund.currentCashBalance}
           />
         </ProfileField>

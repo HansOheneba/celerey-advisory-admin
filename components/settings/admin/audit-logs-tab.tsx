@@ -1,6 +1,7 @@
 "use client";
 
 import { ScrollText } from "lucide-react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import type { AuditLogEntry } from "@/lib/settings/audit";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,7 +23,7 @@ export function AuditLogsTab({ initialLogs }: AuditLogsTabProps) {
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Audit logs</p>
+        <SectionEyebrow>Audit logs</SectionEyebrow>
         <CardTitle className="text-base font-semibold">
           Organization activity trail
         </CardTitle>

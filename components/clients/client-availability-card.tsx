@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import type { ClientAvailability } from "@/lib/availability/types";
@@ -39,7 +40,7 @@ export function ClientAvailabilityCard({
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Scheduling</p>
+        <SectionEyebrow>Scheduling</SectionEyebrow>
         <CardTitle className="text-base font-semibold">
           Client availability
         </CardTitle>

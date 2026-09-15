@@ -4,7 +4,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-global-equity-core",
     name: "Global Equity Core Fund",
-    provider: "Celerey Asset Management",
+    provider: "Fidelity Asset Management",
     category: "funds",
     summary:
       "Developed-market equity core holding tracking a quality-tilted global index.",
@@ -43,7 +43,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-sovereign-ladder",
     name: "Sovereign Bond Ladder",
-    provider: "Celerey Asset Management",
+    provider: "Fidelity Asset Management",
     category: "fixed_income",
     summary:
       "Laddered developed-market sovereign bonds from one to seven years for predictable income.",
@@ -78,7 +78,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-treasury-plus",
     name: "USD Treasury Plus",
-    provider: "Celerey Bank",
+    provider: "Fidelity Bank",
     category: "cash",
     summary:
       "Short-dated treasury strategy for cash awaiting deployment, settling in one day.",
@@ -96,7 +96,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-term-deposit",
     name: "12 Month Term Deposit",
-    provider: "Celerey Bank",
+    provider: "Fidelity Bank",
     category: "cash",
     summary: "Fixed rate deposit with capital certainty and a defined maturity.",
     returnPct: 5.25,
@@ -113,7 +113,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-dividend-income",
     name: "Dividend Equity Income",
-    provider: "Celerey Asset Management",
+    provider: "Fidelity Asset Management",
     category: "equities",
     summary: "High-quality dividend payers targeting a 3.8% distribution yield.",
     returnPct: 9.4,
@@ -214,7 +214,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-gold",
     name: "Physical Gold ETC",
-    provider: "Celerey Asset Management",
+    provider: "Fidelity Asset Management",
     category: "alternatives",
     summary: "Fully allocated physical gold holding for portfolio diversification.",
     returnPct: 13.1,
@@ -274,7 +274,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-lombard",
     name: "Lombard Credit Facility",
-    provider: "Celerey Bank",
+    provider: "Fidelity Bank",
     category: "lending",
     summary:
       "Revolving credit secured against marketable securities, advancing up to 60% of eligible collateral.",
@@ -298,7 +298,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-property-finance",
     name: "Commercial Property Finance",
-    provider: "Celerey Bank",
+    provider: "Fidelity Bank",
     category: "lending",
     summary:
       "Term finance for income-producing commercial property up to 65% loan to value.",
@@ -369,7 +369,7 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
   {
     id: "prd-ghs-treasury",
     name: "GHS Treasury Bill Ladder",
-    provider: "Celerey Bank",
+    provider: "Fidelity Bank",
     category: "fixed_income",
     summary: "Rolling 91 and 182 day Ghanaian treasury bills held to maturity.",
     returnPct: 21.5,

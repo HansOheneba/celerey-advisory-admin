@@ -16,6 +16,7 @@ type InsuranceTabProps = {
 export function InsuranceTab({ record, canEdit }: InsuranceTabProps) {
   const { client, detail } = record;
   const clientId = client.id;
+  const currency = client.currency;
 
   return (
     <SectionPanel
@@ -47,12 +48,17 @@ export function InsuranceTab({ record, canEdit }: InsuranceTabProps) {
               trailing={
                 <span className="flex items-center gap-2">
                   <span className="text-sm font-medium">
-                    {formatCompactCurrency(policy.coverage_amount ?? 0)} cover
+                    {formatCompactCurrency(
+                      policy.coverage_amount ?? 0,
+                      currency,
+                    )}{" "}
+                    cover
                   </span>
                   {canEdit ? (
                     <>
                       <EditInsurancePolicyDialog
                         clientId={clientId}
+                        currency={currency}
                         policy={{
                           policy_id: policy.policy_id,
                           name: policy.name,

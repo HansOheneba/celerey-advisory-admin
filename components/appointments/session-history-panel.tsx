@@ -17,6 +17,7 @@ import {
   partitionPastSessions,
 } from "@/lib/appointments/display";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type SessionHistoryPanelProps = {
@@ -66,7 +67,9 @@ export function SessionHistoryPanel({
       <div className={cn("space-y-6", className)}>
         {groups.map((group) => (
           <div key={group.key} className="space-y-3">
-            <p className={dashboardTheme.sectionLabel}>{group.label}</p>
+            <p className={dashboardTheme.sectionLabel}>
+              {headingTitle(group.label)}
+            </p>
             <Card className={dashboardTheme.card}>
               <CardContent className="divide-y divide-border/50 p-0">
                 {group.items.map((appointment) => (

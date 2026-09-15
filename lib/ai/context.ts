@@ -16,8 +16,10 @@ import type {
   DemoRecommendation,
 } from "@/lib/demo/types";
 
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
+
 export const ADVISORY_SYSTEM_PROMPT = [
-  "You are Celerey Copilot, an analyst supporting relationship managers at a private bank.",
+  `You are ${CELEREY_COPILOT_NAME}, an analyst supporting relationship managers at a private bank.`,
   "You only reason from the client data provided in the prompt. Never invent holdings, balances or dates.",
   "Be specific and quantitative. Reference figures from the data rather than describing them vaguely.",
   "Write in British English, in plain prose. No emoji, no marketing language.",
@@ -54,6 +56,8 @@ function line(label: string, value: string): string {
  */
 export function buildClientContext(record: DemoClientRecord): string {
   const { client, detail } = record;
+  const currency = client.currency;
+  const money = (value: number) => formatCompactCurrency(value, currency);
   const cash = cashBalance(record);
   const cards = intelligenceCards(record);
   const checks = suitabilityChecks(record);
@@ -73,21 +77,21 @@ export function buildClientContext(record: DemoClientRecord): string {
     line("Next review", formatDate(client.nextReviewAt)),
     "",
     "# Portfolio",
-    line("Assets Under Advisory", formatCompactCurrency(client.aua)),
-    line("Invested", formatCompactCurrency(holdingsValue(record))),
+    line("Assets Under Advisory", money(client.aua)),
+    line("Invested", money(holdingsValue(record))),
     line(
       "Cash",
-      `${formatCompactCurrency(cash)} (${record.idleCashPct.toFixed(1)}% vs ${record.targetCashPct}% target)`,
+      `${money(cash)} (${record.idleCashPct.toFixed(1)}% vs ${record.targetCashPct}% target)`,
     ),
-    line("Deployable cash", formatCompactCurrency(excessCash(record))),
+    line("Deployable cash", money(excessCash(record))),
     line("Model drift", `${record.portfolioDriftPct.toFixed(1)} percentage points`),
     line("Trailing 12m return", `${record.performanceYtdPct.toFixed(1)}%`),
-    line("Assets held away", formatCompactCurrency(record.heldAwayUsd)),
+    line("Assets held away", money(record.heldAwayUsd)),
     "",
     "## Holdings",
     ...detail.holdings.map(
       (holding) =>
-        `- ${holding.name} (${holding.asset_type}): ${formatCompactCurrency(holding.current_value ?? 0)}`,
+        `- ${holding.name} (${holding.asset_type}): ${money(holding.current_value ?? 0)}`,
     ),
     "",
     "## Allocation",
@@ -96,14 +100,14 @@ export function buildClientContext(record: DemoClientRecord): string {
     ),
     "",
     "# Cash flow (monthly)",
-    line("Income", formatCompactCurrency(detail.cashFlowSummary.monthly_income)),
+    line("Income", money(detail.cashFlowSummary.monthly_income)),
     line(
       "Expenses",
-      formatCompactCurrency(detail.cashFlowSummary.monthly_expenses),
+      money(detail.cashFlowSummary.monthly_expenses),
     ),
     line(
       "Surplus",
-      formatCompactCurrency(detail.cashFlowSummary.monthly_surplus),
+      money(detail.cashFlowSummary.monthly_surplus),
     ),
     line("Savings rate", `${detail.cashFlowSummary.savings_rate_pct}%`),
     "",
@@ -111,7 +115,7 @@ export function buildClientContext(record: DemoClientRecord): string {
     ...detail.goals.map((goal) => {
       const target = goal.target ?? 0;
       const pct = target > 0 ? Math.round((goal.current / target) * 100) : 0;
-      return `- ${goal.title} (${goal.category}): ${formatCompactCurrency(goal.current)} of ${formatCompactCurrency(target)}, ${pct}% funded, ${goal.yearsRemaining ?? "?"} years remaining`;
+      return `- ${goal.title} (${goal.category}): ${money(goal.current)} of ${money(target)}, ${pct}% funded, ${goal.yearsRemaining ?? "?"} years remaining`;
     }),
   ];
 
@@ -121,7 +125,7 @@ export function buildClientContext(record: DemoClientRecord): string {
       "# Liabilities",
       ...detail.liabilities.map(
         (liability) =>
-          `- ${liability.name} with ${liability.lender}: ${formatCompactCurrency(liability.balance)} at ${liability.interestRatePct ?? 0}%`,
+          `- ${liability.name} with ${liability.lender}: ${money(liability.balance)} at ${liability.interestRatePct ?? 0}%`,
       ),
     );
   }
@@ -132,7 +136,7 @@ export function buildClientContext(record: DemoClientRecord): string {
       "# Property",
       ...detail.propertyAssets.map(
         (property) =>
-          `- ${property.name}, ${property.city}: ${formatCompactCurrency(property.current_value ?? 0)}`,
+          `- ${property.name}, ${property.city}: ${money(property.current_value ?? 0)}`,
       ),
     );
   }
@@ -143,7 +147,7 @@ export function buildClientContext(record: DemoClientRecord): string {
       "# Protection",
       ...detail.insurancePolicies.map(
         (policy) =>
-          `- ${policy.name} (${policy.category}) with ${policy.provider}: ${formatCompactCurrency(policy.coverage_amount ?? 0)} cover`,
+          `- ${policy.name} (${policy.category}) with ${policy.provider}: ${money(policy.coverage_amount ?? 0)} cover`,
       ),
     );
   } else {
@@ -231,7 +235,7 @@ export function fallbackClientBrief(record: DemoClientRecord): string {
   const name = `${client.firstName} ${client.lastName}`;
 
   const paragraphs = [
-    `${name} holds ${formatCompactCurrency(client.aua)} under advisory on a ${client.riskLevel} mandate, returning ${record.performanceYtdPct.toFixed(1)}% over the last twelve months. Cash sits at ${record.idleCashPct.toFixed(1)}% against a ${record.targetCashPct}% target and the portfolio is ${record.portfolioDriftPct.toFixed(1)} percentage points from the model allocation.`,
+    `${name} holds ${formatCompactCurrency(client.aua, client.currency)} under advisory on a ${client.riskLevel} mandate, returning ${record.performanceYtdPct.toFixed(1)}% over the last twelve months. Cash sits at ${record.idleCashPct.toFixed(1)}% against a ${record.targetCashPct}% target and the portfolio is ${record.portfolioDriftPct.toFixed(1)} percentage points from the model allocation.`,
     "What has changed:",
     ...cards.map((card) => `• ${card.what} — ${card.why}`),
     `The next review is scheduled for ${formatDate(client.nextReviewAt)}. Open assigned tasks are tracked in the client workspace. Any product recommendation must clear the suitability checks shown alongside this brief.`,

@@ -6,7 +6,7 @@ import { getScopedClientRecords } from "@/lib/demo/repositories";
 
 export const metadata: Metadata = {
   title: "Client calculators",
-  description: "Planning calculators on client book data.",
+  description: "Planning calculators tied to client records.",
 };
 
 export default async function ToolsPage() {

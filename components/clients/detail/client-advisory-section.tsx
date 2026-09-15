@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   APPOINTMENT_TYPE_LABELS,
@@ -8,11 +9,12 @@ import {
   type Appointment,
 } from "@/lib/appointments/types";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatProgressMetric } from "@/lib/format";
 
 type ClientAdvisorySectionProps = {
   appointments: Appointment[];
   entitlement: AdvisoryEntitlement | null;
+  currency?: "USD" | "GHS" | "GBP";
 };
 
 function sessionHeading(appointment: Appointment) {
@@ -26,6 +28,7 @@ function sessionHeading(appointment: Appointment) {
 export function ClientAdvisorySection({
   appointments,
   entitlement,
+  currency = "USD",
 }: ClientAdvisorySectionProps) {
   const history = appointments
     .filter((item) => item.status === "completed")
@@ -44,11 +47,9 @@ export function ClientAdvisorySection({
       <Card className={dashboardTheme.card}>
         <CardHeader>
           {entitlement ? (
-            <p className={dashboardTheme.sectionLabel}>
-              Plan year {entitlement.planYear}
-            </p>
+            <SectionEyebrow>{`Plan year ${entitlement.planYear}`}</SectionEyebrow>
           ) : (
-            <p className={dashboardTheme.sectionLabel}>Advisory</p>
+            <SectionEyebrow>Advisory</SectionEyebrow>
           )}
           <CardTitle className="text-base font-semibold">
             Advisory sessions
@@ -68,7 +69,7 @@ export function ClientAdvisorySection({
       {log && lastSession ? (
         <Card className={dashboardTheme.card}>
           <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Last session</p>
+            <SectionEyebrow>Last session</SectionEyebrow>
             <CardTitle className="text-base font-semibold">
               {sessionHeading(lastSession)}
             </CardTitle>
@@ -142,9 +143,7 @@ export function ClientAdvisorySection({
                       {metric.label}
                     </p>
                     <p className="text-sm font-semibold tabular-nums">
-                      {metric.unit === "percent"
-                        ? `${metric.value}%`
-                        : metric.value.toLocaleString()}
+                      {formatProgressMetric(metric, currency)}
                     </p>
                   </div>
                 ))}
@@ -157,7 +156,7 @@ export function ClientAdvisorySection({
       {history.length > 0 ? (
         <Card className={dashboardTheme.card}>
           <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>History</p>
+            <SectionEyebrow>History</SectionEyebrow>
             <CardTitle className="text-base font-semibold">
               Advisory sessions
             </CardTitle>

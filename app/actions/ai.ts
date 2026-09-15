@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { celereyCopilotAccessDeniedMessage } from "@/lib/celerey-copilot";
 import {
   ADVISORY_SYSTEM_PROMPT,
   BOOK_CONTEXT_SCOPES,
@@ -84,7 +85,7 @@ export async function generateClientNarrative(
 
   if (!can(session.demoRole, "use_copilot")) {
     return {
-      content: "Your role does not have access to Celerey Copilot.",
+      content: celereyCopilotAccessDeniedMessage(),
       offline: true,
     };
   }
@@ -133,7 +134,7 @@ export async function askCopilot(
 
   if (!can(session.demoRole, "use_copilot")) {
     return {
-      content: "Your role does not have access to Celerey Copilot.",
+      content: celereyCopilotAccessDeniedMessage(),
       offline: true,
     };
   }

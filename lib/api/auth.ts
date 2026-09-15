@@ -1,5 +1,6 @@
 import "server-only";
 
+import { APPLICATION_NAME } from "@/lib/brand";
 import { executeApi } from "@/lib/api/execute";
 import {
   parseSessionRoleContext,
@@ -30,7 +31,7 @@ export async function requestOtp(email: string, role: StaffRole) {
       email,
       role,
       messageType: "OTPAuthMessage:HTML",
-      messageSubject: "Your Celerey Login Code",
+      messageSubject: `Your ${APPLICATION_NAME} login code`,
     },
   });
 }

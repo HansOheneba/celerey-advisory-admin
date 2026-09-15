@@ -66,7 +66,7 @@ function AddAdvisorForm({ onSuccess }: { onSuccess: () => void }) {
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="amara@celerey.com"
+          placeholder="amara@company.com"
           required
           aria-invalid={Boolean(state?.errors?.email)}
         />

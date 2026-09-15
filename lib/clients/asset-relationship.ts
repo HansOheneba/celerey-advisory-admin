@@ -1,16 +1,16 @@
 /**
- * Asset relationship classification for Celerey advisory clients.
+ * Asset relationship classification for Fidelity advisory clients.
  *
  * Definitions:
- * - AUA (Assets Under Advisory): total assets Celerey advises on, including managed
+ * - AUA (Assets Under Advisory): total assets Fidelity advises on, including managed
  *   and advised-only holdings. AUA >= AUM always.
- * - AUM (Assets Under Management): subset of AUA that Celerey actively manages.
+ * - AUM (Assets Under Management): subset of AUA that Fidelity actively manages.
  * - Advised-only (held away): AUA − AUM. Never add AUA + AUM — that double-counts.
  *
  * Demo demarcation rules (tune for business):
- * - Account at institution containing "Celerey" → AUM
+ * - Account at a Fidelity managed institution → AUM
  * - Account at any other institution → advised-only (counts toward AUA)
- * - Holding default → AUM (Celerey-managed portfolio sleeves)
+ * - Holding default → AUM (Fidelity-managed portfolio sleeves)
  * - Holding explicitly marked relationship: "aua" in seed → advised-only
  * - heldAwayUsd on client record → advised-only (synthetic external pool)
  * - Property, liabilities, unadvised personal assets → excluded from AUA/AUM
@@ -45,16 +45,17 @@ export const ASSET_RELATIONSHIP_LONG_LABELS: Record<AssetRelationship, string> =
 
 export const ASSET_RELATIONSHIP_HINTS: Record<AssetRelationship, string> = {
   aua: "Total Assets Under Advisory (includes managed)",
-  aum: "Actively managed through Celerey",
+  aum: "Actively managed through Fidelity",
 };
 
-const CELEREY_INSTITUTION_PATTERN = /celerey/i;
+const FIDELITY_MANAGED_INSTITUTION_PATTERN =
+  /fidelity bank|fidelity asset|fidelity trust|fidelity securities/i;
 
 function round(value: number): number {
   return Math.round(value);
 }
 
-/** Assets advised on but not under Celerey management mandate. */
+/** Assets advised on but not under Fidelity management mandate. */
 export function advisedOnlyAssets(aua: number, aum: number): number {
   return Math.max(0, aua - aum);
 }
@@ -98,7 +99,7 @@ export function classifyAccountRelationship(
   if (explicit) {
     return explicit;
   }
-  return CELEREY_INSTITUTION_PATTERN.test(institution) ? "aum" : "aua";
+  return FIDELITY_MANAGED_INSTITUTION_PATTERN.test(institution) ? "aum" : "aua";
 }
 
 export function classifyHoldingRelationship(

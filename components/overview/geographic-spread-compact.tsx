@@ -15,6 +15,7 @@ import { dashboardTheme } from "@/lib/dashboard-theme";
 import { formatCompactCurrency, headingTitle } from "@/lib/format";
 import type { GeographicSpread } from "@/lib/overview/book-analytics";
 import { cn } from "@/lib/utils";
+import { brandColors } from "@/lib/brand";
 
 const WORLD_TOPO =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -24,11 +25,11 @@ const MAP_HEIGHT = 320;
 
 /** High-contrast fills so country borders read clearly on screen. */
 const MAP = {
-  ocean: "#dce4ef",
-  land: "#eef2f7",
-  landStroke: "#64748b",
-  activeLand: "#4a5878",
-  activeStroke: "#2d3748",
+  ocean: brandColors.cream,
+  land: brandColors.white,
+  landStroke: brandColors.brown,
+  activeLand: brandColors.orange,
+  activeStroke: brandColors.black,
 } as const;
 
 type GeographicSpreadCompactProps = {

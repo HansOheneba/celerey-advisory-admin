@@ -1,4 +1,5 @@
 import { Label } from "@/components/ui/label";
+import { headingTitle } from "@/lib/format";
 
 export function ProfileField({
   label,
@@ -13,7 +14,7 @@ export function ProfileField({
 }) {
   return (
     <div className={className ?? "space-y-2"}>
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label htmlFor={htmlFor}>{headingTitle(label)}</Label>
       {children}
     </div>
   );

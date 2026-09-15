@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { NotebookText } from "lucide-react";
 import { toast } from "sonner";
@@ -201,7 +202,7 @@ export function AppointmentsWorkspace({
           </div>
           <div className="flex flex-wrap items-stretch gap-3 border-t border-border pt-3">
             <div className="min-w-[5.5rem] space-y-0.5 border-r border-border pr-3">
-              <p className={dashboardTheme.sectionLabel}>Today</p>
+              <SectionEyebrow>Today</SectionEyebrow>
               <p className="text-sm font-semibold text-foreground">
                 {formatHeaderDate(todayDate)}
               </p>
@@ -212,7 +213,7 @@ export function AppointmentsWorkspace({
                 stats.requests > 0 && "text-foreground",
               )}
             >
-              <p className={dashboardTheme.sectionLabel}>Requests</p>
+              <SectionEyebrow>Requests</SectionEyebrow>
               <p className="text-sm font-semibold tabular-nums">
                 {stats.requests}{" "}
                 <span className="font-normal text-muted-foreground">
@@ -222,7 +223,7 @@ export function AppointmentsWorkspace({
             </div>
             {nextAppointment?.scheduledAt ? (
               <div className="min-w-0 flex-1 space-y-0.5">
-                <p className={dashboardTheme.sectionLabel}>Next appointment</p>
+                <SectionEyebrow>Next appointment</SectionEyebrow>
                 <p className="text-sm leading-snug">
                   <span className="font-semibold text-foreground">
                     {nextAppointment.clientName}
@@ -256,7 +257,7 @@ export function AppointmentsWorkspace({
         <section className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
             <div>
-              <p className={dashboardTheme.sectionLabel}>Action required</p>
+              <SectionEyebrow>Action required</SectionEyebrow>
               <h3 className="text-base font-semibold tracking-tight">
                 Meeting negotiations
               </h3>

@@ -9,6 +9,7 @@ import { IconTile } from "@/components/shared/icon-tile";
 import { SectionPanel } from "@/components/shared/section-panel";
 import { SeverityBadge } from "@/components/shared/severity-badge";
 import { Badge } from "@/components/ui/badge";
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -69,7 +70,7 @@ export function IntelligenceTab({
 
       {canUseCopilot ? (
         <SectionPanel
-          title="Celerey Copilot"
+          title={CELEREY_COPILOT_NAME}
           description="Drafts from this client's portal data. Check before you send anything."
           variant="ai"
         >

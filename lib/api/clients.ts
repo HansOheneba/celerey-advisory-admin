@@ -35,7 +35,7 @@ export type CreateClientInput = {
   creationMode?: "invite" | "direct";
   sendInvite?: boolean;
   grantCore?: boolean;
-  /** Celerey Core access length in days. Only applied when grantCore is true. */
+  /** Fidelity Core (celerey_core) access length in days. Only applied when grantCore is true. */
   durationDays?: number;
   advisorId?: string;
   identity?: ClientIdentityInput;

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { ScheduleStats } from "@/lib/appointments/display";
 import { dashboardTheme } from "@/lib/dashboard-theme";
+import { headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type AppointmentSummaryStripProps = {
@@ -32,7 +33,9 @@ export function AppointmentSummaryStrip({
 
           const content = (
             <>
-              <p className={dashboardTheme.sectionLabel}>{item.label}</p>
+              <p className={dashboardTheme.sectionLabel}>
+                {headingTitle(item.label)}
+              </p>
               <p
                 className={cn(
                   "mt-1 text-2xl font-medium tabular-nums tracking-tight",

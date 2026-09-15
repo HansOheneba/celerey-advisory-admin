@@ -78,6 +78,7 @@ export function PropertiesTab({ record, canEdit }: PropertiesTabProps) {
                         <>
                           <EditPropertyDialog
                             clientId={clientId}
+                            currency={currency}
                             property={{
                               property_id: property.property_id,
                               name: property.name,

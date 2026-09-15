@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { toast } from "sonner";
 import {
   saveAdvisorSettingsAction,
@@ -74,7 +75,7 @@ export function SettingsWorkspace({
   return (
     <div className={dashboardTheme.page}>
       <section className="space-y-0.5">
-        <p className={dashboardTheme.sectionLabel}>Workspace</p>
+        <SectionEyebrow>Workspace</SectionEyebrow>
         <h2 className={dashboardTheme.pageTitle}>Settings</h2>
         <p className={dashboardTheme.pageDescription}>
           {admin

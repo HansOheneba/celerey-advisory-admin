@@ -3,7 +3,9 @@ import type { AccountSpec, ClientSpec, HoldingSpec } from "@/lib/demo/seed/clien
 
 export type AssetMandate = "aua" | "aum" | "mixed";
 
-const CELEREY_PATTERN = /celerey/i;
+/** Managed-house institutions (AUM); excludes bare external custodian names. */
+const FIDELITY_MANAGED_PATTERN =
+  /fidelity bank|fidelity asset|fidelity trust|fidelity securities/i;
 
 const EXTERNAL_INSTITUTIONS = [
   "Stanbic Bank",
@@ -36,14 +38,14 @@ function isMixedBook(spec: ClientSpec): boolean {
     spec.accounts.some(
       (account) =>
         account.relationship === "aua" ||
-        (!account.relationship && !CELEREY_PATTERN.test(account.institution)),
+        (!account.relationship && !FIDELITY_MANAGED_PATTERN.test(account.institution)),
     );
   const hasAumPool =
     spec.holdings.some((holding) => holding.relationship !== "aua") ||
     spec.accounts.some(
       (account) =>
         account.relationship === "aum" ||
-        (!account.relationship && CELEREY_PATTERN.test(account.institution)),
+        (!account.relationship && FIDELITY_MANAGED_PATTERN.test(account.institution)),
     );
 
   return hasHeldAway || (hasAuaPool && hasAumPool);
@@ -56,7 +58,7 @@ function markHoldingsAua(holdings: HoldingSpec[]): HoldingSpec[] {
 function markAccountsAua(accounts: AccountSpec[], key: string): AccountSpec[] {
   return accounts.map((account, index) => ({
     ...account,
-    institution: CELEREY_PATTERN.test(account.institution)
+    institution: FIDELITY_MANAGED_PATTERN.test(account.institution)
       ? externalInstitution(`${key}-${index}`)
       : account.institution,
     relationship: "aua" as AssetRelationship,
@@ -66,9 +68,9 @@ function markAccountsAua(accounts: AccountSpec[], key: string): AccountSpec[] {
 function markAccountsAum(accounts: AccountSpec[]): AccountSpec[] {
   return accounts.map((account) => ({
     ...account,
-    institution: CELEREY_PATTERN.test(account.institution)
+    institution: FIDELITY_MANAGED_PATTERN.test(account.institution)
       ? account.institution
-      : "Celerey Bank",
+      : "Fidelity Bank",
     relationship: undefined,
   }));
 }
@@ -97,25 +99,25 @@ function ensureMixedBook(spec: ClientSpec): ClientSpec {
 
   const base = portfolioBase(spec);
   const externalCash = Math.max(Math.round(base * 0.12), 20_000);
-  const celereyAccounts = spec.accounts.filter((account) =>
-    CELEREY_PATTERN.test(account.institution),
+  const fidelityAccounts = spec.accounts.filter((account) =>
+    FIDELITY_MANAGED_PATTERN.test(account.institution),
   );
   const otherAccounts = spec.accounts.filter(
-    (account) => !CELEREY_PATTERN.test(account.institution),
+    (account) => !FIDELITY_MANAGED_PATTERN.test(account.institution),
   );
 
-  const primaryCelerey = celereyAccounts[0];
+  const primaryFidelity = fidelityAccounts[0];
   const adjustedAccounts: AccountSpec[] = [];
 
-  if (primaryCelerey) {
+  if (primaryFidelity) {
     adjustedAccounts.push({
-      ...primaryCelerey,
-      balance: Math.max(primaryCelerey.balance - externalCash, 0),
+      ...primaryFidelity,
+      balance: Math.max(primaryFidelity.balance - externalCash, 0),
     });
   }
 
   adjustedAccounts.push(
-    ...celereyAccounts.slice(1),
+    ...fidelityAccounts.slice(1),
     ...otherAccounts.map((account) => ({
       ...account,
       relationship: "aua" as AssetRelationship,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Camera } from "lucide-react";
 import type { UpdateAdvisorSettings } from "@/components/settings/settings-workspace";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,7 +57,7 @@ export function ProfileTab({
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Profile</p>
+        <SectionEyebrow>Profile</SectionEyebrow>
         <CardTitle className="text-base font-semibold">
           Personal details
         </CardTitle>

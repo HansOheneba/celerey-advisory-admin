@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -343,7 +344,7 @@ export function TasksWorkspace({ clients, initialTasks }: TasksWorkspaceProps) {
     <div className={dashboardTheme.page}>
       <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-0.5">
-          <p className={dashboardTheme.sectionLabel}>Workflow</p>
+          <SectionEyebrow>Workflow</SectionEyebrow>
           <h2 className={dashboardTheme.pageTitle}>Tasks</h2>
           <p className={dashboardTheme.pageDescription}>
             Follow-ups for you, plus work assigned to clients on your book.

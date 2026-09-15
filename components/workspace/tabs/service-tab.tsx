@@ -1,4 +1,5 @@
 import { ClientSessionsSection } from "@/components/sessions/client-sessions-section";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { ClientAvailabilityCard } from "@/components/clients/client-availability-card";
 import { ClientDocumentsCard } from "@/components/clients/client-documents-card";
 import { ClientReportsPanel } from "@/components/reports/client-reports-panel";
@@ -256,7 +257,7 @@ export function ServiceTab({
 
       <Card className="shadow-none">
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Compliance</p>
+          <SectionEyebrow>Compliance</SectionEyebrow>
           <CardTitle>Sessions</CardTitle>
           <CardDescription>
             Session logs and published meeting notes.

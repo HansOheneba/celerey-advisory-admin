@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCompactCurrency, titleCase } from "@/lib/format";
+import { formatCompactCurrency, headingTitle, titleCase } from "@/lib/format";
 import {
   PRODUCT_CATEGORY_LABELS,
   type DemoProduct,
@@ -264,7 +264,7 @@ function ProductCard({ product }: { product: DemoProduct }) {
 
         {product.restrictions.length > 0 ? (
           <div className="space-y-1 border-t border-border pt-3">
-            <p className={dashboardTheme.statLabel}>Restrictions</p>
+            <p className={dashboardTheme.statLabel}>{headingTitle("Restrictions")}</p>
             <ul className="space-y-0.5 text-xs leading-relaxed text-muted-foreground">
               {product.restrictions.map((restriction) => (
                 <li key={restriction}>· {restriction}</li>

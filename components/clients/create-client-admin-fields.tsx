@@ -58,7 +58,7 @@ export function CreateClientAdminFields({
             className="mt-0.5 size-4 accent-primary"
           />
           <span>
-            <span className="font-medium">Grant Celerey Core</span>
+            <span className="font-medium">Grant Fidelity Core</span>
             <span className="mt-0.5 block text-muted-foreground">
               Give Core access immediately (recovery / paid-offline cases).
             </span>

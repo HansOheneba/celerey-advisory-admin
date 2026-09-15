@@ -19,15 +19,7 @@ export function formatPct(value: number, signed = false): string {
 }
 
 export function formatCompactUsd(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(1)}M`;
-  }
-
-  if (Math.abs(value) >= 1_000) {
-    return `$${Math.round(value / 1000)}k`;
-  }
-
-  return `$${Math.round(value)}`;
+  return formatUsd(value);
 }
 
 export function formatLongDate(iso: string): string {

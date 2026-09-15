@@ -1,7 +1,21 @@
 import type { Task, TaskPriority, TaskStatus } from "@/lib/tasks/types";
 import type { Client } from "@/types/client";
 
-const STORAGE_KEY = "celerey.tasks.v1";
+const STORAGE_KEY = "fidelity.advisor.tasks.v1";
+const LEGACY_STORAGE_KEY = "celerey.tasks.v1";
+
+function readStoredJson(): string | null {
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    return raw;
+  }
+  const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy) {
+    window.localStorage.setItem(STORAGE_KEY, legacy);
+    return legacy;
+  }
+  return null;
+}
 const MAX_SEEDED_TASKS = 12;
 
 function createId(prefix: string) {
@@ -100,7 +114,7 @@ export function loadTasks(clients: Client[]): Task[] {
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readStoredJson();
     if (raw) {
       const parsed = JSON.parse(raw) as Task[];
       if (Array.isArray(parsed) && parsed.length > 0) {

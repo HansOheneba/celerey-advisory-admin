@@ -339,7 +339,7 @@ export const UpdateSubscriptionSchema = z
   .refine(
     (data) => data.subscription !== "celerey_core" || data.durationDays != null,
     {
-      error: "Duration is required for Celerey Core.",
+      error: "Duration is required for Fidelity Core.",
       path: ["durationDays"],
     },
   );

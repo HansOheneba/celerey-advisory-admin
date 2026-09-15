@@ -19,6 +19,7 @@ import {
   WithdrawalStressPanel,
 } from "@/components/tools/calculator-panels";
 import { ClientContextStrip } from "@/components/tools/client-context-strip";
+import { ClientSelect } from "@/components/tools/client-select";
 import { ToolSidebar } from "@/components/tools/tool-sidebar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -89,19 +90,24 @@ export function ToolsView({ clients }: ToolsViewProps) {
   );
   const ActivePanel = PANELS[activeToolId];
 
+  const clientOptions = useMemo(
+    () => clients.map((client) => ({ id: client.id, name: client.name })),
+    [clients],
+  );
+
   if (!seed) {
     return (
       <div className={dashboardTheme.pageContainer}>
         <PageHeader
           eyebrow="Tools"
           title="Client calculators"
-          description="Run numbers on book data during a call."
+          description="Planning numbers for a client on your book."
           icon={Calculator}
         />
         <EmptyState
           icon={Calculator}
           title="No clients in your book"
-          description="Add a client first."
+          description="Add a client, then come back here."
         />
       </div>
     );
@@ -112,17 +118,19 @@ export function ToolsView({ clients }: ToolsViewProps) {
       <PageHeader
         eyebrow="Tools"
         title="Client calculators"
-        description="Prefilled from the client's book. Edit on the call."
+        description="Choose a client, pick a calculator, adjust inputs as you talk."
         icon={Calculator}
+        actions={
+          <ClientSelect
+            clients={clientOptions}
+            value={clientId}
+            onValueChange={setClientId}
+            className="w-full sm:w-72"
+          />
+        }
       />
 
-      <ClientContextStrip
-        clients={clients}
-        clientId={clientId}
-        onClientChange={setClientId}
-        seed={seed}
-        onSuggestTool={setActiveToolId}
-      />
+      <ClientContextStrip seed={seed} onSuggestTool={setActiveToolId} />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <ToolSidebar
@@ -132,25 +140,27 @@ export function ToolsView({ clients }: ToolsViewProps) {
         />
 
         <div className="min-w-0 flex-1 space-y-4">
-          <div className="lg:hidden">
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">
-              Calculator
-            </p>
-            <Select
-              value={activeToolId}
-              onValueChange={(value) => setActiveToolId(value ?? activeToolId)}
-            >
-              <SelectTrigger aria-label="Select calculator">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TOOL_DEFINITIONS.map((tool) => (
-                  <SelectItem key={tool.id} value={tool.id}>
-                    {tool.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3 lg:hidden">
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                Calculator
+              </p>
+              <Select
+                value={activeToolId}
+                onValueChange={(value) => setActiveToolId(value ?? activeToolId)}
+              >
+                <SelectTrigger aria-label="Select calculator">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TOOL_DEFINITIONS.map((tool) => (
+                    <SelectItem key={tool.id} value={tool.id}>
+                      {tool.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {activeTool ? (
@@ -165,7 +175,7 @@ export function ToolsView({ clients }: ToolsViewProps) {
             <EmptyState
               icon={Calculator}
               title="Calculator unavailable"
-              description="Pick a calculator from the list."
+              description="Choose a calculator from the list."
             />
           )}
         </div>

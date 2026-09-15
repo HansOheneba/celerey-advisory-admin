@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { ArrowUpRight } from "lucide-react";
 import { AddAdvisorDialog } from "@/components/advisors/add-advisor-dialog";
 import { AdvisorRoleSelect } from "@/components/advisors/advisor-role-select";
@@ -38,7 +39,7 @@ export function UsersRolesTab({
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Users &amp; roles</p>
+        <SectionEyebrow>Users &amp; roles</SectionEyebrow>
         <CardTitle className="text-base font-semibold">Team members</CardTitle>
         <p className="text-sm text-muted-foreground">
           {canManageRoles

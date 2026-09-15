@@ -74,7 +74,7 @@ function SubscriptionForm({
           <SelectContent>
             <SelectItem value="not_onboarded">Not onboarded</SelectItem>
             <SelectItem value="free_trial">Free trial</SelectItem>
-            <SelectItem value="celerey_core">Celerey Core</SelectItem>
+            <SelectItem value="celerey_core">Fidelity Core</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -128,7 +128,7 @@ export function EditSubscriptionDialog({
         <DialogHeader>
           <DialogTitle>Edit subscription</DialogTitle>
           <DialogDescription>
-            Set Not onboarded, Free trial, or Celerey Core. Core requires a
+            Set Not onboarded, Free trial, or Fidelity Core. Core requires a
             subscription length.
           </DialogDescription>
         </DialogHeader>

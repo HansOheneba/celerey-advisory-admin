@@ -5,7 +5,21 @@ import type {
 } from "@/lib/appointments/types";
 import type { Client } from "@/types/client";
 
-const STORAGE_KEY = "celerey.appointments.v1";
+const STORAGE_KEY = "fidelity.advisor.appointments.v1";
+const LEGACY_STORAGE_KEY = "celerey.appointments.v1";
+
+function readStoredJson(): string | null {
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    return raw;
+  }
+  const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy) {
+    window.localStorage.setItem(STORAGE_KEY, legacy);
+    return legacy;
+  }
+  return null;
+}
 const SEED_TYPES: AppointmentType[] = [
   "review",
   "onboarding",
@@ -77,7 +91,7 @@ export function loadAppointments(
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readStoredJson();
     if (raw) {
       const parsed = JSON.parse(raw) as Appointment[];
       if (Array.isArray(parsed) && parsed.length > 0) {

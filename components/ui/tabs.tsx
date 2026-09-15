@@ -4,6 +4,7 @@ import * as React from "react"
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
 
 import { cn } from "@/lib/utils"
+import { formatTitleChildren } from "@/lib/format"
 
 function Tabs({ className, ...props }: TabsPrimitive.Root.Props) {
   return (
@@ -28,7 +29,7 @@ function TabsList({ className, ...props }: TabsPrimitive.List.Props) {
   )
 }
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+function TabsTrigger({ className, children, ...props }: TabsPrimitive.Tab.Props) {
   return (
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
@@ -37,7 +38,9 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
         className
       )}
       {...props}
-    />
+    >
+      {formatTitleChildren(children)}
+    </TabsPrimitive.Tab>
   )
 }
 

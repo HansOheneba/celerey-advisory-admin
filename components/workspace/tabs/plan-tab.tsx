@@ -44,7 +44,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
         title="Goals"
         description={`${formatCurrency(detail.goalsMeta.totalMonthlyNeeded, currency)} a month required across ${detail.goalsMeta.activeGoals} active goals.`}
         variant="success"
-        actions={canEdit ? <AddGoalDialog clientId={clientId} /> : null}
+        actions={canEdit ? <AddGoalDialog clientId={clientId} currency={currency} /> : null}
       >
         {detail.goals.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -120,8 +120,8 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
 
       {canEdit ? (
         <div className="flex flex-wrap justify-end gap-2">
-          <AddIncomeDialog clientId={clientId} />
-          <AddExpenseDialog clientId={clientId} />
+          <AddIncomeDialog clientId={clientId} currency={currency} />
+          <AddExpenseDialog clientId={clientId} currency={currency} />
         </div>
       ) : null}
 
@@ -141,6 +141,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
             canEdit ? (
               <EditRetirementDialog
                 clientId={clientId}
+                currency={currency}
                 retirement={detail.retirement}
               />
             ) : null
@@ -149,7 +150,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
           <StatGrid columns={2}>
             <StatItem
               label="Invested today"
-              value={formatCompactCurrency(detail.retirement.currentInvested)}
+              value={formatCompactCurrency(detail.retirement.currentInvested, currency)}
             />
             <StatItem
               label="Monthly savings"
@@ -162,6 +163,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
               label="Pension balance"
               value={formatCompactCurrency(
                 detail.retirement.existingPensionBalance,
+                currency,
               )}
             />
             <StatItem
@@ -187,6 +189,7 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
             canEdit ? (
               <EditEmergencyFundDialog
                 clientId={clientId}
+                currency={currency}
                 emergencyFund={detail.emergencyFund}
               />
             ) : null
@@ -312,7 +315,11 @@ export function PlanTab({ record, canEdit }: PlanTabProps) {
                   trailing={
                     <span className="flex items-center gap-2">
                       <span className="text-sm font-medium">
-                        {formatCompactCurrency(policy.coverage_amount ?? 0)} cover
+                        {formatCompactCurrency(
+                          policy.coverage_amount ?? 0,
+                          currency,
+                        )}{" "}
+                        cover
                       </span>
                       {canEdit ? (
                         <RemoveProfileItemButton

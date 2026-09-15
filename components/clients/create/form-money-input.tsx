@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  formatNumberWithCommas,
-  parseMoneyInput,
-} from "@/lib/clients/property-form";
+import { parseMoneyInput } from "@/lib/clients/property-form";
+import { formatNumberWithCommas } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type FormMoneyInputProps = {

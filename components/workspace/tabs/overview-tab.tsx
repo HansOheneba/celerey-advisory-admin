@@ -166,7 +166,7 @@ export function OverviewTab({
               label="Held away"
               value={
                 record.heldAwayUsd > 0
-                  ? formatCompactCurrency(record.heldAwayUsd)
+                  ? formatCompactCurrency(record.heldAwayUsd, client.currency)
                   : "None"
               }
             />
@@ -177,6 +177,7 @@ export function OverviewTab({
                   (total, property) => total + (property.current_value ?? 0),
                   0,
                 ),
+                client.currency,
               )}
             />
             <StatItem
@@ -186,6 +187,7 @@ export function OverviewTab({
                   (total, liability) => total + liability.balance,
                   0,
                 ),
+                client.currency,
               )}
             />
             <StatItem

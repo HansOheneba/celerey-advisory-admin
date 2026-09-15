@@ -1,4 +1,5 @@
 import type { ClientSpec } from "@/lib/demo/seed/client-builder";
+import { brandColors } from "@/lib/brand";
 
 /** Showcase client aligned with docs/full-client-by-tab.json (Ada Mensah). */
 export const ADA_MENSAH_SPEC: ClientSpec = {
@@ -69,7 +70,7 @@ export const ADA_MENSAH_SPEC: ClientSpec = {
       priority: 1,
       targetDate: "2028-12-31",
       icon: "house",
-      color: "#3B82F6",
+      color: brandColors.orange,
       probability: 88,
     },
     {
@@ -82,7 +83,7 @@ export const ADA_MENSAH_SPEC: ClientSpec = {
       priority: 2,
       targetDate: "2027-06-30",
       icon: "shield",
-      color: "#EF4444",
+      color: brandColors.brown,
       probability: 92,
     },
   ],

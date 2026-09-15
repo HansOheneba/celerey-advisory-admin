@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { AssignAdvisorControl } from "@/components/clients/assign-advisor-control";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { ClientAvailabilityCard } from "@/components/clients/client-availability-card";
 import { ClientDocumentsCard } from "@/components/clients/client-documents-card";
 import { ClientAdvisorySection } from "@/components/clients/detail/client-advisory-section";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import {
+  chartCurrencyFormatter,
   formatCompactCurrency,
   formatCurrency,
   formatDate,
@@ -49,15 +51,9 @@ import type { ClientDetail } from "@/types/client-detail";
 import type { ClientInternalNote } from "@/types/client-internal-note";
 import { latestInternalNote } from "@/lib/clients/internal-notes";
 import { cn } from "@/lib/utils";
+import { brandChartColors } from "@/lib/brand";
 
-const chartColors = [
-  "#151339",
-  "#1e3a5f",
-  "#8c80f8",
-  "#7eb8e8",
-  "#10b981",
-  "#f59e0b",
-];
+const chartColors = [...brandChartColors];
 
 type Currency = "USD" | "GHS" | "GBP";
 
@@ -111,7 +107,7 @@ function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-        {label}
+        {headingTitle(label)}
       </p>
       <p className="truncate text-sm font-medium">{value}</p>
     </div>
@@ -137,7 +133,7 @@ function CompactTable({
           <TableRow>
             {headers.map((header) => (
               <TableHead key={header} className="h-8 px-3 text-xs">
-                {header}
+                {headingTitle(header)}
               </TableHead>
             ))}
           </TableRow>
@@ -246,10 +242,10 @@ export function ClientDetailView({
   const showFreshness = state.freshness.length > 0;
 
   const kpis = [
-    { label: "AUA", value: formatCompactCurrency(client.aua) },
-    { label: "AUM", value: formatCompactCurrency(client.aum) },
-    { label: "Held away", value: formatCompactCurrency(advisedOnly) },
-    { label: "Net", value: formatCompactCurrency(netWorth) },
+    { label: "AUA", value: formatCompactCurrency(client.aua, currency) },
+    { label: "AUM", value: formatCompactCurrency(client.aum, currency) },
+    { label: "Held away", value: formatCompactCurrency(advisedOnly, currency) },
+    { label: "Net", value: formatCompactCurrency(netWorth, currency) },
     {
       label: "Surplus / mo",
       value: formatCurrency(state.cashFlowSummary.monthly_surplus, currency),
@@ -332,7 +328,7 @@ export function ClientDetailView({
         {latestInternalNote(internalNotes) ? (
           <Card className={dashboardTheme.card}>
             <CardHeader className="pb-2">
-              <p className={dashboardTheme.sectionLabel}>Notes</p>
+              <SectionEyebrow>Notes</SectionEyebrow>
               <CardTitle className="text-base font-medium">
                 Team file
               </CardTitle>
@@ -373,7 +369,7 @@ export function ClientDetailView({
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-3 xl:grid-cols-6">
             {kpis.map((item) => (
               <div key={item.label} className="bg-card px-3 py-2.5">
-                <p className={dashboardTheme.sectionLabel}>{item.label}</p>
+                <SectionEyebrow>{headingTitle(item.label)}</SectionEyebrow>
                 <p className="mt-0.5 text-base font-semibold tabular-nums tracking-tight">
                   {item.value}
                 </p>
@@ -396,12 +392,13 @@ export function ClientDetailView({
       <ClientAdvisorySection
         appointments={appointments}
         entitlement={entitlement}
+        currency={currency}
       />
 
       {!canViewAnalysis ? (
         <Card className={dashboardTheme.card}>
           <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Access</p>
+            <SectionEyebrow>Access</SectionEyebrow>
             <CardTitle className="text-base font-medium">
               Contact profile
             </CardTitle>
@@ -692,8 +689,9 @@ export function ClientDetailView({
                           </Pie>
                           <Tooltip
                             formatter={(value) =>
-                              formatCompactCurrency(
+                              formatCurrency(
                                 typeof value === "number" ? value : 0,
+                                currency,
                               )
                             }
                           />
@@ -719,8 +717,18 @@ export function ClientDetailView({
                             axisLine={false}
                             className="text-xs"
                           />
-                          <YAxis hide />
-                          <Tooltip />
+                          <YAxis
+                            hide
+                            tickFormatter={chartCurrencyFormatter(currency)}
+                          />
+                          <Tooltip
+                            formatter={(value) =>
+                              formatCurrency(
+                                typeof value === "number" ? value : 0,
+                                currency,
+                              )
+                            }
+                          />
                           <Line
                             type="monotone"
                             dataKey="value"

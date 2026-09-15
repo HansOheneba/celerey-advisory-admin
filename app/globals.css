@@ -53,6 +53,7 @@
   --color-accent-purple: var(--accent-purple);
   --color-accent-gold: var(--accent-gold);
   --color-accent-blue: var(--accent-blue);
+  --color-accent-orange: var(--accent-orange);
   --color-success: var(--success);
   --color-warning: var(--warning);
 }
@@ -60,67 +61,68 @@
 :root {
   --radius: 0.5rem;
 
-  /* Surfaces */
-  --background: #f5f7fb;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
+  /* Fidelity: orange, cream, brown, white + black */
+  --fidelity-orange: #ff7931;
+  --fidelity-cream: #fff7ee;
+  --fidelity-brown: #906d56;
+  --fidelity-white: #ffffff;
+  --fidelity-black: #000000;
 
-  /* Actions */
-  --primary: #151339;
-  --primary-foreground: #fafafa;
-  --secondary: #eef2f7;
-  --secondary-foreground: #171717;
-  --muted: #eef2f7;
-  --muted-foreground: #667085;
-  --accent: #eef2f7;
-  --accent-foreground: #171717;
-  --destructive: #e5484d;
+  --background: var(--fidelity-cream);
+  --foreground: var(--fidelity-black);
+  --card: var(--fidelity-white);
+  --card-foreground: var(--fidelity-black);
+  --popover: var(--fidelity-white);
+  --popover-foreground: var(--fidelity-black);
 
-  /* Borders and focus */
-  --border: #e3e8ef;
-  --input: #e3e8ef;
-  --ring: #151339;
+  --primary: var(--fidelity-orange);
+  --primary-foreground: var(--fidelity-white);
+  --secondary: color-mix(in srgb, var(--fidelity-brown) 12%, var(--fidelity-cream));
+  --secondary-foreground: var(--fidelity-black);
+  --muted: color-mix(in srgb, var(--fidelity-brown) 8%, var(--fidelity-cream));
+  --muted-foreground: color-mix(in srgb, var(--fidelity-black) 55%, var(--fidelity-brown));
+  --accent: color-mix(in srgb, var(--fidelity-brown) 10%, var(--fidelity-cream));
+  --accent-foreground: var(--fidelity-black);
+  --destructive: var(--fidelity-black);
+  --destructive-foreground: var(--fidelity-white);
 
-  /* Celerey accents */
-  --accent-blue: #8c80f8;
+  --border: color-mix(in srgb, var(--fidelity-brown) 28%, var(--fidelity-white));
+  --input: color-mix(in srgb, var(--fidelity-brown) 28%, var(--fidelity-white));
+  --ring: var(--fidelity-orange);
+
+  --accent-orange: var(--fidelity-orange);
+  --accent-gold: var(--fidelity-brown);
+  --accent-blue: var(--fidelity-brown);
+  /* Celerey Copilot only — not part of Fidelity palette */
   --accent-purple: #8c80f8;
-  --accent-gold: #b8975a;
-  --success: #16a34a;
-  --warning: #f59e0b;
+  --success: var(--fidelity-brown);
+  --warning: var(--fidelity-orange);
 
-  /* Sidebar (light) */
-  --sidebar: #fbfcfe;
-  --sidebar-foreground: #171717;
-  --sidebar-border: #e3e8ef;
-  --sidebar-accent: #eef2f7;
-  --sidebar-accent-foreground: #171717;
-  --sidebar-primary: #151339;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-ring: #151339;
+  --sidebar: var(--fidelity-white);
+  --sidebar-foreground: var(--fidelity-black);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--muted);
+  --sidebar-accent-foreground: var(--fidelity-black);
+  --sidebar-primary: var(--fidelity-orange);
+  --sidebar-primary-foreground: var(--fidelity-white);
+  --sidebar-ring: var(--fidelity-orange);
 
-  /* Charts */
-  --chart-1: #151339;
-  --chart-2: #8c80f8;
-  --chart-3: #b8975a;
-  --chart-4: #16a34a;
-  --chart-5: #667085;
+  --chart-1: var(--fidelity-orange);
+  --chart-2: var(--fidelity-brown);
+  --chart-3: var(--fidelity-black);
+  --chart-4: color-mix(in srgb, var(--fidelity-brown) 45%, var(--fidelity-cream));
+  --chart-5: color-mix(in srgb, var(--fidelity-orange) 35%, var(--fidelity-cream));
 
-  /* Dashboard layout */
-  --dashboard-surface: #f5f7fb;
+  --dashboard-surface: var(--fidelity-cream);
   --dashboard-max-width: 1536px;
 
-  /* Tinted surfaces */
-  --surface-muted: #eef2f7;
-  --surface-brand: color-mix(in srgb, var(--primary) 9%, white);
-  --surface-success: color-mix(in srgb, var(--success) 9%, white);
-  --surface-warning: color-mix(in srgb, var(--warning) 9%, white);
-  --surface-info: color-mix(in srgb, var(--accent-blue) 8%, white);
+  --surface-muted: var(--muted);
+  --surface-brand: color-mix(in srgb, var(--fidelity-orange) 10%, var(--fidelity-white));
+  --surface-success: color-mix(in srgb, var(--fidelity-brown) 10%, var(--fidelity-white));
+  --surface-warning: color-mix(in srgb, var(--fidelity-orange) 8%, var(--fidelity-white));
+  --surface-info: color-mix(in srgb, var(--fidelity-brown) 8%, var(--fidelity-white));
   --surface-ai: color-mix(in srgb, var(--accent-purple) 9%, white);
 
-  /* Motion */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-dash: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -150,18 +152,17 @@
   background-color: var(--dashboard-surface);
 }
 
-/* Active sidebar nav tint */
 .sidebar-nav-active {
-  background: color-mix(in srgb, var(--primary) 9%, white);
-  color: var(--primary);
+  background: color-mix(in srgb, var(--fidelity-orange) 12%, var(--fidelity-white));
+  color: var(--fidelity-black);
   font-weight: 500;
 }
 
 .sidebar-nav-active svg {
-  color: var(--accent-purple);
+  color: var(--fidelity-orange);
 }
 
-@keyframes celerey-fade-up {
+@keyframes brand-fade-up {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -172,49 +173,49 @@
   }
 }
 
-.celerey-enter {
-  animation: celerey-fade-up var(--duration-normal) var(--ease-out) both;
+.brand-enter {
+  animation: brand-fade-up var(--duration-normal) var(--ease-out) both;
 }
 
-.celerey-stagger > * {
-  animation: celerey-fade-up var(--duration-normal) var(--ease-out) both;
+.brand-stagger > * {
+  animation: brand-fade-up var(--duration-normal) var(--ease-out) both;
 }
 
-.celerey-stagger > *:nth-child(1) {
+.brand-stagger > *:nth-child(1) {
   animation-delay: 0ms;
 }
 
-.celerey-stagger > *:nth-child(2) {
+.brand-stagger > *:nth-child(2) {
   animation-delay: 40ms;
 }
 
-.celerey-stagger > *:nth-child(3) {
+.brand-stagger > *:nth-child(3) {
   animation-delay: 80ms;
 }
 
-.celerey-stagger > *:nth-child(4) {
+.brand-stagger > *:nth-child(4) {
   animation-delay: 120ms;
 }
 
-.celerey-stagger > *:nth-child(5) {
+.brand-stagger > *:nth-child(5) {
   animation-delay: 160ms;
 }
 
-.celerey-stagger > *:nth-child(6) {
+.brand-stagger > *:nth-child(6) {
   animation-delay: 200ms;
 }
 
-.celerey-stagger > *:nth-child(7) {
+.brand-stagger > *:nth-child(7) {
   animation-delay: 240ms;
 }
 
-.celerey-stagger > *:nth-child(8) {
+.brand-stagger > *:nth-child(8) {
   animation-delay: 280ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .celerey-enter,
-  .celerey-stagger > * {
+  .brand-enter,
+  .brand-stagger > * {
     animation: none;
   }
 }

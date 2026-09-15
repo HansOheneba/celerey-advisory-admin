@@ -12,14 +12,15 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { brandColors } from "@/lib/brand";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Info, TrendingDown, TrendingUp } from "lucide-react";
 
-const INCOME_COLOR = "#1e3a5f";
-const EXPENSES_COLOR = "#7eb8e8";
-const SURPLUS_COLOR = "#10b981";
-const DEFICIT_COLOR = "#f43f5e";
+const INCOME_COLOR = brandColors.orange;
+const EXPENSES_COLOR = brandColors.brown;
+const SURPLUS_COLOR = brandColors.brown;
+const DEFICIT_COLOR = brandColors.black;
 
 type Currency = "USD" | "GHS" | "GBP";
 

@@ -16,5 +16,5 @@ export function NavItemIcon({ icon: Icon, symbol }: NavItemIconProps) {
     return null;
   }
 
-  return <Icon aria-hidden />;
+  return <Icon className="size-4 shrink-0" />;
 }

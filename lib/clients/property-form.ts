@@ -18,12 +18,7 @@ export type PropertyInsuranceInput = {
   expiry_date: string;
 };
 
-export function formatNumberWithCommas(value: string): string {
-  const cleaned = value.replace(/[^\d.]/g, "");
-  const parts = cleaned.split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return parts.join(".");
-}
+export { formatNumberWithCommas } from "@/lib/format";
 
 export function parseMoneyInput(value: string): number {
   const parsed = Number(value.replace(/,/g, ""));

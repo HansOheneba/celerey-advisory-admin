@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { formatTitleChildren } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 function Card({
@@ -33,7 +34,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
@@ -42,7 +43,9 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
         className
       )}
       {...props}
-    />
+    >
+      {formatTitleChildren(children)}
+    </div>
   )
 }
 

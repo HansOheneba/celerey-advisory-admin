@@ -1,5 +1,6 @@
 import "server-only";
 
+import { celereyCopilotAccessDeniedMessage } from "@/lib/celerey-copilot";
 import {
   ADVISORY_SYSTEM_PROMPT,
   BOOK_CONTEXT_SCOPES,
@@ -44,7 +45,7 @@ export async function prepareCopilotRequest(
   if (!can(session.demoRole, "use_copilot")) {
     return {
       ok: false,
-      message: "Your role does not have access to Celerey Copilot.",
+      message: celereyCopilotAccessDeniedMessage(),
     };
   }
 

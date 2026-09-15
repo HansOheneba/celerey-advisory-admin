@@ -9,7 +9,7 @@ import { formatBookAssetsManagedSubline } from "@/lib/overview/book-scope-copy";
 import { SectionPanel } from "@/components/shared/section-panel";
 import { StatGrid, StatItem } from "@/components/shared/stat-grid";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { formatCompactCurrency } from "@/lib/format";
+import { formatCompactCurrency, headingTitle } from "@/lib/format";
 import type { DemoClientRecord } from "@/lib/demo/types";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +58,7 @@ export function AuaAumPanel({
       <div className="space-y-5">
         <div>
           <p className={dashboardTheme.statLabel}>
-            {ASSETS_UNDER_ADVISORY_LABEL}
+            {headingTitle(ASSETS_UNDER_ADVISORY_LABEL)}
           </p>
           <p className="text-2xl font-medium tabular-nums tracking-tight">
             {formatCompactCurrency(totalAua)}

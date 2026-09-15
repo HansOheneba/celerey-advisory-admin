@@ -8,10 +8,11 @@ import {
 } from "@/lib/reports/firm";
 import { colors, fonts, reportStyles } from "@/lib/reports/pdf/report-theme";
 import type { InvestmentReportData } from "@/lib/reports/types";
+import { headingTitle } from "@/lib/format";
 
 export const REPORT_LOGO = path.join(
   process.cwd(),
-  "public/logos/logoWhite.png",
+  "public/fidelity/fidelity-symbol.png",
 );
 
 export function RunningHeader({ clientName }: { clientName: string }) {
@@ -137,7 +138,7 @@ export function CoverPage({
 }
 
 export function SubsectionTitle({ children }: { children: string }) {
-  return <Text style={reportStyles.level3}>{children}</Text>;
+  return <Text style={reportStyles.level3}>{headingTitle(children)}</Text>;
 }
 
 export function KpiBand({
@@ -149,7 +150,7 @@ export function KpiBand({
     <View style={reportStyles.kpiBand}>
       {items.map((item) => (
         <View key={item.label} style={reportStyles.kpiCell}>
-          <Text style={reportStyles.kpiLabel}>{item.label}</Text>
+          <Text style={reportStyles.kpiLabel}>{headingTitle(item.label)}</Text>
           <Text style={reportStyles.kpiValue}>{item.value}</Text>
         </View>
       ))}

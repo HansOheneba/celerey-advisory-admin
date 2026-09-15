@@ -25,8 +25,9 @@ export type AdvisorSettings = {
   notifications: AdvisorNotificationPreferences;
 };
 
-const STORAGE_KEY = "celerey.advisor.settings.v3";
-const LEGACY_STORAGE_KEY = "celerey.advisor.settings.v2";
+const STORAGE_KEY = "fidelity.advisor.settings.v3";
+const LEGACY_STORAGE_KEY = "celerey.advisor.settings.v3";
+const LEGACY_STORAGE_KEY_V2 = "celerey.advisor.settings.v2";
 
 export function defaultAdvisorSettings(displayName: string): AdvisorSettings {
   return {
@@ -108,12 +109,30 @@ export function loadAdvisorSettings(displayName: string): AdvisorSettings {
       };
     }
 
-    const legacyRaw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacyRaw) {
-      return migrateLegacySettings(
-        JSON.parse(legacyRaw) as LegacyAdvisorSettings,
+    const legacyV3 = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacyV3) {
+      const parsed = JSON.parse(legacyV3) as Partial<AdvisorSettings>;
+      const migrated = {
+        ...fallback,
+        ...parsed,
+        displayName: parsed.displayName?.trim() || displayName,
+        notifications: {
+          ...fallback.notifications,
+          ...parsed.notifications,
+        },
+      };
+      saveAdvisorSettings(migrated);
+      return migrated;
+    }
+
+    const legacyV2 = window.localStorage.getItem(LEGACY_STORAGE_KEY_V2);
+    if (legacyV2) {
+      const migrated = migrateLegacySettings(
+        JSON.parse(legacyV2) as LegacyAdvisorSettings,
         fallback,
       );
+      saveAdvisorSettings(migrated);
+      return migrated;
     }
 
     return fallback;

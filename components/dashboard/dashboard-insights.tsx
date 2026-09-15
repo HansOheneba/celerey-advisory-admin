@@ -1,4 +1,5 @@
 import { buildDashboardInsights } from "@/lib/dashboard-insights";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { cn } from "@/lib/utils";
 import type { DashboardSummary } from "@/types/client";
@@ -9,8 +10,8 @@ type DashboardInsightsProps = {
 
 const toneClass: Record<string, string> = {
   neutral: "border-border",
-  attention: "border-amber-500/30 bg-amber-500/[0.04]",
-  positive: "border-emerald-500/25 bg-emerald-500/[0.04]",
+  attention: "border-warning/30 bg-surface-warning",
+  positive: "border-success/25 bg-surface-success",
 };
 
 export function DashboardInsights({ summary }: DashboardInsightsProps) {
@@ -23,7 +24,7 @@ export function DashboardInsights({ summary }: DashboardInsightsProps) {
   return (
     <section className="space-y-3">
       <div className="space-y-0.5">
-        <p className={dashboardTheme.sectionLabel}>Insights</p>
+        <SectionEyebrow>Insights</SectionEyebrow>
         <h3 className="text-base font-semibold tracking-tight">
           What needs attention
         </h3>

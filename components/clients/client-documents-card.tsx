@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type ChangeEvent, type FormEvent } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Download, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -137,7 +138,7 @@ export function ClientDocumentsCard({
     <Card className={dashboardTheme.card}>
       <CardHeader>
         <div>
-          <p className={dashboardTheme.sectionLabel}>Files</p>
+          <SectionEyebrow>Files</SectionEyebrow>
           <CardTitle className="text-base font-semibold">Documents</CardTitle>
         </div>
         {canEdit ? (

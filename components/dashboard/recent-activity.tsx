@@ -1,4 +1,5 @@
 import type { Client, ClientActivity } from "@/types/client";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,7 @@ export function RecentActivity({
     <div className="grid gap-3 lg:grid-cols-2">
       <Card className={dashboardTheme.card}>
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Engagement</p>
+          <SectionEyebrow>Engagement</SectionEyebrow>
           <CardTitle className="text-base font-semibold">
             Recent activity
           </CardTitle>
@@ -46,7 +47,7 @@ export function RecentActivity({
 
       <Card className={dashboardTheme.card}>
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Relationships</p>
+          <SectionEyebrow>Relationships</SectionEyebrow>
           <CardTitle className="text-base font-semibold">
             Recently contacted
           </CardTitle>

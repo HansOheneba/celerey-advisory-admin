@@ -1,13 +1,67 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 
 import { StatGrid, StatItem } from "@/components/shared/stat-grid";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { parseMoneyInput } from "@/lib/clients/property-form";
 import { dashboardTheme } from "@/lib/dashboard-theme";
-import { headingTitle } from "@/lib/format";
+import { formatNumberWithCommas, headingTitle } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+function fieldId(label: string) {
+  return label.toLowerCase().replace(/[^a-z]+/g, "-");
+}
+
+function formatMoneyDisplay(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+  if (value === 0) {
+    return "0";
+  }
+  return formatNumberWithCommas(String(value));
+}
+
+export function MoneyField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const id = fieldId(label);
+  const [display, setDisplay] = useState(() => formatMoneyDisplay(value));
+
+  useEffect(() => {
+    setDisplay(formatMoneyDisplay(value));
+  }, [value]);
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs text-muted-foreground">
+        {headingTitle(label)}
+      </Label>
+      <Input
+        id={id}
+        type="text"
+        inputMode="decimal"
+        value={display}
+        onChange={(event) => {
+          const formatted = formatNumberWithCommas(event.target.value);
+          setDisplay(formatted);
+          onChange(parseMoneyInput(formatted));
+        }}
+        className="bg-background tabular-nums"
+      />
+    </div>
+  );
+}
 
 export function NumberField({
   label,
@@ -20,12 +74,12 @@ export function NumberField({
   onChange: (value: number) => void;
   step?: number;
 }) {
-  const id = label.toLowerCase().replace(/[^a-z]+/g, "-");
+  const id = fieldId(label);
 
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-xs text-muted-foreground">
-        {label}
+        {headingTitle(label)}
       </Label>
       <Input
         id={id}
@@ -79,14 +133,14 @@ export function CalculatorCard({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-3">
-          <p className={dashboardTheme.sectionLabel}>{headingTitle("Inputs")}</p>
+          <SectionEyebrow>Inputs</SectionEyebrow>
           <div className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:grid-cols-2">
             {inputs}
           </div>
         </div>
 
         <div className="space-y-4">
-          <p className={dashboardTheme.sectionLabel}>{headingTitle("Results")}</p>
+          <SectionEyebrow>Results</SectionEyebrow>
 
           <div className="rounded-lg border border-border/60 bg-card px-5 py-5">
             <p className={dashboardTheme.statLabel}>
@@ -105,9 +159,7 @@ export function CalculatorCard({
 
           {talkingPoint ? (
             <div className="rounded-lg border border-border border-l-[3px] border-l-foreground/20 bg-muted/25 px-4 py-3.5">
-              <p className={dashboardTheme.sectionLabel}>
-                {headingTitle("Say this")}
-              </p>
+              <SectionEyebrow>Talking point</SectionEyebrow>
               <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">
                 {talkingPoint}
               </p>

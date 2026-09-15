@@ -58,7 +58,7 @@ export async function generateClientReport(
         }
       : {
           name: record.client.advisorName,
-          email: "advisory@celerey.app",
+          email: "advisory@example.com",
           title: "Relationship Manager",
         },
   );

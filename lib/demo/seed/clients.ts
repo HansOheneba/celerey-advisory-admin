@@ -63,8 +63,8 @@ const SPECS: ClientSpec[] = [
       },
     ],
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 3_244_000 },
-      { name: "USD Call Deposit", institution: "Celerey Bank", type: "deposit", balance: 1_700_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 3_244_000 },
+      { name: "USD Call Deposit", institution: "Fidelity Bank", type: "deposit", balance: 1_700_000 },
     ],
     goals: [
       { title: "UK tuition fund", category: "Education", target: 1_800_000, current: 1_278_000, monthly: 14_500, years: 2, priority: 1 },
@@ -76,7 +76,7 @@ const SPECS: ClientSpec[] = [
       { name: "Airport Residential villa", type: "residential", country: "Ghana", city: "Accra", purchase: 1_900_000, current: 2_600_000 },
     ],
     liabilities: [
-      { name: "Kensington mortgage", lender: "Celerey Bank", type: "mortgage", balance: 2_300_000, ratePct: 5.1, monthly: 18_400 },
+      { name: "Kensington mortgage", lender: "Fidelity Bank", type: "mortgage", balance: 2_300_000, ratePct: 5.1, monthly: 18_400 },
     ],
     insurance: [
       { category: "life", provider: "Aegis Global", name: "Whole of life cover", coverage: 10_000_000, premium: 7_200 },
@@ -131,7 +131,7 @@ const SPECS: ClientSpec[] = [
       "Portfolio has drifted outside the moderate risk band. Needs a documented rebalance before the next review.",
     holdings: holdingsFrom(14_900_000, AGGRESSIVE_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 620_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 620_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 9_000_000, current: 5_600_000, monthly: 26_000, years: 12, priority: 1 },
@@ -141,7 +141,7 @@ const SPECS: ClientSpec[] = [
       { name: "Cantonments residence", type: "residential", country: "Ghana", city: "Accra", purchase: 1_400_000, current: 1_950_000 },
     ],
     liabilities: [
-      { name: "Business facility", lender: "Celerey Bank", type: "commercial", balance: 1_100_000, ratePct: 9.4, monthly: 21_000 },
+      { name: "Business facility", lender: "Fidelity Bank", type: "commercial", balance: 1_100_000, ratePct: 9.4, monthly: 21_000 },
     ],
     insurance: [
       { category: "life", provider: "Enterprise Life", name: "Term cover", coverage: 4_000_000, premium: 1_900 },
@@ -188,7 +188,7 @@ const SPECS: ClientSpec[] = [
       "Sale proceeds landed three weeks ago and are ready to fund. Deployment plan agreed in principle.",
     holdings: holdingsFrom(8_600_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 2_950_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 2_950_000 },
     ],
     goals: [
       { title: "Clinic expansion reserve", category: "Business", target: 4_000_000, current: 2_600_000, monthly: 30_000, years: 3, priority: 1 },
@@ -240,7 +240,7 @@ const SPECS: ClientSpec[] = [
       "A $1.4m note matures shortly. Reinvestment decision needed to avoid a cash drag.",
     holdings: holdingsFrom(11_200_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 480_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 480_000 },
     ],
     goals: [
       { title: "Lifetime income", category: "Retirement", target: 12_000_000, current: 11_100_000, monthly: 0, years: 1, priority: 1 },
@@ -298,14 +298,14 @@ const SPECS: ClientSpec[] = [
     notes: "Annual review is overdue. Two attempts to schedule have lapsed.",
     holdings: holdingsFrom(9_400_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 700_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 700_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 8_000_000, current: 4_700_000, monthly: 22_000, years: 14, priority: 1 },
     ],
     properties: [],
     liabilities: [
-      { name: "Residential mortgage", lender: "Celerey Bank", type: "mortgage", balance: 540_000, ratePct: 8.2, monthly: 6_900 },
+      { name: "Residential mortgage", lender: "Fidelity Bank", type: "mortgage", balance: 540_000, ratePct: 8.2, monthly: 6_900 },
     ],
     insurance: [],
     income: incomeFor(62_000),
@@ -348,7 +348,7 @@ const SPECS: ClientSpec[] = [
     notes: "Review overdue. Client has asked for a written portfolio commentary.",
     holdings: holdingsFrom(4_300_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 260_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 260_000 },
     ],
     goals: [
       { title: "Children education", category: "Education", target: 1_100_000, current: 420_000, monthly: 9_000, years: 9, priority: 1 },
@@ -401,7 +401,7 @@ const SPECS: ClientSpec[] = [
       "Escalation open: client disputes the structured note allocation recommended last quarter.",
     holdings: holdingsFrom(13_700_000, AGGRESSIVE_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 910_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 910_000 },
     ],
     goals: [
       { title: "Capital preservation", category: "Wealth", target: 15_000_000, current: 14_600_000, monthly: 0, years: 5, priority: 1 },
@@ -454,7 +454,7 @@ const SPECS: ClientSpec[] = [
       "Strong candidate for a Lombard facility against the marketable securities portfolio.",
     holdings: holdingsFrom(23_800_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 1_150_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 1_150_000 },
     ],
     goals: [
       { title: "Development capital", category: "Business", target: 15_000_000, current: 6_900_000, monthly: 85_000, years: 4, priority: 1 },
@@ -465,7 +465,7 @@ const SPECS: ClientSpec[] = [
       { name: "Dubai Marina apartment", type: "residential", country: "United Arab Emirates", city: "Dubai", purchase: 2_100_000, current: 3_050_000 },
     ],
     liabilities: [
-      { name: "Development loan", lender: "Celerey Bank", type: "commercial", balance: 6_400_000, ratePct: 8.9, monthly: 78_000 },
+      { name: "Development loan", lender: "Fidelity Bank", type: "commercial", balance: 6_400_000, ratePct: 8.9, monthly: 78_000 },
     ],
     insurance: [
       { category: "life", provider: "Aegis Global", name: "Key person cover", coverage: 8_000_000, premium: 6_100 },
@@ -511,7 +511,7 @@ const SPECS: ClientSpec[] = [
       "NHS pension and two ISAs sit away from the bank. Consolidation conversation is warranted.",
     holdings: holdingsFrom(6_800_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 340_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 340_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 7_500_000, current: 4_200_000, monthly: 18_000, years: 15, priority: 1 },
@@ -566,7 +566,7 @@ const SPECS: ClientSpec[] = [
     notes: "KYC documents outstanding. Risk profile complete, funding pending.",
     holdings: holdingsFrom(1_900_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 640_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 640_000 },
     ],
     goals: [
       { title: "Diversify founder stock", category: "Wealth", target: 5_000_000, current: 1_900_000, monthly: 25_000, years: 6, priority: 1 },
@@ -615,7 +615,7 @@ const SPECS: ClientSpec[] = [
       "Dormant. No response to three outreach attempts. Attrition risk is elevated.",
     holdings: holdingsFrom(3_100_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 890_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 890_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 4_500_000, current: 3_600_000, monthly: 6_000, years: 6, priority: 1 },
@@ -664,7 +664,7 @@ const SPECS: ClientSpec[] = [
     notes: "Equity sleeve is 9 points above the model. Rebalance is due.",
     holdings: holdingsFrom(10_400_000, AGGRESSIVE_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 430_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 430_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 11_000_000, current: 6_800_000, monthly: 28_000, years: 11, priority: 1 },
@@ -717,8 +717,8 @@ const SPECS: ClientSpec[] = [
     lastContactDaysAgo: 6,
     nextReviewInDays: 28,
     assetMandate: "aua",
-    bio: "Advisory-only relationship. Portfolio held at external custodians with Celerey providing planning and allocation guidance.",
-    notes: "No Celerey-managed mandate. Quarterly rebalance guidance only.",
+    bio: "Advisory-only relationship. Portfolio held at external custodians with Fidelity providing planning and allocation guidance.",
+    notes: "No Fidelity-managed mandate. Quarterly rebalance guidance only.",
     holdings: [
       {
         name: "Schwab Global Equity ETF",
@@ -1100,13 +1100,13 @@ function fillerToSpec(filler: FillerSpec): ClientSpec {
     joinedDaysAgo: 600 + Math.round(filler.portfolio / 20_000),
     lastContactDaysAgo: filler.lastContactDaysAgo,
     nextReviewInDays: filler.nextReviewInDays,
-    bio: "Private client relationship managed on the Celerey advisory platform.",
+    bio: "Private client relationship managed on the Fidelity advisory platform.",
     notes: "",
     holdings: holdingsFrom(filler.portfolio, SLEEVES_BY_RISK[filler.riskLevel]),
     accounts: [
       {
         name: "Premier Cash Account",
-        institution: "Celerey Bank",
+        institution: "Fidelity Bank",
         type: "current",
         balance: filler.cash,
       },

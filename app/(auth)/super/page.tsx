@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { LOGO_WORDMARK_LIGHT } from "@/lib/brand";
 import { LoginForm } from "@/components/auth/login-form";
 import { LoginHero } from "@/components/auth/login-hero";
 
@@ -23,16 +24,16 @@ export default async function SuperLoginPage({
 
       <div className="flex flex-col bg-primary px-6 py-8 sm:px-10">
         <Image
-          src="/logos/logoWhite.png"
-          alt="Celerey"
-          width={120}
-          height={30}
+          src={LOGO_WORDMARK_LIGHT}
+          alt="Fidelity"
+          width={160}
+          height={48}
           className="h-10 w-auto self-start"
           priority
         />
 
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="celerey-enter w-full max-w-sm space-y-6">
+          <div className="brand-enter w-full max-w-sm space-y-6">
             <div className="space-y-2">
               <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-white/50">
                 Operator access

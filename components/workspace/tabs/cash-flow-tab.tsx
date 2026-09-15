@@ -61,8 +61,8 @@ export function CashFlowTab({ record, canEdit }: CashFlowTabProps) {
 
       {canEdit ? (
         <div className="flex flex-wrap justify-end gap-2">
-          <AddIncomeDialog clientId={clientId} />
-          <AddExpenseDialog clientId={clientId} />
+          <AddIncomeDialog clientId={clientId} currency={currency} />
+          <AddExpenseDialog clientId={clientId} currency={currency} />
         </div>
       ) : null}
 
@@ -89,6 +89,7 @@ export function CashFlowTab({ record, canEdit }: CashFlowTabProps) {
                       <span className="flex items-center gap-1">
                         <EditIncomeDialog
                           clientId={clientId}
+                          currency={currency}
                           row={{ id: row.id, name: row.name, amount: row.amount }}
                         />
                         <RemoveProfileItemButton
@@ -121,6 +122,7 @@ export function CashFlowTab({ record, canEdit }: CashFlowTabProps) {
                       <span className="flex items-center gap-1">
                         <EditExpenseDialog
                           clientId={clientId}
+                          currency={currency}
                           row={{
                             id: row.id,
                             name: row.name,
@@ -152,6 +154,7 @@ export function CashFlowTab({ record, canEdit }: CashFlowTabProps) {
           canEdit ? (
             <EditEmergencyFundDialog
               clientId={clientId}
+              currency={currency}
               emergencyFund={detail.emergencyFund}
             />
           ) : null

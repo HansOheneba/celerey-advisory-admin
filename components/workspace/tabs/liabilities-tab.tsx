@@ -54,6 +54,7 @@ export function LiabilitiesTab({ record, canEdit }: LiabilitiesTabProps) {
                     <>
                       <EditLiabilityDialog
                         clientId={clientId}
+                        currency={currency}
                         liability={{
                           id: liability.id,
                           name: liability.name,

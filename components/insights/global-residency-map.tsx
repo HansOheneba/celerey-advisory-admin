@@ -17,15 +17,16 @@ import {
   globalCountryColorForShare,
 } from "@/lib/overview/ghana-map-colors";
 import { cn } from "@/lib/utils";
+import { brandColors } from "@/lib/brand";
 
 const WORLD_TOPO =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 const MAP = {
-  ocean: "#c8d4e3",
+  ocean: brandColors.cream,
   land: GHANA_MAP_THEME.defaultColor,
-  landStroke: "#475569",
-  bookStroke: "#1e293b",
+  landStroke: brandColors.brown,
+  bookStroke: brandColors.black,
 } as const;
 
 type GlobalResidencyMapProps = {

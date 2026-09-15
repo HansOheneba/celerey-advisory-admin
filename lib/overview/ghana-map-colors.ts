@@ -1,39 +1,41 @@
-/** Choropleth fill colors aligned with the dashboard palette. */
+import { brandColors } from "@/lib/brand";
+
+/** Choropleth fill colors — Fidelity palette only. */
 export function ghanaRegionColorForShare(sharePct: number): string {
   if (sharePct >= 50) {
-    return "#3d5a80";
+    return brandColors.black;
   }
   if (sharePct >= 20) {
-    return "#5a7394";
+    return brandColors.brown;
   }
   if (sharePct >= 5) {
-    return "#a8bacf";
+    return brandColors.orange;
   }
   if (sharePct > 0) {
-    return "#c5d0dc";
+    return brandColors.cream;
   }
-  return "#dce4ef";
+  return brandColors.white;
 }
 
 export const GHANA_MAP_THEME = {
-  defaultColor: "#eef2f7",
-  selectedColor: "#151339",
-  hoverColor: "#4a6585",
+  defaultColor: brandColors.cream,
+  selectedColor: brandColors.orange,
+  hoverColor: brandColors.brown,
 } as const;
 
 /** World choropleth — darker floor so small book countries read against neutral land. */
 export function globalCountryColorForShare(sharePct: number): string {
   if (sharePct >= 50) {
-    return "#2f4f72";
+    return brandColors.black;
   }
   if (sharePct >= 20) {
-    return "#4a6585";
+    return brandColors.brown;
   }
   if (sharePct >= 5) {
-    return "#66809e";
+    return brandColors.orange;
   }
   if (sharePct > 0) {
-    return "#849cb5";
+    return brandColors.cream;
   }
   return GHANA_MAP_THEME.defaultColor;
 }

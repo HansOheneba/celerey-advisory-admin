@@ -1,9 +1,9 @@
 export const dashboardTheme = {
   /** Page sections stack with space-y-6; metric grids use gap-4 (see StatGrid). */
-  page: "w-full min-w-0 space-y-6 lg:space-y-8 celerey-stagger",
-  pageContainer: "w-full min-w-0 space-y-6 lg:space-y-8 celerey-stagger",
+  page: "w-full min-w-0 space-y-6 lg:space-y-8 brand-stagger",
+  pageContainer: "w-full min-w-0 space-y-6 lg:space-y-8 brand-stagger",
   pageContainerNarrow:
-    "mx-auto w-full min-w-0 max-w-3xl space-y-6 lg:space-y-8 celerey-stagger",
+    "mx-auto w-full min-w-0 max-w-3xl space-y-6 lg:space-y-8 brand-stagger",
   surface: "bg-background",
   sectionLabel:
     "text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground",

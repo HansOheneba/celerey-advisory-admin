@@ -1,6 +1,7 @@
 "use client";
 
 import type { UpdateAdvisorSettings } from "@/components/settings/settings-workspace";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,7 +55,7 @@ export function AvailabilityTab({
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Availability</p>
+        <SectionEyebrow>Availability</SectionEyebrow>
         <CardTitle className="text-base font-semibold">
           Working hours &amp; scheduling
         </CardTitle>

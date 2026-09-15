@@ -261,7 +261,7 @@ export async function executeApi<T>(
     return {
       ok: false,
       status: 0,
-      message: "Unable to reach the Celerey API. Check your connection.",
+      message: "Unable to reach the advisory API. Check your connection.",
     };
   }
 
@@ -377,7 +377,7 @@ export async function executeMultipartApi<T>(
     return {
       ok: false,
       status: 0,
-      message: "Unable to reach the Celerey API. Check your connection.",
+      message: "Unable to reach the advisory API. Check your connection.",
     };
   }
 

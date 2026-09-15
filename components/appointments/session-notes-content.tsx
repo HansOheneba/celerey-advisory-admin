@@ -2,9 +2,11 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import type { Appointment } from "@/lib/appointments/types";
+import { formatProgressMetric, type DisplayCurrency } from "@/lib/format";
 
 type SessionNotesContentProps = {
   appointment: Appointment;
+  currency?: DisplayCurrency;
 };
 
 function SectionLabel({ children }: { children: ReactNode }) {
@@ -29,7 +31,10 @@ function DiscussionList({ items }: { items: string[] }) {
   );
 }
 
-export function SessionNotesContent({ appointment }: SessionNotesContentProps) {
+export function SessionNotesContent({
+  appointment,
+  currency = "USD",
+}: SessionNotesContentProps) {
   const log = appointment.log;
   const published = appointment.aiNotesPublished;
 
@@ -173,9 +178,7 @@ export function SessionNotesContent({ appointment }: SessionNotesContentProps) {
                   {metric.label}
                 </p>
                 <p className="text-sm font-semibold tabular-nums">
-                  {metric.unit === "percent"
-                    ? `${metric.value}%`
-                    : metric.value.toLocaleString()}
+                  {formatProgressMetric(metric, currency)}
                 </p>
               </div>
             ))}

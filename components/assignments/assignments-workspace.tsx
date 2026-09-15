@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { toast } from "sonner";
 import { bulkAssignClientsAction } from "@/app/actions/assignments";
 import { AdvisorSelect } from "@/components/advisors/advisor-select";
@@ -96,7 +97,7 @@ export function AssignmentsWorkspace({
   return (
     <div className={dashboardTheme.page}>
       <section className="space-y-0.5">
-        <p className={dashboardTheme.sectionLabel}>Team</p>
+        <SectionEyebrow>Team</SectionEyebrow>
         <h2 className={dashboardTheme.pageTitle}>Assignments</h2>
         <p className={dashboardTheme.pageDescription}>
           Give each unassigned client an advisor. Pick one in the row, or
@@ -108,7 +109,7 @@ export function AssignmentsWorkspace({
         <Card className={dashboardTheme.card}>
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
-              <p className={dashboardTheme.sectionLabel}>Inbox</p>
+              <SectionEyebrow>Inbox</SectionEyebrow>
               <CardTitle className="text-base font-semibold">
                 Clients without an advisor
               </CardTitle>
@@ -194,7 +195,7 @@ export function AssignmentsWorkspace({
 
         <Card className={dashboardTheme.card}>
           <CardHeader>
-            <p className={dashboardTheme.sectionLabel}>Capacity</p>
+            <SectionEyebrow>Capacity</SectionEyebrow>
             <CardTitle className="text-base font-semibold">
               Lightest books first
             </CardTitle>

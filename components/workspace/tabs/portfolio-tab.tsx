@@ -29,12 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCompactCurrency, formatCurrency } from "@/lib/format";
+import { chartCurrencyFormatter, formatCompactCurrency, formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { ClientDetailState } from "@/types/client-detail";
 import type { Client } from "@/types/client";
 
-import { CHART_PALETTE, CHART_PRIMARY } from "@/lib/chart-colors";
+import { brandChartColors, brandColors } from "@/lib/brand";
+import { CHART_PRIMARY } from "@/lib/chart-colors";
 import {
   AddAccountDialog,
   AddHoldingDialog,
@@ -42,7 +43,7 @@ import {
 } from "@/components/clients/profile/profile-editors";
 import { RemoveProfileItemButton } from "@/components/clients/profile/remove-profile-item-button";
 
-const CHART_COLORS = [...CHART_PALETTE, "#10b981", "#f59e0b", "#ef4444"];
+const CHART_COLORS = [...brandChartColors];
 
 type PortfolioTabProps = {
   client: Client;
@@ -128,7 +129,7 @@ export function PortfolioTab({
                     </span>
                     <span className="shrink-0 text-muted-foreground">
                       {slice.percentage}% ·{" "}
-                      {formatCompactCurrency(slice.value)}
+                      {formatCompactCurrency(slice.value, currency)}
                     </span>
                   </li>
                 ))}
@@ -155,9 +156,7 @@ export function PortfolioTab({
                     fontSize={11}
                   />
                   <YAxis
-                    tickFormatter={(value: number) =>
-                      formatCompactCurrency(value)
-                    }
+                    tickFormatter={chartCurrencyFormatter(currency)}
                     tickLine={false}
                     axisLine={false}
                     fontSize={11}
@@ -191,7 +190,9 @@ export function PortfolioTab({
               <MiniStat
                 label="Held away"
                 value={
-                  heldAwayUsd > 0 ? formatCompactCurrency(heldAwayUsd) : "None"
+                  heldAwayUsd > 0
+                    ? formatCompactCurrency(heldAwayUsd, currency)
+                    : "None"
                 }
                 tone={heldAwayUsd > 0 ? "warn" : "good"}
               />
@@ -216,7 +217,7 @@ export function PortfolioTab({
             <CardAction>
               <div className="flex flex-wrap gap-2">
                 <AddHoldingDialog clientId={client.id} />
-                <AddAccountDialog clientId={client.id} />
+                <AddAccountDialog clientId={client.id} currency={currency} />
               </div>
             </CardAction>
           ) : null}
@@ -272,6 +273,7 @@ export function PortfolioTab({
                         <div className="flex items-center justify-end gap-1">
                           <EditHoldingDialog
                             clientId={client.id}
+                            currency={currency}
                             holding={{
                               holding_id: holding.holding_id,
                               name: holding.name,

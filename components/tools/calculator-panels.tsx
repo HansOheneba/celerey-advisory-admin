@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 
 import {
   CalculatorCard,
+  MoneyField,
   NumberField,
 } from "@/components/tools/calculator-shell";
 import type { ToolClientSeed } from "@/components/tools/tools-view";
@@ -67,10 +68,10 @@ export function RetirementCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
         <>
           <NumberField label="Current age" value={currentAge} onChange={setCurrentAge} />
           <NumberField label="Retirement age" value={retirementAge} onChange={setRetirementAge} />
-          <NumberField label="Invested today" value={savings} onChange={setSavings} step={1000} />
-          <NumberField label="Monthly savings" value={monthly} onChange={setMonthly} step={100} />
+          <MoneyField label="Invested today" value={savings} onChange={setSavings} />
+          <MoneyField label="Monthly savings" value={monthly} onChange={setMonthly} />
           <NumberField label="Expected return %" value={returnPct} onChange={setReturnPct} step={0.1} />
-          <NumberField label="Desired monthly income" value={income} onChange={setIncome} step={500} />
+          <MoneyField label="Desired monthly income" value={income} onChange={setIncome} />
         </>
       }
       primaryResult={{ label: "Projected pot", value: formatCurrency(result.projectedPotUsd, "USD") }}
@@ -107,9 +108,9 @@ export function GoalCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
       variant="success"
       inputs={
         <>
-          <NumberField label="Target" value={target} onChange={setTarget} step={10_000} />
-          <NumberField label="Funded today" value={current} onChange={setCurrent} step={10_000} />
-          <NumberField label="Monthly contribution" value={monthly} onChange={setMonthly} step={250} />
+          <MoneyField label="Target" value={target} onChange={setTarget} />
+          <MoneyField label="Funded today" value={current} onChange={setCurrent} />
+          <MoneyField label="Monthly contribution" value={monthly} onChange={setMonthly} />
           <NumberField label="Years" value={years} onChange={setYears} />
           <NumberField label="Expected return %" value={returnPct} onChange={setReturnPct} step={0.1} />
         </>
@@ -153,10 +154,10 @@ export function EducationCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
         <>
           <NumberField label="Child age" value={childAge} onChange={setChildAge} />
           <NumberField label="Enrollment age" value={enrollmentAge} onChange={setEnrollmentAge} />
-          <NumberField label="Annual fees today" value={fees} onChange={setFees} step={1000} />
+          <MoneyField label="Annual fees today" value={fees} onChange={setFees} />
           <NumberField label="Fee inflation %" value={inflation} onChange={setInflation} step={0.5} />
-          <NumberField label="Fund today" value={current} onChange={setCurrent} step={5000} />
-          <NumberField label="Monthly contribution" value={monthly} onChange={setMonthly} step={100} />
+          <MoneyField label="Fund today" value={current} onChange={setCurrent} />
+          <MoneyField label="Monthly contribution" value={monthly} onChange={setMonthly} />
         </>
       }
       primaryResult={{ label: "Fees at enrollment", value: formatCurrency(result.projectedFeesAtEnrollment, "USD") }}
@@ -188,7 +189,7 @@ export function CashCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Cash deployment" icon={PiggyBank} variant="info"
-      inputs={<><NumberField label="Portfolio value" value={portfolio} onChange={setPortfolio} step={100_000} /><NumberField label="Cash weighting %" value={cashPct} onChange={setCashPct} step={0.5} /><NumberField label="Target cash %" value={targetPct} onChange={setTargetPct} step={0.5} /><NumberField label="Deposit rate %" value={depositPct} onChange={setDepositPct} step={0.1} /><NumberField label="Expected return %" value={returnPct} onChange={setReturnPct} step={0.1} /></>}
+      inputs={<><MoneyField label="Portfolio value" value={portfolio} onChange={setPortfolio} /><NumberField label="Cash weighting %" value={cashPct} onChange={setCashPct} step={0.5} /><NumberField label="Target cash %" value={targetPct} onChange={setTargetPct} step={0.5} /><NumberField label="Deposit rate %" value={depositPct} onChange={setDepositPct} step={0.1} /><NumberField label="Expected return %" value={returnPct} onChange={setReturnPct} step={0.1} /></>}
       primaryResult={{ label: "Deployable cash", value: formatCurrency(result.deployableUsd, "USD") }}
       secondaryResults={[{ label: "Incremental return p.a.", value: formatCurrency(result.incrementalAnnualReturnUsd, "USD"), tone: "good" }, { label: "Value in 5 years", value: formatCurrency(result.fiveYearValueUsd, "USD") }, { label: "5-year opportunity cost", value: formatCurrency(result.opportunityCostUsd, "USD"), tone: "bad" }]}
       talkingPoint={
@@ -213,7 +214,7 @@ export function LendingCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Lombard capacity" icon={Home} variant="warning"
-      inputs={<><NumberField label="Portfolio value" value={portfolio} onChange={setPortfolio} step={100_000} /><NumberField label="Advance rate %" value={advancePct} onChange={setAdvancePct} step={5} /><NumberField label="Existing borrowing" value={existing} onChange={setExisting} step={50_000} /><NumberField label="Interest rate %" value={ratePct} onChange={setRatePct} step={0.1} /></>}
+      inputs={<><MoneyField label="Portfolio value" value={portfolio} onChange={setPortfolio} /><NumberField label="Advance rate %" value={advancePct} onChange={setAdvancePct} step={5} /><MoneyField label="Existing borrowing" value={existing} onChange={setExisting} /><NumberField label="Interest rate %" value={ratePct} onChange={setRatePct} step={0.1} /></>}
       primaryResult={{ label: "Available headroom", value: formatCurrency(result.headroomUsd, "USD"), tone: "good" }}
       secondaryResults={[{ label: "Maximum facility", value: formatCurrency(result.maximumFacilityUsd, "USD") }, { label: "Interest at full draw", value: formatCurrency(result.annualInterestUsd, "USD") }, { label: "Eligible collateral", value: formatCurrency(result.eligibleCollateralUsd, "USD") }]}
       talkingPoint={`${formatCurrency(result.headroomUsd, "USD")} to borrow. Full draw is ${formatCurrency(result.annualInterestUsd, "USD")}/year in interest.`}
@@ -234,7 +235,7 @@ export function FxCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="FX exposure" icon={TrendingUp}
-      inputs={<><NumberField label="USD portfolio" value={portfolio} onChange={setPortfolio} step={100_000} /><NumberField label="Annual GHS expenses" value={ghsExpenses} onChange={setGhsExpenses} step={5000} /><NumberField label="USD/GHS rate" value={rate} onChange={setRate} step={0.1} /><NumberField label="FX shock %" value={shock} onChange={setShock} step={1} /></>}
+      inputs={<><MoneyField label="USD portfolio" value={portfolio} onChange={setPortfolio} /><MoneyField label="Annual GHS expenses" value={ghsExpenses} onChange={setGhsExpenses} /><NumberField label="USD/GHS rate" value={rate} onChange={setRate} step={0.1} /><NumberField label="FX shock %" value={shock} onChange={setShock} step={1} /></>}
       primaryResult={{ label: "Additional USD needed p.a.", value: formatCurrency(result.additionalUsdNeeded, "USD"), tone: result.additionalUsdNeeded > 0 ? "bad" : "good" }}
       secondaryResults={[{ label: "GHS expenses in USD", value: formatCurrency(result.annualGhsExpensesUsd, "USD") }, { label: "Post-shock cost", value: formatCurrency(result.postShockAnnualCostUsd, "USD") }, { label: "Suggested hedge", value: formatCurrency(result.hedgeNotionalUsd, "USD") }]}
       talkingPoint={
@@ -259,7 +260,7 @@ export function TbillCalculatorPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="T-Bill ladder" icon={Landmark}
-      inputs={<><NumberField label="Principal" value={principal} onChange={setPrincipal} step={50_000} /><NumberField label="91-day %" value={w91} onChange={setW91} /><NumberField label="182-day %" value={w182} onChange={setW182} /><NumberField label="364-day %" value={w364} onChange={setW364} /></>}
+      inputs={<><MoneyField label="Principal" value={principal} onChange={setPrincipal} /><NumberField label="91-day %" value={w91} onChange={setW91} /><NumberField label="182-day %" value={w182} onChange={setW182} /><NumberField label="364-day %" value={w364} onChange={setW364} /></>}
       primaryResult={{ label: "Weighted yield", value: `${result.weightedYieldPct.toFixed(1)}%`, tone: "good" }}
       secondaryResults={[{ label: "12-month value", value: formatCurrency(result.projectedValueUsd, "USD") }, { label: "Call deposit alt.", value: formatCurrency(result.depositAlternativeUsd, "USD") }, { label: "Uplift", value: formatCurrency(result.upliftUsd, "USD"), tone: "good" }]}
       talkingPoint={`${result.weightedYieldPct.toFixed(1)}% blended. ${formatCurrency(result.upliftUsd, "USD")} more than call over 12 months.`}
@@ -279,7 +280,7 @@ export function PropertyEquityPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Property equity" icon={Home} variant="warning"
-      inputs={<><NumberField label="Property value" value={property} onChange={setProperty} step={50_000} /><NumberField label="Mortgage balance" value={mortgage} onChange={setMortgage} step={25_000} /><NumberField label="Max LTV %" value={ltv} onChange={setLtv} step={5} /></>}
+      inputs={<><MoneyField label="Property value" value={property} onChange={setProperty} /><MoneyField label="Mortgage balance" value={mortgage} onChange={setMortgage} /><NumberField label="Max LTV %" value={ltv} onChange={setLtv} step={5} /></>}
       primaryResult={{ label: "Total borrowing capacity", value: formatCurrency(result.totalBorrowingCapacityUsd, "USD"), tone: "good" }}
       secondaryResults={[{ label: "Gross equity", value: formatCurrency(result.grossEquityUsd, "USD") }, { label: "Property headroom", value: formatCurrency(result.netEquityUsd, "USD") }, { label: "Securities headroom", value: formatCurrency(result.securitiesHeadroomUsd, "USD") }]}
       talkingPoint={`About ${formatCurrency(result.totalBorrowingCapacityUsd, "USD")} to borrow without selling.`}
@@ -299,7 +300,7 @@ export function EmergencyFundPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Emergency fund" icon={Shield} variant="info"
-      inputs={<><NumberField label="Monthly essentials" value={expenses} onChange={setExpenses} step={500} /><NumberField label="Liquid balance" value={liquid} onChange={setLiquid} step={10_000} /><NumberField label="Target months" value={months} onChange={setMonths} /></>}
+      inputs={<><MoneyField label="Monthly essentials" value={expenses} onChange={setExpenses} /><MoneyField label="Liquid balance" value={liquid} onChange={setLiquid} /><NumberField label="Target months" value={months} onChange={setMonths} /></>}
       primaryResult={{ label: "Months covered", value: result.monthsCovered.toFixed(1), tone: result.isAdequate ? "good" : "bad" }}
       secondaryResults={[{ label: "Target balance", value: formatCurrency(result.targetBalanceUsd, "USD") }, { label: "Gap", value: formatCurrency(result.gapUsd, "USD"), tone: result.gapUsd > 0 ? "bad" : "good" }, { label: "Status", value: result.isAdequate ? "Adequate" : "Below target", tone: result.isAdequate ? "good" : "bad" }]}
       talkingPoint={
@@ -344,7 +345,7 @@ export function WithdrawalStressPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Withdrawal stress test" icon={Shield} variant="warning"
-      inputs={<><NumberField label="Portfolio" value={portfolio} onChange={setPortfolio} step={100_000} /><NumberField label="Annual withdrawal" value={withdrawal} onChange={setWithdrawal} step={5000} /><NumberField label="Return %" value={returnPct} onChange={setReturnPct} step={0.1} /><NumberField label="Inflation %" value={inflation} onChange={setInflation} step={0.1} /></>}
+      inputs={<><MoneyField label="Portfolio" value={portfolio} onChange={setPortfolio} /><MoneyField label="Annual withdrawal" value={withdrawal} onChange={setWithdrawal} /><NumberField label="Return %" value={returnPct} onChange={setReturnPct} step={0.1} /><NumberField label="Inflation %" value={inflation} onChange={setInflation} step={0.1} /></>}
       primaryResult={{ label: "Survives (years)", value: String(result.survivesYears), tone: result.depleted ? "bad" : "good" }}
       secondaryResults={[{ label: "Depleted", value: result.depleted ? "Yes" : "No", tone: result.depleted ? "bad" : "good" }, { label: "Ending balance", value: formatCurrency(result.endingBalanceUsd, "USD") }]}
       talkingPoint={
@@ -369,7 +370,7 @@ export function MortgageVsInvestPanel({ seed }: { seed: ToolClientSeed }) {
 
   return (
     <CalculatorCard title="Mortgage vs invest" icon={Scale} variant="warning"
-      inputs={<><NumberField label="Extra monthly" value={extra} onChange={setExtra} step={100} /><NumberField label="Mortgage rate %" value={mortgageRate} onChange={setMortgageRate} step={0.1} /><NumberField label="Mortgage balance" value={balance} onChange={setBalance} step={25_000} /><NumberField label="Years" value={years} onChange={setYears} /></>}
+      inputs={<><MoneyField label="Extra monthly" value={extra} onChange={setExtra} /><NumberField label="Mortgage rate %" value={mortgageRate} onChange={setMortgageRate} step={0.1} /><MoneyField label="Mortgage balance" value={balance} onChange={setBalance} /><NumberField label="Years" value={years} onChange={setYears} /></>}
       primaryResult={{ label: "Invest advantage", value: formatCurrency(result.investAdvantageUsd, "USD"), tone: result.investAdvantageUsd >= 0 ? "good" : "bad" }}
       secondaryResults={[{ label: "Paydown path", value: formatCurrency(result.paydownWealthUsd, "USD") }, { label: "Invest path", value: formatCurrency(result.investWealthUsd, "USD") }]}
       talkingPoint={

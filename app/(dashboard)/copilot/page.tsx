@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
 import { CopilotView } from "@/components/copilot/copilot-view";
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 import { requireCapability } from "@/lib/dal";
 import { getScopedClientRecords } from "@/lib/demo/repositories";
 
 export const metadata: Metadata = {
-  title: "Celerey Copilot",
+  title: CELEREY_COPILOT_NAME,
 };
 
 const SCOPE_LABELS = {

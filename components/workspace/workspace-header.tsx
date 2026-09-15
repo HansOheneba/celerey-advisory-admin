@@ -103,7 +103,7 @@ export function WorkspaceHeader({
       <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
         <Stat
           label="AUA / AUM"
-          value={`${formatCompactCurrency(client.aua)} / ${formatCompactCurrency(client.aum)}`}
+          value={`${formatCompactCurrency(client.aua, client.currency)} / ${formatCompactCurrency(client.aum, client.currency)}`}
         />
         <Stat
           label="Past 12 months"

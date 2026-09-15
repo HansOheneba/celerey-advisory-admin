@@ -15,6 +15,7 @@ import "leaflet/dist/leaflet.css";
 
 import geoData from "./ghana-regions.json";
 import type { GhanaClickableMapProps, GhanaGeoData, RegionLabels } from "./types";
+import { brandColors } from "@/lib/brand";
 
 export const REGION_LABELS: RegionLabels = {
   "Greater Accra": [5.7, 0.1],
@@ -43,9 +44,9 @@ function isPathLayer(layer: Layer): layer is Path {
 
 export function GhanaClickableMap({
   regionColors = {},
-  defaultColor = "#e5e7eb",
-  selectedColor = "#ff9800",
-  hoverColor,
+  defaultColor = brandColors.cream,
+  selectedColor = brandColors.orange,
+  hoverColor = brandColors.brown,
   onRegionClick,
   updateUrl = true,
   mapHeight = "600px",
@@ -225,7 +226,7 @@ export function GhanaClickableMap({
         }
 
         .ghana-clickable-map-container .leaflet-container {
-          background: #f8fafc;
+          background: ${brandColors.cream};
         }
 
         .ghana-clickable-map-container .leaflet-tile-pane {

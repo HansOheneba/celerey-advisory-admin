@@ -1,6 +1,7 @@
 "use client";
 
 import type { UpdateAdvisorSettings } from "@/components/settings/settings-workspace";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import {
   Card,
   CardContent,
@@ -104,7 +105,7 @@ export function NotificationsTab({
   return (
     <Card className={dashboardTheme.card}>
       <CardHeader>
-        <p className={dashboardTheme.sectionLabel}>Notifications</p>
+        <SectionEyebrow>Notifications</SectionEyebrow>
         <CardTitle className="text-base font-semibold">
           What you're notified about
         </CardTitle>

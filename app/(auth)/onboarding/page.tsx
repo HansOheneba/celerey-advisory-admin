@@ -6,6 +6,7 @@ import { getAdvisorOnboardingInviteApi } from "@/lib/api/advisors";
 import { LoginHero } from "@/components/auth/login-hero";
 import { OnboardingProfileForm } from "@/components/auth/onboarding-profile-form";
 import { buttonVariants } from "@/components/ui/button";
+import { LOGO_WORDMARK_LIGHT } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -22,15 +23,15 @@ function OnboardingShell({ children }: { children: ReactNode }) {
       <LoginHero />
       <div className="flex flex-col bg-primary px-6 py-8 sm:px-10">
         <Image
-          src="/logos/logoWhite.png"
-          alt="Celerey"
-          width={120}
-          height={30}
+          src={LOGO_WORDMARK_LIGHT}
+          alt="Fidelity"
+          width={160}
+          height={48}
           className="h-10 w-auto self-start"
           priority
         />
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="celerey-enter w-full max-w-sm space-y-6">
+          <div className="brand-enter w-full max-w-sm space-y-6">
             {children}
           </div>
         </div>

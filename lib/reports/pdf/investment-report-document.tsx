@@ -19,7 +19,7 @@ import {
   ReportPageShell,
   SubsectionTitle,
 } from "@/lib/reports/pdf/report-layout";
-import { reportStyles } from "@/lib/reports/pdf/report-theme";
+import { reportStyles, colors as reportColors } from "@/lib/reports/pdf/report-theme";
 import type {
   InvestmentReportData,
   ReportTransactionRow,
@@ -692,7 +692,7 @@ export function InvestmentReportDocument({
             marginTop: 20,
             paddingTop: 12,
             borderTopWidth: 0.5,
-            borderTopColor: "#e6e6ec",
+            borderTopColor: reportColors.rule,
           }}
         >
           <Text style={reportStyles.muted}>{FIRM_LEGAL_LINE}</Text>

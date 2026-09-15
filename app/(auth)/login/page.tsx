@@ -3,6 +3,12 @@ import Image from "next/image";
 import { LoginForm } from "@/components/auth/login-form";
 import { LoginHero } from "@/components/auth/login-hero";
 import { DemoRolePicker } from "@/components/auth/demo-role-picker";
+import {
+  AUTH_FOOTER,
+  AUTH_SIGN_IN_TITLE,
+  LOGO_WORDMARK_LIGHT,
+  PRODUCT_TAGLINE,
+} from "@/lib/brand";
 import { DEMO_MODE } from "@/lib/demo/config";
 import { cn } from "@/lib/utils";
 
@@ -22,19 +28,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="grid min-h-svh lg:grid-cols-2">
       <LoginHero />
 
-      <div className="flex min-h-svh flex-col bg-primary px-6 py-8 sm:px-10">
+      <div className="flex min-h-svh flex-col border-t-4 border-[var(--fidelity-brown)] bg-primary px-6 py-8 sm:px-10">
         <Image
-          src="/logos/logoWhite.png"
-          alt="Celerey"
-          width={120}
-          height={30}
+          src={LOGO_WORDMARK_LIGHT}
+          alt="Fidelity"
+          width={160}
+          height={48}
           className="h-10 w-auto shrink-0 self-start"
           priority
         />
 
         <div
           className={cn(
-            "celerey-enter mx-auto flex w-full min-h-0 flex-1 flex-col",
+            "brand-enter mx-auto flex w-full min-h-0 flex-1 flex-col",
             DEMO_MODE
               ? "max-w-lg justify-start py-8 sm:py-10"
               : "max-w-sm justify-center py-10",
@@ -42,11 +48,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         >
           <div className="space-y-6">
             <div className="space-y-2">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-white/50">
-                Wealth advisory workspace
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-white/70">
+                {PRODUCT_TAGLINE}
               </p>
               <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                Sign in to Celerey
+                {AUTH_SIGN_IN_TITLE}
               </h1>
               <p className="text-sm leading-relaxed text-white/60">
                 {sessionExpired
@@ -61,10 +67,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
 
-        <p className="shrink-0 pt-6 text-xs text-white/40">
-          Celerey internal portal. For authorised advisors and wealth
-          advisory staff.
-        </p>
+        <p className="shrink-0 pt-6 text-xs text-white/40">{AUTH_FOOTER}</p>
       </div>
     </main>
   );

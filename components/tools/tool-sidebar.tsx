@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -76,7 +77,7 @@ export function ToolSidebar({
         className,
       )}
     >
-      <p className={dashboardTheme.sectionLabel}>Calculators</p>
+      <SectionEyebrow>Calculators</SectionEyebrow>
 
       <div className="relative">
         <Search

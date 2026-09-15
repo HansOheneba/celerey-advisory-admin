@@ -24,19 +24,19 @@ import type { ConversationThread } from "@/lib/messages/types";
 const TEMPLATES: Array<{ label: string; body: string }> = [
   {
     label: "Review invitation",
-    body: "I would like to book your next portfolio review. I will bring an updated performance summary, a view on your cash weighting and the funding position of each goal. Which week suits you?",
+    body: "Can we book your next review? I'll bring performance, cash, and where each goal stands. What week works?",
   },
   {
     label: "Cash deployment",
-    body: "Your cash weighting has moved above the level we agreed, which is costing return. I have modelled a staged deployment so we keep your near-term liquidity intact. Shall I send the detail?",
+    body: "Cash is above what we agreed, so you're giving up return. I mapped a staged deploy that keeps near-term liquidity. Want me to send it?",
   },
   {
     label: "Rebalance notice",
-    body: "Following recent market moves your allocation has drifted from the profile we agreed. I recommend we bring it back to target. I have prepared the trades and the rationale for your approval.",
+    body: "Markets moved you off the profile we set. I'd bring allocation back to target. Trades and rationale are ready if you want them.",
   },
   {
     label: "Maturity reminder",
-    body: "One of your holdings matures shortly. Rather than leave the proceeds in cash, I have set out two reinvestment options that stay within your agreed risk profile.",
+    body: "A holding matures soon. I lined up two reinvest options that stay inside your risk band.",
   },
 ];
 

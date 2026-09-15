@@ -49,7 +49,7 @@ export function GoalsTab({ record, canEdit }: GoalsTabProps) {
         title="Goals"
         description={`${formatCurrency(detail.goalsMeta.totalMonthlyNeeded, currency)}/mo across ${detail.goalsMeta.activeGoals} active goals.`}
         variant="success"
-        actions={canEdit ? <AddGoalDialog clientId={clientId} /> : null}
+        actions={canEdit ? <AddGoalDialog clientId={clientId} currency={currency} /> : null}
       >
         {detail.goals.length === 0 ? (
           <p className="text-sm text-muted-foreground">No goals on file.</p>
@@ -105,6 +105,7 @@ export function GoalsTab({ record, canEdit }: GoalsTabProps) {
                           <div className="flex items-center justify-end gap-1">
                             <EditGoalDialog
                               clientId={clientId}
+                              currency={currency}
                               goal={{
                                 id: goal.id,
                                 title: goal.title,

@@ -25,7 +25,7 @@ export function EmptyState({
     <div
       className={cn(
         dashboardTheme.emptyState,
-        "celerey-enter flex flex-col items-center text-center",
+        "brand-enter flex flex-col items-center text-center",
         variant !== "default" && dashboardTheme.tintedSurface[variant],
         className,
       )}

@@ -8,6 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { headingTitle } from "@/lib/format";
 
 export type WorkspaceTabDefinition = {
   value: string;
@@ -50,7 +51,7 @@ export function WorkspaceTabs({ tabs, defaultValue }: WorkspaceTabsProps) {
         <TabsList className="inline-flex w-max min-w-full justify-start gap-0.5">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex-none">
-              {tab.label}
+              {headingTitle(tab.label)}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -98,11 +98,11 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         oseiBonsu,
         [
-          { author: "advisor", body: "Akosua, your Q3 review pack is ready. I have flagged the cash weighting and the 2027 education goal.", daysAgo: 9 },
-          { author: "client", body: "Thank you. I opened it — the cash figure surprised me. Can we discuss deploying some of it?", daysAgo: 8 },
-          { author: "advisor", body: "Absolutely. I will model a staged deployment into treasury plus and the credit sleeve before we meet.", daysAgo: 8 },
-          { author: "note", body: "Client is receptive to deployment. Prepare two options: full and staged over 3 months.", daysAgo: 8 },
-          { author: "client", body: "One more thing — could you look at whether the London property can support a facility instead of selling anything?", daysAgo: 2 },
+          { author: "advisor", body: "Akosua, Q3 pack is in your documents. I flagged the cash and the 2027 school fees goal.", daysAgo: 9 },
+          { author: "client", body: "Just opened it. Cash surprised me. Can we talk about putting some to work?", daysAgo: 8 },
+          { author: "advisor", body: "Yep. I'll model all at once vs over 3 months before we meet.", daysAgo: 8 },
+          { author: "note", body: "Open to deployment. Have both options ready.", daysAgo: 8 },
+          { author: "client", body: "Also can the London flat back a facility instead of us selling anything?", daysAgo: 2 },
         ],
         1,
       ),
@@ -115,9 +115,9 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         darko,
         [
-          { author: "advisor", body: "Yaw, the portfolio has moved outside your agreed risk band after the equity run. I would like to rebalance.", daysAgo: 5 },
-          { author: "client", body: "I hear you, but the growth has been good. What exactly are we selling?", daysAgo: 4 },
-          { author: "advisor", body: "Trimming the technology sleeve back to target and moving proceeds into investment grade credit. I will send the detail.", daysAgo: 4 },
+          { author: "advisor", body: "Yaw, the equity run pushed you past the risk band we set. I'd rebalance if you're ok with it.", daysAgo: 5 },
+          { author: "client", body: "Returns have been good though. What would you actually sell?", daysAgo: 4 },
+          { author: "advisor", body: "Mostly trim tech back to target, rest into IG credit. I'll send the list.", daysAgo: 4 },
         ],
         0,
       ),
@@ -130,9 +130,9 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         quaye,
         [
-          { author: "client", body: "The sale proceeds have cleared. I am ready to fund whenever you are.", daysAgo: 3 },
-          { author: "advisor", body: "Excellent news. I will prepare the deployment plan across the growth sleeves and treasury plus for the reserve.", daysAgo: 2 },
-          { author: "client", body: "Perfect. Please keep six months of clinic operating costs liquid.", daysAgo: 2 },
+          { author: "client", body: "Proceeds landed. Tell me when to move.", daysAgo: 3 },
+          { author: "advisor", body: "Nice. I'll split into growth and keep treasury plus for the reserve.", daysAgo: 2 },
+          { author: "client", body: "Leave 6 months of clinic costs in cash please.", daysAgo: 2 },
         ],
         1,
       ),
@@ -145,8 +145,8 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         mensah,
         [
-          { author: "advisor", body: "Kofi, your sovereign note matures next week. Shall we roll it or move to the credit sleeve?", daysAgo: 6 },
-          { author: "client", body: "What would the income difference be? I do not want to take more risk at this stage.", daysAgo: 5 },
+          { author: "advisor", body: "Kofi, sovereign note rolls next week. Roll it or shift to credit?", daysAgo: 6 },
+          { author: "client", body: "What's the income gap either way? I don't want more risk right now.", daysAgo: 5 },
         ],
         1,
       ),
@@ -159,9 +159,9 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         nkrumah,
         [
-          { author: "client", body: "I am not comfortable with the structured note that was recommended. It does not match what we agreed.", daysAgo: 7 },
-          { author: "advisor", body: "Understood, and I apologise. I have withdrawn the recommendation and escalated it for review.", daysAgo: 7 },
-          { author: "note", body: "Escalation logged with Compliance. Portfolio is also outside the conservative band — rebalance required.", daysAgo: 6 },
+          { author: "client", body: "That structured note isn't what we agreed. I'm not ok with it.", daysAgo: 7 },
+          { author: "advisor", body: "Understood. I pulled it and compliance is looking at it.", daysAgo: 7 },
+          { author: "note", body: "Compliance ticket open. Still need rebalance, book is hot.", daysAgo: 6 },
         ],
         0,
       ),
@@ -174,8 +174,8 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         owusu,
         [
-          { author: "advisor", body: "Kwabena, rather than selling securities for the development draw, a Lombard facility could release liquidity.", daysAgo: 11 },
-          { author: "client", body: "That is interesting. Send me the terms and the margin mechanics.", daysAgo: 10 },
+          { author: "advisor", body: "Kwabena, for the dev draw you might use Lombard instead of selling holdings.", daysAgo: 11 },
+          { author: "client", body: "Maybe. Send terms and how margin works.", daysAgo: 10 },
         ],
         0,
       ),
@@ -188,7 +188,7 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         tetteh,
         [
-          { author: "advisor", body: "Naa, consolidating the two ISAs and reviewing the NHS pension would give us a complete picture.", daysAgo: 19 },
+          { author: "advisor", body: "Naa, send the two ISA statements and NHS pension when you can. Then we can finish the picture.", daysAgo: 19 },
         ],
         0,
       ),
@@ -201,8 +201,8 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
       threadFor(
         agyapong,
         [
-          { author: "advisor", body: "Welcome to Celerey, Selina. Two KYC documents are still outstanding — proof of address and the source of funds letter.", daysAgo: 3 },
-          { author: "client", body: "Will upload both this week.", daysAgo: 3 },
+          { author: "advisor", body: "Selina, welcome. Still need proof of address and the source of funds letter.", daysAgo: 3 },
+          { author: "client", body: "Uploading both by Friday.", daysAgo: 3 },
         ],
         0,
       ),
@@ -217,17 +217,17 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
         [
           {
             author: "advisor",
-            body: "Annual review notes are in your documents. Have a read before our next session.",
+            body: "Review notes are in documents when you get a minute.",
             daysAgo: 175,
           },
           {
             author: "client",
-            body: "Thanks. Uploaded my latest payslip.",
+            body: "Read them. Payslip uploaded.",
             daysAgo: 3,
           },
           {
             author: "advisor",
-            body: "Got the payslip. See you Wednesday at 10am for the quarterly check-in.",
+            body: "Got the payslip. Wed 10am still good?",
             daysAgo: 2,
           },
         ],
@@ -252,12 +252,12 @@ function buildThreads(clients: DemoClientRecord[]): ConversationThread[] {
         [
           {
             author: "advisor",
-            body: `Hi ${client.firstName}, sharing a quick portfolio snapshot ahead of our next check-in.`,
+            body: `Hey ${client.firstName}, I put a snapshot in documents before we catch up.`,
             daysAgo: 14,
           },
           {
             author: "client",
-            body: "Thanks — looks good. Happy to discuss at the review.",
+            body: "Saw it, thanks. Happy to go through at the review.",
             daysAgo: 13,
           },
         ],
@@ -780,9 +780,9 @@ function buildEventAlerts(clients: DemoClientRecord[]): DemoAlert[] {
   };
 
   push("alert-escalation-nkrumah", "nkrumah", "escalation", "critical", "Escalation open", "Client disputes the structured note recommendation. Compliance review in progress.", 7, "compliance");
-  push("alert-message-osei-bonsu", "osei-bonsu", "client_message", "info", "New client message", "Asked whether the London property can support a facility instead of an asset sale.", 2, "advisory");
-  push("alert-message-quaye", "quaye", "client_message", "info", "New client message", "Confirmed the sale proceeds have cleared and is ready to fund.", 3, "advisory");
-  push("alert-message-mensah", "mensah-kofi", "client_message", "info", "New client message", "Asked for the income comparison before the note matures.", 5, "advisory");
+  push("alert-message-osei-bonsu", "osei-bonsu", "client_message", "info", "New client message", "Asked about using the London flat for a facility instead of selling.", 2, "advisory");
+  push("alert-message-quaye", "quaye", "client_message", "info", "New client message", "Proceeds cleared, ready to fund.", 3, "advisory");
+  push("alert-message-mensah", "mensah-kofi", "client_message", "info", "New client message", "Wants income comparison before the note matures.", 5, "advisory");
   push("alert-doc-agyapong", "agyapong", "document_uploaded", "warning", "KYC documents outstanding", "Proof of address and source of funds letter still missing.", 3, "compliance");
 
   return alerts;
@@ -797,7 +797,7 @@ function buildActivity(clients: DemoClientRecord[]): ClientActivity[] {
   }> = [
     { clientId: "osei-bonsu", type: "review", summary: "Q3 review pack sent and opened", daysAgo: 9 },
     { clientId: "darko", type: "alert", summary: "Risk band breach flagged for review", daysAgo: 5 },
-    { clientId: "quaye", type: "message", summary: "Sale proceeds cleared — ready to fund", daysAgo: 3 },
+    { clientId: "quaye", type: "message", summary: "Proceeds cleared, ready to fund", daysAgo: 3 },
     { clientId: "mensah-kofi", type: "alert", summary: "Sovereign note matures in five days", daysAgo: 1 },
     { clientId: "owusu-ansah", type: "message", summary: "Requested Lombard facility terms", daysAgo: 10 },
     { clientId: "agyapong", type: "document", summary: "Onboarding started — KYC pending", daysAgo: 3 },
@@ -865,7 +865,7 @@ function buildSettings(): Record<string, AdvisorSettings> {
       ...defaultAdvisorSettings(user.name),
       title: user.title,
       phone: "+233 30 200 1000",
-      bio: `${user.title} at Celerey.`,
+      bio: `${user.title} at Fidelity.`,
     };
   }
 

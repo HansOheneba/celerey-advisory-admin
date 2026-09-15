@@ -1,20 +1,23 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
+import { brandColors } from "@/lib/brand";
+
 export const REPORT_PAGES = 6;
 
-/** Celerey palette translated for print. */
+/** Fidelity palette (four swatches + black) for print. */
 export const colors = {
-  navy: "#151339",
-  navyDeep: "#0e0c26",
-  accent: "#8c80f8",
-  ink: "#1a1a1a",
-  muted: "#666666",
-  rule: "#e6e6ec",
-  panel: "#f3f2f8",
-  page: "#fbfbfd",
-  white: "#ffffff",
-  positive: "#0f7a52",
-  negative: "#b3261e",
+  navy: brandColors.orange,
+  navyDeep: brandColors.brown,
+  accent: brandColors.orange,
+  gold: brandColors.brown,
+  ink: brandColors.black,
+  muted: brandColors.brown,
+  rule: brandColors.brown,
+  panel: brandColors.cream,
+  page: brandColors.cream,
+  white: brandColors.white,
+  positive: brandColors.brown,
+  negative: brandColors.black,
 };
 
 /**
@@ -28,9 +31,9 @@ export const fonts = {
   bodyBold: "Helvetica-Bold",
 };
 
-/** `public/logos/logoWhite.png` — height must keep this ratio or the mark letterboxes. */
-const COVER_LOGO_WIDTH = 220;
-const COVER_LOGO_HEIGHT = Math.round((COVER_LOGO_WIDTH * 7135) / 12497);
+/** `public/fidelity/fidelity-symbol.png` */
+const COVER_LOGO_WIDTH = 72;
+const COVER_LOGO_HEIGHT = 72;
 
 export const reportStyles = StyleSheet.create({
   page: {
@@ -104,7 +107,7 @@ export const reportStyles = StyleSheet.create({
   coverSubtitle: {
     fontFamily: fonts.body,
     fontSize: 11,
-    color: "#c9c4f5",
+    color: brandColors.brown,
     marginBottom: 4,
   },
   coverMeta: {
@@ -147,7 +150,7 @@ export const reportStyles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 9,
     lineHeight: 1.55,
-    color: "#444444",
+    color: brandColors.black,
   },
   muted: {
     fontFamily: fonts.body,
@@ -202,7 +205,7 @@ export const reportStyles = StyleSheet.create({
   detailValue: {
     fontSize: 9,
     fontFamily: fonts.body,
-    color: "#333333",
+    color: brandColors.black,
     marginBottom: 2,
   },
   table: {
@@ -233,7 +236,7 @@ export const reportStyles = StyleSheet.create({
   tableCell: {
     fontSize: 8,
     fontFamily: fonts.body,
-    color: "#333333",
+    color: brandColors.black,
   },
   tableCellRight: {
     fontSize: 8,
@@ -302,11 +305,9 @@ export const reportStyles = StyleSheet.create({
 
 /** Slice colours, cycled in allocation order. */
 export const ALLOCATION_COLORS = [
-  "#151339",
-  "#1e3a5f",
-  "#8c80f8",
-  "#7eb8e8",
-  "#10b981",
-  "#f59e0b",
-  "#b3261e",
+  brandColors.orange,
+  brandColors.brown,
+  brandColors.black,
+  brandColors.cream,
+  brandColors.white,
 ];

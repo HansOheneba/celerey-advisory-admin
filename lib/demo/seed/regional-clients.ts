@@ -44,7 +44,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Prefers income sleeves. Wants T-bill ladder review before next harvest season.",
     holdings: holdingsFrom(8_200_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 620_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 620_000 },
     ],
     goals: [
       { title: "Farm expansion reserve", category: "Business", target: 3_500_000, current: 1_900_000, monthly: 18_000, years: 5, priority: 1 },
@@ -99,7 +99,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Education goal is priority. FX exposure review scheduled.",
     holdings: holdingsFrom(5_600_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 310_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 310_000 },
     ],
     goals: [
       { title: "International school fees", category: "Education", target: 1_200_000, current: 480_000, monthly: 8_500, years: 3, priority: 1 },
@@ -208,8 +208,8 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Held-away assets need consolidation letter. Cash build-up after Q3 contract payment.",
     holdings: holdingsFrom(11_400_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 890_000 },
-      { name: "USD Call Deposit", institution: "Celerey Bank", type: "deposit", balance: 420_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 890_000 },
+      { name: "USD Call Deposit", institution: "Fidelity Bank", type: "deposit", balance: 420_000 },
     ],
     goals: [
       { title: "Contractor retirement", category: "Retirement", target: 14_000_000, current: 7_200_000, monthly: 35_000, years: 10, priority: 1 },
@@ -262,7 +262,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Commercial property revaluation due. Lombard facility renewal in 60 days.",
     holdings: holdingsFrom(14_800_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 540_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 540_000 },
     ],
     goals: [
       { title: "Daughter's university", category: "Education", target: 900_000, current: 620_000, monthly: 5_500, years: 2, priority: 1 },
@@ -322,8 +322,8 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "USD/GHS hedging discussion flagged. Aggressive sleeve within risk band.",
     holdings: holdingsFrom(4_200_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 380_000 },
-      { name: "USD Brokerage", institution: "Celerey Securities", type: "investment", balance: 1_200_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 380_000 },
+      { name: "USD Brokerage", institution: "Fidelity Securities", type: "investment", balance: 1_200_000 },
     ],
     goals: [
       { title: "Startup runway", category: "Business", target: 2_000_000, current: 900_000, monthly: 15_000, years: 3, priority: 1 },
@@ -373,7 +373,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Review overdue. Client travelling — schedule virtual check-in.",
     holdings: holdingsFrom(2_800_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 195_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 195_000 },
     ],
     goals: [
       { title: "Children's education", category: "Education", target: 400_000, current: 180_000, monthly: 4_000, years: 6, priority: 1 },
@@ -426,7 +426,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "RSU vesting in Q4. Philanthropy fund discussion ongoing.",
     holdings: holdingsFrom(22_500_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 1_800_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 1_800_000 },
     ],
     goals: [
       { title: "Foundation endowment", category: "Philanthropy", target: 8_000_000, current: 3_200_000, monthly: 45_000, years: 7, priority: 1 },
@@ -482,7 +482,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Drift above band. Discuss rebalancing vs tax implications.",
     holdings: holdingsFrom(6_800_000, AGGRESSIVE_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 120_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 120_000 },
     ],
     goals: [
       { title: "Early retirement", category: "Retirement", target: 8_000_000, current: 3_400_000, monthly: 18_000, years: 14, priority: 1 },
@@ -530,7 +530,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Decumulation planning conversation needed within 12 months.",
     holdings: holdingsFrom(3_600_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 280_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 280_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 4_500_000, current: 3_600_000, monthly: 2_000, years: 4, priority: 1 },
@@ -584,7 +584,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Bonus received last month — deploy cash per IPS.",
     holdings: holdingsFrom(9_300_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 720_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 720_000 },
     ],
     goals: [
       { title: "Boat acquisition", category: "Lifestyle", target: 1_500_000, current: 400_000, monthly: 10_000, years: 5, priority: 2 },
@@ -638,7 +638,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Re-engagement outreach planned. Portfolio in preservation mode.",
     holdings: holdingsFrom(1_400_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 180_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 180_000 },
     ],
     goals: [],
     properties: [],
@@ -684,8 +684,8 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Estate planning attorney intro pending. Succession workshop scheduled.",
     holdings: holdingsFrom(28_000_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 2_100_000 },
-      { name: "Family trust account", institution: "Celerey Trust", type: "trust", balance: 8_500_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 2_100_000 },
+      { name: "Family trust account", institution: "Fidelity Trust", type: "trust", balance: 8_500_000 },
     ],
     goals: [
       { title: "Family trust funding", category: "Legacy", target: 20_000_000, current: 14_000_000, monthly: 50_000, years: 8, priority: 1 },
@@ -793,7 +793,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Capital call due in 45 days. Maintain elevated cash buffer.",
     holdings: holdingsFrom(16_200_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 1_400_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 1_400_000 },
     ],
     goals: [
       { title: "Co-invest reserve", category: "Investment", target: 5_000_000, current: 2_800_000, monthly: 25_000, years: 4, priority: 1 },
@@ -854,7 +854,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Prefers quarterly reviews after harvest cycles.",
     holdings: holdingsFrom(3_100_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 210_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 210_000 },
     ],
     goals: [
       { title: "Trading capital reserve", category: "Business", target: 1_800_000, current: 900_000, monthly: 8_000, years: 4, priority: 1 },
@@ -902,7 +902,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Income sleeve preference. Review T-bill ladder annually.",
     holdings: holdingsFrom(2_400_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 165_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 165_000 },
     ],
     goals: [
       { title: "Retirement income", category: "Retirement", target: 3_500_000, current: 2_100_000, monthly: 6_500, years: 10, priority: 1 },
@@ -954,7 +954,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Property valuation update requested for collateral discussion.",
     holdings: holdingsFrom(5_500_000, BALANCED_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 340_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 340_000 },
     ],
     goals: [
       { title: "Land succession plan", category: "Legacy", target: 4_000_000, current: 2_200_000, monthly: 10_000, years: 8, priority: 1 },
@@ -1006,7 +1006,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Wants ESG-aligned fund options within growth sleeve.",
     holdings: holdingsFrom(2_900_000, GROWTH_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 175_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 175_000 },
     ],
     goals: [
       { title: "School building fund", category: "Philanthropy", target: 800_000, current: 320_000, monthly: 5_500, years: 5, priority: 1 },
@@ -1054,7 +1054,7 @@ export const REGIONAL_CLIENT_SPECS: ClientSpec[] = [
     notes: "Conservative mandate. Discuss microfinance exposure limits.",
     holdings: holdingsFrom(1_850_000, INCOME_SLEEVES),
     accounts: [
-      { name: "Premier Cash Account", institution: "Celerey Bank", type: "current", balance: 140_000 },
+      { name: "Premier Cash Account", institution: "Fidelity Bank", type: "current", balance: 140_000 },
     ],
     goals: [
       { title: "Cooperative warehouse", category: "Business", target: 600_000, current: 280_000, monthly: 4_200, years: 4, priority: 1 },

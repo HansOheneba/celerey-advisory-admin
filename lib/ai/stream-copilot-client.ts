@@ -1,3 +1,5 @@
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
+
 export type StreamCopilotResult = {
   content: string;
   offline: boolean;
@@ -21,11 +23,11 @@ export async function streamCopilotAnswer(
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || "Celerey Copilot request failed.");
+    throw new Error(message || `${CELEREY_COPILOT_NAME} request failed.`);
   }
 
   if (!response.body) {
-    throw new Error("Celerey Copilot returned an empty stream.");
+    throw new Error(`${CELEREY_COPILOT_NAME} returned an empty stream.`);
   }
 
   const offline = response.headers.get("X-Copilot-Offline") === "true";

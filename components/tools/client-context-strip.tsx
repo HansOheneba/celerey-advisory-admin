@@ -1,15 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import type { ToolClientSeed } from "@/components/tools/tools-view";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import {
   formatCompactCurrency,
@@ -19,9 +13,6 @@ import {
 import { cn } from "@/lib/utils";
 
 type ClientContextStripProps = {
-  clients: ToolClientSeed[];
-  clientId: string;
-  onClientChange: (clientId: string) => void;
   seed: ToolClientSeed;
   onSuggestTool?: (toolId: string) => void;
 };
@@ -44,9 +35,6 @@ function ContextMetric({
 }
 
 export function ClientContextStrip({
-  clients,
-  clientId,
-  onClientChange,
   seed,
   onSuggestTool,
 }: ClientContextStripProps) {
@@ -69,42 +57,24 @@ export function ClientContextStrip({
               .toUpperCase()}
           </div>
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className={dashboardTheme.sectionLabel}>Working with</p>
-            <Select
-              value={clientId}
-              onValueChange={(value) => onClientChange(value ?? clientId)}
-            >
-              <SelectTrigger
-                className={cn(
-                  "h-auto w-full min-w-0 border-none bg-transparent p-0 pr-6 text-base font-semibold shadow-none focus-visible:ring-0 sm:text-lg",
-                  "whitespace-normal *:data-[slot=select-value]:line-clamp-none *:data-[slot=select-value]:whitespace-normal",
-                )}
-                aria-label="Select client for calculators"
+            <p className="text-xs text-muted-foreground">
+              {headingTitle("Profile snapshot")}
+            </p>
+            <p className="text-base font-semibold tracking-tight sm:text-lg">
+              <Link
+                href={`/clients/${seed.id}`}
+                className="hover:text-primary hover:underline underline-offset-4"
               >
-                <SelectValue>
-                  {(value: string | null) => {
-                    const client = clients.find(
-                      (item) => item.id === (value ?? clientId),
-                    );
-                    return client?.name ?? seed.name;
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                {seed.name}
+              </Link>
+            </p>
           </div>
         </div>
 
         <div className="grid shrink-0 grid-cols-2 gap-y-3 sm:flex sm:flex-wrap sm:items-end sm:gap-x-6 lg:justify-end">
           <ContextMetric
             label="Portfolio"
-            value={formatCompactCurrency(portfolioValue)}
+            value={formatCompactCurrency(portfolioValue, "USD")}
           />
           <ContextMetric
             label="Cash weighting"

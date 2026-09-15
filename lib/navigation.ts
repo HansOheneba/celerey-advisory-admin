@@ -18,6 +18,7 @@ import {
   type CapabilitySet,
   type MenuKey,
 } from "@/lib/auth/capabilities";
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 
 export type NavSymbol = "celerey-ai";
 
@@ -49,7 +50,7 @@ export const PRIMARY_NAV: NavItem[] = [
   {
     key: "copilot",
     href: "/copilot",
-    label: "Celerey Copilot",
+    label: CELEREY_COPILOT_NAME,
     symbol: "celerey-ai",
     description: "Query the book and draft client material",
   },
@@ -107,7 +108,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   new: "Add client",
   invite: "Send invite",
   direct: "Create client",
-  copilot: "Celerey Copilot",
+  copilot: CELEREY_COPILOT_NAME,
   insights: "Insights",
   products: "Products",
   tools: "Tools",

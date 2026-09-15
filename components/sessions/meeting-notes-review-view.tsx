@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { ArrowLeft, FileText, Plus, Trash2 } from "lucide-react";
@@ -131,7 +132,7 @@ export function MeetingNotesReviewView({
             Back to sessions
           </Button>
           <div className="space-y-1">
-            <p className={dashboardTheme.sectionLabel}>Meeting notes review</p>
+            <SectionEyebrow>Meeting notes review</SectionEyebrow>
             <h1 className={dashboardTheme.pageTitle}>{appointment.title}</h1>
             <p className={dashboardTheme.pageDescription}>
               {appointment.clientName} ·{" "}
@@ -143,7 +144,7 @@ export function MeetingNotesReviewView({
           <div className="flex flex-wrap items-center gap-2">
             <AppointmentStatusBadge status={appointment.status} />
             <span className="text-xs text-muted-foreground">
-              Draft from Celerey Notetaker (demo)
+              Draft from Fidelity Notetaker (demo)
             </span>
           </div>
         </div>

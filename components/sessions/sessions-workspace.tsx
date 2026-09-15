@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -85,7 +86,7 @@ export function SessionsWorkspace({
     <div className={dashboardTheme.page}>
       <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className={dashboardTheme.sectionLabel}>Compliance</p>
+          <SectionEyebrow>Compliance</SectionEyebrow>
           <h2 className={dashboardTheme.pageTitle}>Sessions</h2>
           <p className={dashboardTheme.pageDescription}>
             Advisory session records, logs, and published notes for your client
@@ -100,25 +101,25 @@ export function SessionsWorkspace({
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className={cnStatCard()}>
-          <p className={dashboardTheme.sectionLabel}>Total sessions</p>
+          <SectionEyebrow>Total sessions</SectionEyebrow>
           <p className="mt-1 text-2xl font-medium tabular-nums">
             {pastSessions.length}
           </p>
         </div>
         <div className={cnStatCard()}>
-          <p className={dashboardTheme.sectionLabel}>Pending review</p>
+          <SectionEyebrow>Pending review</SectionEyebrow>
           <p className="mt-1 text-2xl font-medium tabular-nums">
             {pendingReview.length}
           </p>
         </div>
         <div className={cnStatCard()}>
-          <p className={dashboardTheme.sectionLabel}>Clients</p>
+          <SectionEyebrow>Clients</SectionEyebrow>
           <p className="mt-1 text-2xl font-medium tabular-nums">
             {clients.length}
           </p>
         </div>
         <div className={cnStatCard()}>
-          <p className={dashboardTheme.sectionLabel}>Filter</p>
+          <SectionEyebrow>Filter</SectionEyebrow>
           <Select
             value={clientFilter}
             onValueChange={(value) => setClientFilter(value ?? "all")}
@@ -141,7 +142,7 @@ export function SessionsWorkspace({
       {pendingReview.length > 0 ? (
         <section className="space-y-3">
           <div>
-            <p className={dashboardTheme.sectionLabel}>Review queue</p>
+            <SectionEyebrow>Review queue</SectionEyebrow>
             <h3 className="text-base font-semibold tracking-tight">
               Meeting notes to review
             </h3>
@@ -174,7 +175,7 @@ export function SessionsWorkspace({
 
       <section className="space-y-3">
         <div>
-          <p className={dashboardTheme.sectionLabel}>Records</p>
+          <SectionEyebrow>Records</SectionEyebrow>
           <h3 className="text-base font-semibold tracking-tight">
             Session history
           </h3>

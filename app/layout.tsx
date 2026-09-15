@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  APPLICATION_DESCRIPTION,
+  APPLICATION_NAME,
+  FAVICON,
+} from "@/lib/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,14 +21,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Celerey Advisory Admin",
-    template: "%s • Celerey Advisory Admin",
+    default: APPLICATION_NAME,
+    template: `%s • ${APPLICATION_NAME}`,
   },
-  description:
-    "Celerey Advisory Admin helps advisors advise clients, review financial health, and stay aligned with long-term advisory goals.",
-  applicationName: "Celerey Advisory Admin",
+  description: APPLICATION_DESCRIPTION,
+  applicationName: APPLICATION_NAME,
   icons: {
-    icon: "/celerey_symbol_dark.png",
+    icon: FAVICON,
   },
   robots: {
     index: false,

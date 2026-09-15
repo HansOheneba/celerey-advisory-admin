@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { SessionPayload } from "@/lib/definitions";
 
-export const SESSION_COOKIE = "celerey_session";
+export const SESSION_COOKIE = "fidelity_advisor_session";
 
 function getEncodedKey() {
   const secretKey = process.env.SESSION_SECRET;

@@ -1,5 +1,7 @@
 /** Dropdown values aligned with docs/admin-client-creation-fields.json */
 
+import { brandChartColors } from "@/lib/brand";
+
 export const PREFERRED_CONTACT_OPTIONS = [
   { value: "email", label: "Email" },
   { value: "phone", label: "Phone" },
@@ -77,14 +79,14 @@ export const RETIREMENT_STORAGE_OPTIONS = [
 ] as const;
 
 export const GOAL_CATEGORIES = [
-  { value: "emergency", label: "Emergency fund", icon: "shield", color: "#EF4444" },
-  { value: "retirement", label: "Retirement", icon: "umbrella-beach", color: "#8B5CF6" },
-  { value: "housing", label: "Housing", icon: "house", color: "#3B82F6" },
-  { value: "education", label: "Education", icon: "graduation-cap", color: "#10B981" },
-  { value: "travel", label: "Travel", icon: "plane", color: "#F59E0B" },
-  { value: "vehicle", label: "Vehicle", icon: "car", color: "#7C3AED" },
-  { value: "business", label: "Business", icon: "briefcase", color: "#6366F1" },
-  { value: "other", label: "Other", icon: "star", color: "#6B7280" },
+  { value: "emergency", label: "Emergency fund", icon: "shield", color: brandChartColors[2] },
+  { value: "retirement", label: "Retirement", icon: "umbrella-beach", color: brandChartColors[1] },
+  { value: "housing", label: "Housing", icon: "house", color: brandChartColors[0] },
+  { value: "education", label: "Education", icon: "graduation-cap", color: brandChartColors[1] },
+  { value: "travel", label: "Travel", icon: "plane", color: brandChartColors[0] },
+  { value: "vehicle", label: "Vehicle", icon: "car", color: brandChartColors[2] },
+  { value: "business", label: "Business", icon: "briefcase", color: brandChartColors[1] },
+  { value: "other", label: "Other", icon: "star", color: brandChartColors[3] },
 ] as const;
 
 export const GOAL_STATUS_OPTIONS = [

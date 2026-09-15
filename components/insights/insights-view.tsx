@@ -37,11 +37,12 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { hasCapability, type CapabilitySet } from "@/lib/auth/capabilities";
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { insightsPageDescription } from "@/lib/overview/book-scope-copy";
 import type { BookMetrics } from "@/lib/demo/insights";
 import { AssetRelationshipBadge } from "@/components/clients/asset-relationship-badge";
-import { formatCompactCurrency, formatDate } from "@/lib/format";
+import { formatCompactCurrency, formatDate, headingTitle } from "@/lib/format";
 import {
   computeAgeAnalytics,
   computeResidencySpread,
@@ -166,7 +167,7 @@ export function InsightsView({
         />
         {canViewFirmAnalytics ? (
           <MetricCard
-            label="Celerey Copilot sessions"
+            label={`${CELEREY_COPILOT_NAME} sessions`}
             value={String(aiSessions.length)}
             hint="book and client"
             symbol="celerey-ai"
@@ -195,7 +196,9 @@ export function InsightsView({
           </TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           {canViewFirmAnalytics ? (
-            <TabsTrigger value="ai">Celerey Copilot activity</TabsTrigger>
+            <TabsTrigger value="ai">
+              {headingTitle(`${CELEREY_COPILOT_NAME} activity`)}
+            </TabsTrigger>
           ) : null}
         </TabsList>
 
@@ -491,15 +494,15 @@ export function InsightsView({
         {canViewFirmAnalytics ? (
           <TabsContent value="ai">
             <SectionPanel
-              title="Celerey Copilot activity log"
+              title={`${CELEREY_COPILOT_NAME} activity log`}
               description="Who asked, what they queried, and which scopes were read."
               variant="ai"
             >
               {aiSessions.length === 0 ? (
                 <EmptyState
                   icon={Bot}
-                  title="No Celerey Copilot activity"
-                  description="Queries from the Celerey Copilot page show up here."
+                  title={`No ${CELEREY_COPILOT_NAME} activity`}
+                  description={`Queries from the ${CELEREY_COPILOT_NAME} page show up here.`}
                   variant="ai"
                 />
               ) : (

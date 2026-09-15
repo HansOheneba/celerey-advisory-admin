@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Suspense } from "react";
 import { AddAdvisorDialog } from "@/components/advisors/add-advisor-dialog";
 import { AdvisorsTable } from "@/components/advisors/advisors-table";
@@ -35,7 +36,7 @@ export default async function AdvisorsPage({ searchParams }: AdvisorsPageProps) 
     <div className={dashboardTheme.page}>
       <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-0.5">
-          <p className={dashboardTheme.sectionLabel}>Team</p>
+          <SectionEyebrow>Team</SectionEyebrow>
           <h2 className={dashboardTheme.pageTitle}>Advisors</h2>
           <p className={dashboardTheme.pageDescription}>
             {canManageRoles

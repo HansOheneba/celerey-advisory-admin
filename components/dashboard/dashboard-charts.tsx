@@ -13,11 +13,13 @@ import {
   YAxis,
 } from "recharts";
 import type { DashboardSummary } from "@/types/client";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { brandChartColors, brandColors } from "@/lib/brand";
 import { dashboardTheme } from "@/lib/dashboard-theme";
 import { formatCompactCurrency, headingTitle, titleCase } from "@/lib/format";
 
-const riskColors = ["#1e3a5f", "#151339", "#8c80f8", "#7eb8e8"];
+const riskColors = [...brandChartColors];
 
 type DashboardChartsProps = {
   summary: DashboardSummary;
@@ -38,7 +40,7 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
     <div className="grid gap-3 lg:grid-cols-2">
       <Card className={dashboardTheme.card}>
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>Allocation</p>
+          <SectionEyebrow>Allocation</SectionEyebrow>
           <CardTitle className="text-base font-semibold">
             {headingTitle("AUA by risk profile")}
           </CardTitle>
@@ -73,9 +75,7 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
 
       <Card className={dashboardTheme.card}>
         <CardHeader>
-          <p className={dashboardTheme.sectionLabel}>
-            {headingTitle("Book health")}
-          </p>
+          <SectionEyebrow>{headingTitle("Book health")}</SectionEyebrow>
           <CardTitle className="text-base font-semibold">
             {headingTitle("Clients by status")}
           </CardTitle>
@@ -87,7 +87,7 @@ export function DashboardCharts({ summary }: DashboardChartsProps) {
               <XAxis dataKey="name" tickLine={false} axisLine={false} />
               <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="#151339" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="count" fill={brandColors.orange} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

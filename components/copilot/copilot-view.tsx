@@ -5,6 +5,7 @@ import { ArrowUp, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { CelereyAiSymbol } from "@/components/brand/celerey-ai-symbol";
+import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 import { CopilotMarkdown } from "@/components/copilot/copilot-markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -157,7 +158,7 @@ export function CopilotView({ clients, scopeLabel }: CopilotViewProps) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Celerey Copilot could not complete that request.",
+          : `${CELEREY_COPILOT_NAME} could not complete that request.`,
       );
     } finally {
       if (abortRef.current === controller) {
@@ -191,13 +192,13 @@ export function CopilotView({ clients, scopeLabel }: CopilotViewProps) {
       {isEmpty ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4">
           <div className={cn(COLUMN, "flex flex-1 flex-col justify-center py-10")}>
-            <div className="celerey-enter mb-8 text-center">
+            <div className="brand-enter mb-8 text-center">
               <CelereyAiSymbol
                 size="hero"
                 className="mx-auto mb-4 size-[4.5rem] sm:size-20"
               />
               <p className="mb-2 text-xs font-medium uppercase tracking-[0.08em] text-accent-purple">
-                Celerey Copilot
+                {CELEREY_COPILOT_NAME}
               </p>
               <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">
                 What do you want to look at?
@@ -206,7 +207,7 @@ export function CopilotView({ clients, scopeLabel }: CopilotViewProps) {
 
             {composer}
 
-            <div className="celerey-stagger mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="brand-stagger mt-4 grid gap-2 sm:grid-cols-2">
               {SUGGESTIONS.map((suggestion) => (
                 <Button
                   key={suggestion}

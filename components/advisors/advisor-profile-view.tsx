@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 import { ArrowLeft } from "lucide-react";
 import { AdvisorClientsTable } from "@/components/advisors/advisor-clients-table";
 import { AdvisorRoleSelect } from "@/components/advisors/advisor-role-select";
@@ -78,7 +79,7 @@ export function AdvisorProfileView({
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className={dashboardTheme.card}>
           <CardHeader className="pb-2">
-            <p className={dashboardTheme.sectionLabel}>Book</p>
+            <SectionEyebrow>Book</SectionEyebrow>
             <CardTitle className="text-2xl font-medium tabular-nums">
               {totalClients}
             </CardTitle>
@@ -89,7 +90,7 @@ export function AdvisorProfileView({
         </Card>
         <Card className={dashboardTheme.card}>
           <CardHeader className="pb-2">
-            <p className={dashboardTheme.sectionLabel}>Role</p>
+            <SectionEyebrow>Role</SectionEyebrow>
             <CardTitle className="text-2xl font-medium">
               {advisor.roles.length > 0
                 ? advisor.roles.map(identityRoleLabel).join(" · ")
@@ -109,7 +110,7 @@ export function AdvisorProfileView({
         </Card>
         <Card className={dashboardTheme.card}>
           <CardHeader className="pb-2">
-            <p className={dashboardTheme.sectionLabel}>Contact</p>
+            <SectionEyebrow>Contact</SectionEyebrow>
             <CardTitle className="truncate text-base font-semibold">
               {advisor.email || "—"}
             </CardTitle>
@@ -122,7 +123,7 @@ export function AdvisorProfileView({
 
       <section className="space-y-3">
         <div className="space-y-0.5">
-          <p className={dashboardTheme.sectionLabel}>Assigned book</p>
+          <SectionEyebrow>Assigned book</SectionEyebrow>
           <h3 className="text-base font-semibold tracking-tight">Clients</h3>
         </div>
         <AdvisorClientsTable items={clients} />

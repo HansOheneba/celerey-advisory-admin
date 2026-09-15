@@ -1,4 +1,5 @@
 import { DollarSign } from "lucide-react";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -46,15 +47,13 @@ export function BookAssetsCard({
       )}
     >
       <CardContent className="space-y-2">
-        <p className={dashboardTheme.sectionLabel}>
-          {headingTitle(bookScopeEyebrow(scope))}
-        </p>
+        <SectionEyebrow>{bookScopeEyebrow(scope)}</SectionEyebrow>
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-brand text-accent-blue">
             <DollarSign className="size-4 shrink-0" aria-hidden />
           </div>
           <p className={cn(dashboardTheme.statLabel, "min-w-0 leading-snug")}>
-            {ASSETS_UNDER_ADVISORY_LABEL}
+            {headingTitle(ASSETS_UNDER_ADVISORY_LABEL)}
           </p>
         </div>
         <p className={dashboardTheme.statValueLarge}>

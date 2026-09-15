@@ -36,6 +36,7 @@ export function RetirementTab({ record, canEdit }: RetirementTabProps) {
           canEdit ? (
             <EditRetirementDialog
               clientId={clientId}
+              currency={currency}
               retirement={detail.retirement}
             />
           ) : null
@@ -44,7 +45,7 @@ export function RetirementTab({ record, canEdit }: RetirementTabProps) {
         <StatGrid columns={2}>
           <StatItem
             label="Invested today"
-            value={formatCompactCurrency(detail.retirement.currentInvested)}
+            value={formatCompactCurrency(detail.retirement.currentInvested, currency)}
           />
           <StatItem
             label="Monthly savings"
@@ -54,6 +55,7 @@ export function RetirementTab({ record, canEdit }: RetirementTabProps) {
             label="Pension balance"
             value={formatCompactCurrency(
               detail.retirement.existingPensionBalance,
+              currency,
             )}
           />
           <StatItem
@@ -82,6 +84,7 @@ export function RetirementTab({ record, canEdit }: RetirementTabProps) {
               label="Balance at retirement"
               value={formatCompactCurrency(
                 projections.projectedBalanceAtRetirement ?? 0,
+                currency,
               )}
             />
             <StatItem

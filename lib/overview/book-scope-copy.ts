@@ -35,7 +35,7 @@ export function bookScopeLabel(scope: BookScope): string {
   }
 }
 
-/** Subline under total AUA: how much of the visible book Celerey manages. */
+/** Subline under total AUA: how much of the visible book Fidelity manages. */
 export function formatBookAssetsManagedSubline(
   totalAua: number,
   totalAum: number,

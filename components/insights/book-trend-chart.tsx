@@ -11,7 +11,7 @@ import {
 } from "recharts";
 
 import { CHART_PALETTE, CHART_PRIMARY } from "@/lib/chart-colors";
-import { formatCompactCurrency } from "@/lib/format";
+import { chartCurrencyFormatter, formatCompactCurrency } from "@/lib/format";
 
 type BookTrendChartProps = {
   currentAua: number;
@@ -76,7 +76,7 @@ export function BookTrendChart({
             tickLine={false}
             width={56}
             tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-            tickFormatter={(value: number) => formatCompactCurrency(value)}
+            tickFormatter={chartCurrencyFormatter()}
           />
           <Tooltip
             formatter={(value, name) => [

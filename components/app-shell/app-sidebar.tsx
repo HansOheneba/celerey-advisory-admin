@@ -19,6 +19,11 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  APPLICATION_NAME,
+  LOGO_SYMBOL,
+  LOGO_WORDMARK_DARK,
+} from "@/lib/brand";
 import { NavItemIcon } from "@/components/shared/nav-item-icon";
 import { cn } from "@/lib/utils";
 import type { CapabilitySet } from "@/lib/auth/capabilities";
@@ -49,12 +54,12 @@ export function AppSidebar({ capabilities }: AppSidebarProps) {
         <Link
           href="/dashboard"
           className="flex size-full items-center justify-center transition-opacity duration-150 ease-out hover:opacity-90 active:scale-[0.98]"
-          aria-label="Celerey home"
+          aria-label={`${APPLICATION_NAME} home`}
         >
           {showSymbol ? (
             <Image
-              src="/logos/Celerey-Secondary-Symbol-Dark.png"
-              alt="Celerey"
+              src={LOGO_SYMBOL}
+              alt={APPLICATION_NAME}
               width={40}
               height={40}
               className="size-9 object-contain"
@@ -62,8 +67,8 @@ export function AppSidebar({ capabilities }: AppSidebarProps) {
             />
           ) : (
             <Image
-              src="/logos/logoDark.png"
-              alt="Celerey"
+              src={LOGO_WORDMARK_DARK}
+              alt={APPLICATION_NAME}
               width={176}
               height={44}
               className="h-10 w-auto"

@@ -241,7 +241,7 @@ export function AssetHoldingFields({
               {valuationMethodLabel(valuationMethod)}
             </Badge>
             {showLiveBadge ? (
-              <Badge variant="outline" className="border-emerald-500/20 bg-surface-success text-success">
+              <Badge variant="outline" className="border-border bg-surface-success text-success">
                 Live price
               </Badge>
             ) : null}
