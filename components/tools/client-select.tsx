@@ -40,7 +40,7 @@ export function ClientSelect({
         value={value}
         onValueChange={(next) => onValueChange(next ?? value)}
       >
-        <SelectTrigger id={id} className="w-full bg-background" aria-label="Client">
+        <SelectTrigger id={id} className="w-full" aria-label="Client">
           <SelectValue placeholder="Select client" />
         </SelectTrigger>
         <SelectContent>

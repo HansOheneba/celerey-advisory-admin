@@ -327,7 +327,7 @@ function CopilotComposer({
           <SelectTrigger
             size="sm"
             aria-label="Narrow to a client"
-            className="max-w-[200px] border-0 bg-transparent text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+            className="max-w-[200px] text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           >
             <SelectValue />
           </SelectTrigger>

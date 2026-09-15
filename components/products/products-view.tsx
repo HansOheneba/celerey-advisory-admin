@@ -128,7 +128,7 @@ export function ProductsView({ products }: ProductsViewProps) {
             setCategory(value as ProductCategory | "all")
           }
         >
-          <SelectTrigger className="w-48 bg-background" aria-label="Filter by category">
+          <SelectTrigger className="w-48" aria-label="Filter by category">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -147,7 +147,7 @@ export function ProductsView({ products }: ProductsViewProps) {
             setRisk(value as DemoProduct["riskBand"] | "all")
           }
         >
-          <SelectTrigger className="w-44 bg-background" aria-label="Filter by risk band">
+          <SelectTrigger className="w-44" aria-label="Filter by risk band">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
