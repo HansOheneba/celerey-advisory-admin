@@ -11,7 +11,7 @@ export const ADA_MENSAH_SPEC: ClientSpec = {
   status: "active",
   riskLevel: "moderate",
   subscription: "celerey_core",
-  segment: "affluent",
+  segment: "mass_affluent",
   currency: "GHS",
   advisorId: "rm-daniel",
   advisorName: "Daniel Mensah",

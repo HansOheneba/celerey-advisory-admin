@@ -438,6 +438,11 @@ export function ClientCashFlowChart({
     return Math.ceil((max * 1.2) / 1000) * 1000 || 10000;
   }, [filteredData]);
 
+  const yAxisWidth = React.useMemo(() => {
+    const widestLabel = formatCurrency(yMax, currency);
+    return Math.min(104, Math.max(76, widestLabel.length * 6.5 + 14));
+  }, [yMax, currency]);
+
   const chartData = React.useMemo(() => {
     const hasFutureProjected = filteredData.some((point) => point.isProjected);
     const lastActualIdx = filteredData.reduce(
@@ -578,9 +583,12 @@ export function ClientCashFlowChart({
           </div>
         </div>
 
-        <div className="h-48 w-full">
+        <div className="h-48 w-full min-w-0">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ left: 4, right: 8, top: 8 }}>
+            <LineChart
+              data={chartData}
+              margin={{ left: 8, right: 12, top: 8, bottom: 0 }}
+            >
               <CartesianGrid
                 vertical={false}
                 strokeDasharray="3 3"
@@ -597,13 +605,13 @@ export function ClientCashFlowChart({
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickMargin={6}
-                width={64}
+                tickMargin={8}
+                width={yAxisWidth}
                 domain={[0, yMax]}
                 tickFormatter={(value: number) =>
                   formatCurrency(value, currency)
                 }
-                className="text-xs text-muted-foreground"
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               />
               <Tooltip
                 cursor={false}

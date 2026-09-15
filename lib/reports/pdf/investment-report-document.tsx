@@ -575,7 +575,7 @@ export function InvestmentReportDocument({
       title={`${data.reportKindTitle} — ${data.clientName}`}
       author={FIRM_LEGAL_LINE}
     >
-      <CoverPage data={data} logoSrc={logoSrc} />
+      <CoverPage data={data} />
 
       <ReportPageShell {...shell} pageNumber={2}>
         <Text style={reportStyles.level1}>Executive Summary</Text>

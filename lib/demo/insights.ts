@@ -294,7 +294,7 @@ export function deriveOpportunities(
     }
 
     if (
-      (record.segment === "uhnw" || record.segment === "hnw") &&
+      (record.segment === "ultra" || record.segment === "prestige") &&
       record.detail.insurancePolicies.length === 0
     ) {
       opportunities.push({

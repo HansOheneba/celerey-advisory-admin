@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { Image, Page, Text, View } from "@react-pdf/renderer";
+import { Image, Page, Path, Svg, Text, View } from "@react-pdf/renderer";
 
 import {
   FIRM_CONTACT_LINE,
@@ -14,6 +14,40 @@ export const REPORT_LOGO = path.join(
   process.cwd(),
   "public/fidelity/fidelity-symbol.png",
 );
+
+/** White roundel mark for the orange cover (orange PNG symbol disappears on cover). */
+export function CoverFidelitySymbol({
+  width = 72,
+  height = 72,
+}: {
+  width?: number;
+  height?: number;
+}) {
+  return (
+    <Svg width={width} height={height} viewBox="96 0 35 35">
+      <Path
+        fill="#FFFFFF"
+        fillRule="evenodd"
+        d="M96.8594 17.6577C96.8594 8.46876 104.332 1.02734 113.561 1.02734C122.787 1.02734 130.265 8.46876 130.265 17.6577C130.265 26.8433 122.787 34.2897 113.561 34.2897C104.332 34.2897 96.8594 26.8433 96.8594 17.6577Z"
+      />
+      <Path
+        fill="#FFFFFF"
+        fillRule="evenodd"
+        d="M122.405 13.7474H104.715C104.715 10.5076 107.356 7.87891 110.611 7.87891H122.405V13.7474Z"
+      />
+      <Path
+        fill="#FFFFFF"
+        fillRule="evenodd"
+        d="M104.718 21.5723H110.612H116.51C116.51 24.817 113.869 27.444 110.612 27.444H104.718V21.5723Z"
+      />
+      <Path
+        fill="#FFFFFF"
+        fillRule="evenodd"
+        d="M104.719 20.5928H122.405V14.7227H104.719V20.5928Z"
+      />
+    </Svg>
+  );
+}
 
 export function RunningHeader({ clientName }: { clientName: string }) {
   return (
@@ -80,7 +114,8 @@ export function CoverPage({
   logoSrc,
 }: {
   data: InvestmentReportData;
-  logoSrc: string;
+  /** Optional override; default is white vector mark for orange cover. */
+  logoSrc?: string;
 }) {
   const coverMuted = {
     fontSize: 6.5,
@@ -113,7 +148,13 @@ export function CoverPage({
           paddingHorizontal: 40,
         }}
       >
-        <Image src={logoSrc} style={reportStyles.coverLogo} />
+        {logoSrc ? (
+          <Image src={logoSrc} style={reportStyles.coverLogo} />
+        ) : (
+          <View style={reportStyles.coverLogo}>
+            <CoverFidelitySymbol />
+          </View>
+        )}
         <View style={reportStyles.coverRule} />
         <Text style={reportStyles.coverTitle}>{data.reportKindTitle}</Text>
         <Text style={reportStyles.coverSubtitle}>{data.clientName}</Text>

@@ -10,6 +10,7 @@ import {
   fallbackBookAnswer,
   fallbackClientBrief,
 } from "@/lib/ai/context";
+import { COPILOT_BOOK_QUESTION_INSTRUCTION } from "@/lib/ai/copilot-voice";
 import type { ChatMessage } from "@/lib/ai/deepseek";
 import { can } from "@/lib/auth/capabilities";
 import type { AdvisorSession } from "@/lib/dal";
@@ -21,9 +22,6 @@ import {
   getRecommendations,
   getScopedClientRecords,
 } from "@/lib/demo/repositories";
-
-const BOOK_QUESTION_INSTRUCTION =
-  "Answer the question using only the book data supplied. Lead with the direct answer, then give the supporting numbers and name the specific clients involved. Use markdown: short headings, bullet lists and **bold** for client names.";
 
 export type CopilotRequestPayload = {
   messages: ChatMessage[];
@@ -102,7 +100,7 @@ export async function prepareCopilotRequest(
         { role: "system", content: ADVISORY_SYSTEM_PROMPT },
         {
           role: "user",
-          content: `${BOOK_QUESTION_INSTRUCTION}\n\nQuestion: ${trimmed}\n\n${context}`,
+          content: `${COPILOT_BOOK_QUESTION_INSTRUCTION}\n\nQuestion: ${trimmed}\n\n${context}`,
         },
       ],
       prompt: trimmed,

@@ -8,14 +8,42 @@ export type ClientSubscription =
   | "celerey_core";
 
 /** Wealth segment — drives service tier and review cadence. */
-export type ClientSegment = "uhnw" | "hnw" | "affluent" | "emerging";
+export type ClientSegment =
+  | "emerging"
+  | "prestige"
+  | "mass_affluent"
+  | "ultra";
 
 export const CLIENT_SEGMENT_LABELS: Record<ClientSegment, string> = {
-  uhnw: "UHNW",
-  hnw: "High net worth",
-  affluent: "Affluent",
   emerging: "Emerging",
+  prestige: "Prestige",
+  mass_affluent: "Mass Affluent",
+  ultra: "Ultra",
 };
+
+export const CLIENT_SEGMENTS: ClientSegment[] = [
+  "emerging",
+  "prestige",
+  "mass_affluent",
+  "ultra",
+];
+
+const LEGACY_CLIENT_SEGMENT: Record<string, ClientSegment> = {
+  emerging: "emerging",
+  prestige: "prestige",
+  mass_affluent: "mass_affluent",
+  ultra: "ultra",
+  affluent: "mass_affluent",
+  hnw: "prestige",
+  uhnw: "ultra",
+};
+
+export function normalizeClientSegment(value: unknown): ClientSegment {
+  if (typeof value === "string" && value in LEGACY_CLIENT_SEGMENT) {
+    return LEGACY_CLIENT_SEGMENT[value];
+  }
+  return "emerging";
+}
 
 export type Client = {
   id: string;

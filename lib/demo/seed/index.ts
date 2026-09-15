@@ -896,7 +896,7 @@ function buildEntitlements(
   const planYear = String(new Date().getFullYear());
 
   for (const record of clients) {
-    const included = record.segment === "uhnw" ? 6 : 4;
+    const included = record.segment === "ultra" ? 6 : 4;
     const used = record.client.status === "onboarding" ? 1 : 2;
 
     entitlements[record.client.id] = {

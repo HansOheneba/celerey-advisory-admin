@@ -7,6 +7,7 @@ import type {
   ClientSubscription,
   RiskLevel,
 } from "@/types/client";
+import { normalizeClientSegment } from "@/types/client";
 import type {
   CashFlowSummary,
   ClientDetail,
@@ -53,13 +54,6 @@ const SUBSCRIPTIONS = new Set<ClientSubscription>([
 
 const CURRENCIES = new Set(["USD", "GHS", "GBP"]);
 
-const CLIENT_SEGMENTS = new Set<ClientSegment>([
-  "uhnw",
-  "hnw",
-  "affluent",
-  "emerging",
-]);
-
 function asClientStatus(value: unknown): ClientStatus {
   return CLIENT_STATUSES.has(value as ClientStatus)
     ? (value as ClientStatus)
@@ -79,9 +73,7 @@ export function asSubscription(value: unknown): ClientSubscription {
 }
 
 export function asClientSegment(value: unknown): ClientSegment {
-  return CLIENT_SEGMENTS.has(value as ClientSegment)
-    ? (value as ClientSegment)
-    : "emerging";
+  return normalizeClientSegment(value);
 }
 
 function asCurrency(value: unknown): Client["currency"] {

@@ -12,6 +12,7 @@ import {
   fallbackBookAnswer,
   fallbackClientBrief,
 } from "@/lib/ai/context";
+import { COPILOT_BOOK_QUESTION_INSTRUCTION } from "@/lib/ai/copilot-voice";
 import { chatCompletion } from "@/lib/ai/deepseek";
 import { can } from "@/lib/auth/capabilities";
 import { requireSession } from "@/lib/dal";
@@ -39,13 +40,12 @@ export type CopilotResult = {
 
 const MODE_INSTRUCTIONS: Record<CopilotMode, string> = {
   client_brief:
-    "Write a relationship brief in three short sections: what changed since the last review, why it matters for this client, and the three actions to take next. Keep it under 300 words.",
+    "Write a relationship brief for the RM: what changed since the last review, why it matters for this client, and what to do next. Under 300 words. Prose first; bullets only for actions or figures.",
   meeting_prep:
-    "Write meeting preparation notes: the agenda in four bullets, the two questions the client is most likely to ask with suggested answers, and the single outcome to secure from the meeting.",
+    "Meeting prep for the RM: a short agenda, the client questions you expect with grounded answers, and the outcome to aim for. Keep it scannable without template filler.",
   portfolio_review:
-    "Write a portfolio commentary: current positioning against the mandate, the drivers of the trailing return, the specific risks in the current allocation, and the rebalancing steps you recommend.",
-  book_question:
-    "Answer the question using only the book data supplied. Lead with the direct answer, then give the supporting numbers and name the specific clients involved.",
+    "Portfolio commentary: positioning against the mandate, what drove the trailing return, risks in the current allocation, and rebalancing steps you recommend. Cite numbers from the data.",
+  book_question: COPILOT_BOOK_QUESTION_INSTRUCTION,
 };
 
 async function recordAiSession(input: {

@@ -41,9 +41,9 @@ export const LAST_CONTACT_SOURCE_LABELS: Record<LastContactSource, string> = {
 
 /** Default review cadence in days by client segment. */
 export const REVIEW_FREQUENCY_DAYS: Record<ClientSegment, number> = {
-  uhnw: 90,
-  hnw: 180,
-  affluent: 180,
+  ultra: 90,
+  prestige: 180,
+  mass_affluent: 180,
   emerging: 365,
 };
 

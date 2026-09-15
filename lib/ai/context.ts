@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatCompactCurrency, formatDate } from "@/lib/format";
+import { CLIENT_SEGMENT_LABELS } from "@/types/client";
 import {
   cashBalance,
   excessCash,
@@ -8,6 +9,7 @@ import {
   intelligenceCards,
   suitabilityChecks,
   type BookMetrics,
+  daysUntil,
 } from "@/lib/demo/insights";
 import type {
   DemoAlert,
@@ -16,15 +18,17 @@ import type {
   DemoRecommendation,
 } from "@/lib/demo/types";
 
+import { ADVISORY_VOICE_PROMPT } from "@/lib/ai/copilot-voice";
 import { CELEREY_COPILOT_NAME } from "@/lib/celerey-copilot";
 
 export const ADVISORY_SYSTEM_PROMPT = [
   `You are ${CELEREY_COPILOT_NAME}, an analyst supporting relationship managers at a private bank.`,
   "You only reason from the client data provided in the prompt. Never invent holdings, balances or dates.",
   "Be specific and quantitative. Reference figures from the data rather than describing them vaguely.",
-  "Write in British English, in plain prose. No emoji, no marketing language.",
+  "Write in British English. No emoji, no marketing language.",
   "Every recommendation must respect the stated risk mandate and the suitability verdicts supplied.",
   "If the data does not support an answer, say so plainly.",
+  ADVISORY_VOICE_PROMPT,
 ].join(" ");
 
 /** Data scopes injected into a prompt, surfaced in the AI audit trail. */
@@ -41,6 +45,7 @@ export const CLIENT_CONTEXT_SCOPES = [
 
 export const BOOK_CONTEXT_SCOPES = [
   "book metrics",
+  "review schedule",
   "client summaries",
   "alerts",
   "opportunities",
@@ -48,6 +53,26 @@ export const BOOK_CONTEXT_SCOPES = [
 
 function line(label: string, value: string): string {
   return `${label}: ${value}`;
+}
+
+function formatReviewTiming(nextReviewAt: string): string {
+  const days = daysUntil(nextReviewAt);
+  const dateLabel = formatDate(nextReviewAt);
+  if (!Number.isFinite(days)) {
+    return dateLabel;
+  }
+  if (days < 0) {
+    return `${Math.abs(days)} days overdue (${dateLabel})`;
+  }
+  if (days === 0) {
+    return `today (${dateLabel})`;
+  }
+  return `in ${days} days (${dateLabel})`;
+}
+
+function clientDisplayName(record: DemoClientRecord): string {
+  const { client } = record;
+  return `${client.firstName} ${client.lastName}`;
 }
 
 /**
@@ -65,7 +90,7 @@ export function buildClientContext(record: DemoClientRecord): string {
   const sections: string[] = [
     "# Client",
     line("Name", `${client.firstName} ${client.lastName}`),
-    line("Segment", record.segment.toUpperCase()),
+    line("Segment", CLIENT_SEGMENT_LABELS[record.segment]),
     line("Status", client.status),
     line("Risk mandate", client.riskLevel),
     line("Location", client.location),
@@ -74,7 +99,11 @@ export function buildClientContext(record: DemoClientRecord): string {
     line("Dependents", String(detail.dependents.length)),
     line("Client since", formatDate(client.joinedAt)),
     line("Last contact", formatDate(client.lastContactAt)),
-    line("Next review", formatDate(client.nextReviewAt)),
+    line(
+      "Review cadence",
+      `every ${client.reviewFrequencyDays} days`,
+    ),
+    line("Next review", formatReviewTiming(client.nextReviewAt)),
     "",
     "# Portfolio",
     line("Assets Under Advisory", money(client.aua)),
@@ -182,16 +211,28 @@ export function buildBookContext(
     line("Clients", String(metrics.clientCount)),
     line("Risk band breaches", String(metrics.riskBreaches)),
     line("Reviews overdue", String(metrics.reviewsOverdue)),
+    line("Reviews due within 7 days", String(metrics.reviewsDue)),
     line(
       "Idle cash",
       `${formatCompactCurrency(metrics.idleCashTotal)} across ${metrics.idleCashClients} clients`,
     ),
     line("Relationships at risk", String(metrics.atRisk)),
     "",
+    "# Review schedule (soonest first)",
+    ...[...records]
+      .sort(
+        (a, b) =>
+          Date.parse(a.client.nextReviewAt) - Date.parse(b.client.nextReviewAt),
+      )
+      .map(
+        (record) =>
+          `- ${clientDisplayName(record)}: next review ${formatReviewTiming(record.client.nextReviewAt)}, cadence every ${record.client.reviewFrequencyDays} days, last contact ${record.lastEngagementDays} days ago`,
+      ),
+    "",
     "# Clients",
     ...records.map(
       (record) =>
-        `- ${record.client.firstName} ${record.client.lastName} (${record.segment}, ${record.client.riskLevel}): ${formatCompactCurrency(record.client.aua)}, cash ${record.idleCashPct.toFixed(1)}%, drift ${record.portfolioDriftPct.toFixed(1)}pts, return ${record.performanceYtdPct.toFixed(1)}%, last contact ${record.lastEngagementDays} days ago`,
+        `- ${clientDisplayName(record)} (${CLIENT_SEGMENT_LABELS[record.segment]}, ${record.client.riskLevel}): ${formatCompactCurrency(record.client.aua)}, cash ${record.idleCashPct.toFixed(1)}%, drift ${record.portfolioDriftPct.toFixed(1)}pts, return ${record.performanceYtdPct.toFixed(1)}%, next review ${formatReviewTiming(record.client.nextReviewAt)}, last contact ${record.lastEngagementDays} days ago`,
     ),
     "",
     "# Open alerts",

@@ -108,7 +108,7 @@ function defaultLiability(spec: ClientSpec, seed: number): LiabilitySpec {
   };
 }
 
-const HNW_SEGMENTS: ClientSegment[] = ["hnw", "uhnw", "affluent"];
+const HNW_SEGMENTS: ClientSegment[] = ["prestige", "ultra", "mass_affluent"];
 
 /**
  * Ensures filler and thin specs have data in every client-dashboard tab.
